@@ -3193,10 +3193,9 @@ function LogoutButton() {
   )
 }
 export default function App() {
-  const userRole = "admin";
   const [page, setPage] = useState("dashboard");
-
   const [auth, setAuth] = useState(null);
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem("edu_auth");
@@ -3204,6 +3203,22 @@ export default function App() {
       setAuth(JSON.parse(stored));
     } catch { localStorage.clear(); window.location.href = "/school/login"; }
   }, []);
+
+  const userRole   = auth?.role     || "admin";
+  const teacherClassId = auth?.classId || null;   // classId for teacher
+  const teacherName    = auth?.name    || "";
+
+  // ─── Teacher: pages allowed ───────────────────────────────────────────────
+  const TEACHER_PAGES = ["dashboard", "attendance", "grades", "timetable", "messages"];
+  const PARENT_PAGES  = ["dashboard"];
+
+  const allowedPages = userRole === "teacher" ? TEACHER_PAGES
+                     : userRole === "parent"  ? PARENT_PAGES
+                     : null; // admin: all pages
+
+  const effectivePage = allowedPages && !allowedPages.includes(page)
+    ? "dashboard"
+    : page;
 
   // localStorage persistence — load on mount, save on change
   const [students, setStudents]     = useState(() => load("edu_students",   SEED_STUDENTS));
@@ -3280,7 +3295,7 @@ export default function App() {
           </div>
         </div>
         <nav style={{ flex: 1, padding: "14px 10px", display: "flex", flexDirection: "column", gap: 3 }}>
-          {NAV.map(n => {
+          {NAV.filter(n => !allowedPages || allowedPages.includes(n.id)).map(n => {
             const unreadCount = n.id === "messages" ? messages.filter(m => !m.read).length : 0;
             return (
             <button key={n.id} onClick={() => setPage(n.id)} style={{
@@ -3319,7 +3334,7 @@ export default function App() {
         </div>
         <div style={{ padding: 28, flex: 1 }}>
           {page === "dashboard"  && <Dashboard  students={students} classes={classes} attendance={attendance} grades={grades} subjects={subjects} timetable={timetable} messages={messages} exams={exams} onNavigate={setPage} />}
-          {page === "teachers"  && <Teachers userRole={userRole} />}
+          {effectivePage === "teachers"  && userRole === "admin" && <Teachers userRole={userRole} teachers={teachers} setTeachers={setTeachers} classes={classes} subjects={subjects} />}
           {page === "students"   && <Students   students={students} setStudents={setStudents} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} />}
           {page === "classes"    && <Classes    classes={classes}   setClasses={setClasses}   students={students} />}
           {page === "attendance" && <Attendance students={students} classes={classes} attendance={attendance} setAttendance={setAttendance} />}
