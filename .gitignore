@@ -4,3 +4,5 @@ node_modules/
 .vercel/
 *.pack
 *.pack.gz
+.vercel
+.env*.local
