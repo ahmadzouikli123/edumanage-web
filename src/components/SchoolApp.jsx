@@ -3320,7 +3320,6 @@ export default function App() {
         <div style={{ padding: 28, flex: 1 }}>
           {page === "dashboard"  && <Dashboard  students={students} classes={classes} attendance={attendance} grades={grades} subjects={subjects} timetable={timetable} messages={messages} exams={exams} onNavigate={setPage} />}
           {page === "teachers"  && <Teachers userRole={userRole} />}
-          {page === "teachers"  && <Teachers userRole={userRole} />}
           {page === "students"   && <Students   students={students} setStudents={setStudents} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} />}
           {page === "classes"    && <Classes    classes={classes}   setClasses={setClasses}   students={students} />}
           {page === "attendance" && <Attendance students={students} classes={classes} attendance={attendance} setAttendance={setAttendance} />}
