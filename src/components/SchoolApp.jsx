@@ -3193,6 +3193,7 @@ function LogoutButton() {
   )
 }
 export default function App() {
+  const userRole = "admin";
   const [page, setPage] = useState("dashboard");
 
   const [auth, setAuth] = useState(null);
