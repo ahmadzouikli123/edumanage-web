@@ -52,6 +52,13 @@ const SEED_CLASSES = [
   { id: 4, name: "Grade 3 — A", grade: "Grade 3", room: "301", teacher: "Mr. James Miller",  capacity: 25 },
 ];
 
+const SEED_TEACHERS = [
+  { id: 1, name: "Ms. Sarah Johnson", username: "sarah.johnson", password: "teacher", subject: "Mathematics", classIds: [1], phone: "555-1001", email: "sarah@al-huffath.edu", status: "Active" },
+  { id: 2, name: "Mr. David Lee",     username: "david.lee",     password: "teacher", subject: "English",     classIds: [2], phone: "555-1002", email: "david@al-huffath.edu", status: "Active" },
+  { id: 3, name: "Ms. Emily Carter",  username: "emily.carter",  password: "teacher", subject: "Science",     classIds: [3], phone: "555-1003", email: "emily@al-huffath.edu", status: "Active" },
+  { id: 4, name: "Mr. James Miller",  username: "james.miller",  password: "teacher", subject: "Arabic",      classIds: [4], phone: "555-1004", email: "james@al-huffath.edu", status: "Active" },
+];
+
 const SEED_STUDENTS = [
   { id: 1, name: "Liam Anderson",   sid: "S001", classId: 1, gender: "Male",   phone: "555-0101", status: "Active" },
   { id: 2, name: "Olivia Martinez", sid: "S002", classId: 1, gender: "Female", phone: "555-0102", status: "Active" },
@@ -301,6 +308,7 @@ function seedExamResults(exams, students) {
 const NAV = [
   { id: "dashboard",  icon: "⊞", label: "Dashboard"  },
   { id: "students",   icon: "◉", label: "Students"   },
+  { id: "teachers", icon: "👤", label: "Teachers" },
   { id: "classes",    icon: "▦", label: "Classes"     },
   { id: "attendance", icon: "✓", label: "Attendance"  },
   { id: "grades",     icon: "★", label: "Grades"      },
@@ -308,6 +316,122 @@ const NAV = [
   { id: "messages",   icon: "💬", label: "Messages"   },
   { id: "exams",      icon: "📋", label: "Exams"      },
 ];
+
+
+
+function Teachers({ userRole }) {
+  const [teachers, setTeachers] = useState(SEED_TEACHERS);
+  const [search, setSearch] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState(null);
+
+  const filtered = teachers.filter(t => 
+    t.name.toLowerCase().includes(search.toLowerCase()) ||
+    t.subject.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const newTeacher = {
+      id: editing ? editing.id : Date.now(),
+      name: form.name.value,
+      subject: form.subject.value,
+      phone: form.phone.value,
+      email: form.email.value,
+      status: form.status.value,
+    };
+    
+    if (editing) {
+      setTeachers(teachers.map(t => t.id === editing.id ? newTeacher : t));
+    } else {
+      setTeachers([...teachers, newTeacher]);
+    }
+    setShowForm(false);
+    setEditing(null);
+  };
+
+  const handleDelete = (id) => {
+    if (confirm("Delete this teacher?")) {
+      setTeachers(teachers.filter(t => t.id !== id));
+    }
+  };
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-slate-800">👤 Teachers</h2>
+        {userRole === "admin" && (
+          <button 
+            onClick={() => setShowForm(true)}
+            className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700"
+          >
+            + Add Teacher
+          </button>
+        )}
+      </div>
+
+      <input
+        type="text"
+        placeholder="Search teachers..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full p-3 border rounded-lg mb-4"
+      />
+
+      <div className="grid gap-4">
+        {filtered.map(teacher => (
+          <div key={teacher.id} className="bg-white p-4 rounded-lg shadow border-l-4 border-teal-500">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-bold text-lg">{teacher.name}</h3>
+                <p className="text-teal-600 font-medium">{teacher.subject}</p>
+                <p className="text-slate-500 text-sm">{teacher.email}</p>
+                <p className="text-slate-400 text-sm">{teacher.phone}</p>
+                <span className={teacher.status === "active" ? "inline-block px-2 py-1 rounded text-xs mt-2 bg-green-100 text-green-700" : "inline-block px-2 py-1 rounded text-xs mt-2 bg-gray-100 text-gray-600"}>
+                  {teacher.status}
+                </span>
+              </div>
+              {userRole === "admin" && (
+                <div className="space-x-2">
+                  <button 
+                    onClick={() => { setEditing(teacher); setShowForm(true); }}
+                    className="text-blue-600 hover:underline"
+                  >Edit</button>
+                  <button 
+                    onClick={() => handleDelete(teacher.id)}
+                    className="text-red-600 hover:underline"
+                  >Delete</button>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <form onSubmit={handleSave} className="bg-white p-6 rounded-lg w-96">
+            <h3 className="text-xl font-bold mb-4">{editing ? "Edit" : "Add"} Teacher</h3>
+            <input name="name" defaultValue={editing?.name} placeholder="Name" required className="w-full p-2 border rounded mb-3" />
+            <input name="subject" defaultValue={editing?.subject} placeholder="Subject" required className="w-full p-2 border rounded mb-3" />
+            <input name="email" defaultValue={editing?.email} placeholder="Email" type="email" className="w-full p-2 border rounded mb-3" />
+            <input name="phone" defaultValue={editing?.phone} placeholder="Phone" className="w-full p-2 border rounded mb-3" />
+            <select name="status" defaultValue={editing?.status || "active"} className="w-full p-2 border rounded mb-4">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <div className="flex gap-2">
+              <button type="submit" className="flex-1 bg-teal-600 text-white py-2 rounded">Save</button>
+              <button type="button" onClick={() => {setShowForm(false); setEditing(null);}} className="flex-1 bg-slate-300 py-2 rounded">Cancel</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 // ─── Shared Components ────────────────────────────────────────────────────────
 function Avatar({ name, size = 34 }) {
@@ -346,13 +470,12 @@ function Modal({ title, onClose, children }) {
     <div style={{
       position: "fixed", inset: 0, background: "rgba(15,15,30,.55)",
       display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
-    }} onClick={e => e.target === e.currentTarget && onClose()}>
+    }} onClick={e => e.target === e.currentTarget && onClose && onClose()}>
       <div style={{
         background: "#fff", borderRadius: 16, padding: 28, width: 480,
         maxWidth: "90vw", boxShadow: "0 20px 60px rgba(0,0,0,.2)",
         animation: "fadeUp .18s ease",
       }}>
-        <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }`}</style>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
           <h3 style={{ fontSize: 17, fontWeight: 600, color: T.textMain }}>{title}</h3>
           <button onClick={onClose} style={{
@@ -366,12 +489,12 @@ function Modal({ title, onClose, children }) {
   );
 }
 
-// FIX 6: Field now accepts an `error` prop and displays validation message
+// Field accepts an error prop and displays validation message
 function Field({ label, error, children }) {
   return (
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: error ? "#ef4444" : "#475569", marginBottom: 6 }}>
-        {label}{error && <span style={{ marginLeft: 6, fontWeight: 400, color: "#ef4444" }}>— {error}</span>}
+        {label}{error && <span style={{ marginRight: 6, fontWeight: 400, color: "#ef4444" }}>— {error}</span>}
       </label>
       {children}
     </div>
@@ -590,12 +713,12 @@ function Attendance({ students, classes, attendance, setAttendance }) {
             </div>
           </div>
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
               <thead>
                 <tr style={{ background: "#f8fafc" }}>
                   {["Student", "Present", "Absent", "Late", "Excused", "Rate", ""].map(h => (
                     <th key={h} style={{
-                      padding: "11px 18px", textAlign: "left", fontSize: 11,
+                      padding: "11px 18px", textAlign: "right", fontSize: 11,
                       fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9",
                       whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase",
                     }}>{h}</th>
@@ -608,7 +731,7 @@ function Attendance({ students, classes, attendance, setAttendance }) {
                     onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                     <td style={{ padding: "13px 18px", borderBottom: "1px solid #f8fafc" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
                         <Avatar name={s.name} size={32} />
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 500, color: T.textMain }}>{s.name}</div>
@@ -628,7 +751,7 @@ function Attendance({ students, classes, attendance, setAttendance }) {
                       );
                     })}
                     <td style={{ padding: "13px 18px", borderBottom: "1px solid #f8fafc", minWidth: 140 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
                         <div style={{ flex: 1, height: 6, background: "#f1f5f9", borderRadius: 6, overflow: "hidden" }}>
                           <div style={{
                             height: "100%", borderRadius: 6, transition: "width .4s",
@@ -741,7 +864,7 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
             <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{topStudent.name}</div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>{classes.find(c => c.id === topStudent.classId)?.name}</div>
           </div>
-          <div style={{ marginLeft: "auto", textAlign: "right" }}>
+          <div style={{ marginRight: "auto", textAlign: "right" }}>
             <div style={{ fontSize: 32, fontWeight: 800, color: "#5eead4", lineHeight: 1 }}>{topStudent.gpa}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,.55)" }}>GPA Average</div>
           </div>
@@ -1020,10 +1143,13 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
 
   return (
     <div style={{
-      position: "fixed", inset: 0, background: "rgba(15,15,30,.6)", zIndex: 200,
+      position: onClose ? "fixed" : "relative",
+      inset: onClose ? 0 : "auto",
+      background: onClose ? "rgba(15,15,30,.6)" : "transparent",
+      zIndex: onClose ? 200 : "auto",
       display: "flex", alignItems: "flex-start", justifyContent: "center",
-      overflowY: "auto", padding: "20px 16px 40px",
-    }} onClick={e => e.target === e.currentTarget && onClose()}>
+      overflowY: "auto", padding: onClose ? "20px 16px 40px" : 0,
+    }} onClick={e => e.target === e.currentTarget && onClose && onClose()}>
       <div style={{ width: "100%", maxWidth: 860, fontFamily: "system-ui,-apple-system,sans-serif" }}>
         <style>{`@keyframes profileIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
         <div style={{ background: "#f1f5f9", borderRadius: 18, overflow: "hidden", animation: "profileIn .22s ease" }}>
@@ -1031,7 +1157,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
           {/* Hero */}
           <div style={{ background: "#1e1e3a", padding: "28px 28px 0", position: "relative" }}>
             <button onClick={onClose} style={{
-              position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,.12)",
+              display: onClose ? "flex" : "none", position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,.12)",
               border: "none", borderRadius: 8, width: 32, height: 32, color: "rgba(255,255,255,.8)",
               fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
             }}>×</button>
@@ -1216,9 +1342,9 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                   {attStats.history.length === 0
                     ? <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>No records yet</div>
                     : <div style={{ overflowX: "auto" }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
                         <thead><tr style={{ background: "#f8fafc" }}>
-                          {["Date", "Day", "Status"].map(h => <th key={h} style={{ padding: "10px 18px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#94a3b8", borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".05em" }}>{h}</th>)}
+                          {["Date", "Day", "Status"].map(h => <th key={h} style={{ padding: "10px 18px", textAlign: "right", fontSize: 11, fontWeight: 600, color: "#94a3b8", borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".05em" }}>{h}</th>)}
                         </tr></thead>
                         <tbody>
                           {[...attStats.history].reverse().map(({ date, status }) => {
@@ -1266,10 +1392,10 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                 </div>
                 <ProfileCard title="Subject Breakdown">
                   <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
                       <thead><tr style={{ background: "#f8fafc" }}>
                         {["Subject", "Quiz 15%", "HW 15%", "Midterm 30%", "Final 40%", "Total", "Grade"].map(h => (
-                          <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#94a3b8", borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".04em", whiteSpace: "nowrap" }}>{h}</th>
+                          <th key={h} style={{ padding: "10px 14px", textAlign: "right", fontSize: 11, fontWeight: 600, color: "#94a3b8", borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".04em", whiteSpace: "nowrap" }}>{h}</th>
                         ))}
                       </tr></thead>
                       <tbody>
@@ -1364,7 +1490,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                       <div key={msg.id} style={{ background: "#fff", border: "1px solid #e8ecf2", borderRadius: 14, marginBottom: 14, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,.04)", borderLeft: `4px solid ${tag.color}` }}>
                         <div style={{ padding: "14px 18px 12px" }}>
                           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
                               <div style={{ width: 30, height: 30, borderRadius: "50%", background: msg.fromSchool ? "#1e1e3a" : "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>{msg.fromSchool ? "🏫" : "👤"}</div>
                               <div>
                                 <div style={{ fontSize: 13, fontWeight: 600, color: "#1e1e3a" }}>{msg.subject}</div>
@@ -1376,7 +1502,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                               {!msg.read && <Pill label="Unread" bg="#fee2e2" color="#dc2626" />}
                             </div>
                           </div>
-                          <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.6, paddingLeft: 40 }}>{msg.body}</div>
+                          <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.6, paddingRight: 40 }}>{msg.body}</div>
                         </div>
                         {msg.replies?.length > 0 && (
                           <div style={{ borderTop: "1px solid #f1f5f9", background: "#f8fafc" }}>
@@ -1476,7 +1602,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
       <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius, padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", boxShadow: T.cardShadow }}>
         <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
           <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: T.textMuted }}>🔍</span>
-          <input placeholder="Search name, ID or phone…" value={search} onChange={e => setSearch(e.target.value)} style={{ ...inputStyle, paddingLeft: 32 }} />
+          <input placeholder="Search name, ID or phone…" value={search} onChange={e => setSearch(e.target.value)} style={{ ...inputStyle, paddingRight: 32 }} />
         </div>
         <select value={filterClass} onChange={e => setFilterClass(e.target.value)} style={{ ...selectStyle, width: 180 }}>
           <option value="all">All Classes</option>
@@ -1495,7 +1621,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
       </div>
 
       {atRiskIds.size > 0 && (
-        <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
           <span style={{ fontSize: 16 }}>⚠️</span>
           <span style={{ fontSize: 13, color: "#9a3412", fontWeight: 500 }}>{atRiskIds.size} student{atRiskIds.size > 1 ? "s" : ""} with attendance below 75% — highlighted below</span>
         </div>
@@ -1507,14 +1633,14 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
           <div style={{ fontSize: 12, color: T.textMuted, background: "#f1f5f9", padding: "3px 10px", borderRadius: 20 }}>{filtered.length} records</div>
         </div>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
             <thead>
               <tr style={{ background: "#f8fafc" }}>
                 <th style={{ padding: "11px 14px", width: 36 }}>
                   <input type="checkbox" checked={allFilteredSelected} onChange={toggleAll} style={{ cursor: "pointer" }} />
                 </th>
                 {["Student", "ID", "Class", "Gender", "Phone", "Status", "Actions"].map(h => (
-                  <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase" }}>{h}</th>
+                  <th key={h} style={{ padding: "11px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -1530,7 +1656,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
                       <input type="checkbox" checked={isSel} onChange={() => toggleSelect(s.id)} style={{ cursor: "pointer" }} />
                     </td>
                     <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
                         <Avatar name={s.name} />
                         <button onClick={() => setProfile(s)} style={{ fontSize: 14, fontWeight: 500, color: T.primary, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", textDecoration: "underline dotted" }}>
                           {s.name}
@@ -1884,7 +2010,7 @@ function Grades({ students, classes, subjects, grades, setGrades }) {
               borderRadius: 20, background: bg, color: col,
             }}>{lbl} — {pct}</span>
           ))}
-          <span style={{ fontSize: 11, color: T.textMuted, marginLeft: 4, alignSelf: "center" }}>
+          <span style={{ fontSize: 11, color: T.textMuted, marginRight: 4, alignSelf: "center" }}>
             All scores out of 100
           </span>
         </div>
@@ -1915,11 +2041,11 @@ function Grades({ students, classes, subjects, grades, setGrades }) {
             <div style={{ padding: 48, textAlign: "center", color: T.textMuted }}>No active students</div>
           ) : (
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
                 <thead>
                   <tr style={{ background: "#f8fafc" }}>
                     {["Student", "Quiz /100", "Homework /100", "Midterm /100", "Final /100", "Total", "Grade"].map(h => (
-                      <th key={h} style={{ padding: "11px 16px", textAlign: h === "Student" ? "left" : "center",
+                      <th key={h} style={{ padding: "11px 16px", textAlign: h === "Student" ? "right" : "center",
                         fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9",
                         whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase" }}>{h}</th>
                     ))}
@@ -1934,7 +2060,7 @@ function Grades({ students, classes, subjects, grades, setGrades }) {
                         onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
                         onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                         <td style={{ padding: "11px 16px", borderBottom: "1px solid #f8fafc" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
                             <Avatar name={s.name} size={30} />
                             <div>
                               <div style={{ fontSize: 13, fontWeight: 500, color: T.textMain }}>{s.name}</div>
@@ -1998,11 +2124,11 @@ function Grades({ students, classes, subjects, grades, setGrades }) {
             </div>
           </div>
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
               <thead>
                 <tr style={{ background: "#f8fafc" }}>
-                  <th style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" }}>RANK</th>
-                  <th style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9" }}>STUDENT</th>
+                  <th style={{ padding: "11px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" }}>RANK</th>
+                  <th style={{ padding: "11px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9" }}>STUDENT</th>
                   {classSubjects.map(sub => (
                     <th key={sub.id} style={{ padding: "11px 16px", textAlign: "center", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" }}>
                       {sub.icon} {sub.name}
@@ -2023,7 +2149,7 @@ function Grades({ students, classes, subjects, grades, setGrades }) {
                       )}
                     </td>
                     <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
                         <Avatar name={s.name} size={30} />
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 500, color: T.textMain }}>{s.name}</div>
@@ -2133,7 +2259,7 @@ function Timetable({ classes, subjects, timetable, setTimetable }) {
         <div style={{ fontSize: 13, color: T.textSub }}>
           👤 {currentClass?.teacher} &nbsp;·&nbsp; 🚪 Room {currentClass?.room}
         </div>
-        <div style={{ marginLeft: "auto", fontSize: 12, color: T.textMuted }}>
+        <div style={{ marginRight: "auto", fontSize: 12, color: T.textMuted }}>
           Click any cell to edit · Today highlighted in teal
         </div>
       </div>
@@ -2150,7 +2276,7 @@ function Timetable({ classes, subjects, timetable, setTimetable }) {
                 {/* Period header */}
                 <th style={{
                   padding: "12px 16px", background: T.navy, color: "rgba(255,255,255,.5)",
-                  fontSize: 11, fontWeight: 600, textAlign: "left",
+                  fontSize: 11, fontWeight: 600, textAlign: "right",
                   borderRight: `1px solid rgba(255,255,255,.08)`, width: 130,
                   letterSpacing: ".05em", textTransform: "uppercase",
                 }}>Period</th>
@@ -2402,7 +2528,7 @@ function Messaging({ students, classes, messages, setMessages }) {
             <div style={{ fontSize: 14, fontWeight: 600, color: T.textMain }}>
               Inbox
               {unread > 0 && (
-                <span style={{ marginLeft: 8, background: T.primary, color: "#fff", borderRadius: 20, fontSize: 11, fontWeight: 700, padding: "2px 8px" }}>{unread}</span>
+                <span style={{ marginRight: 8, background: T.primary, color: "#fff", borderRadius: 20, fontSize: 11, fontWeight: 700, padding: "2px 8px" }}>{unread}</span>
               )}
             </div>
             <button onClick={() => { setCompose(true); setSelected(null); }} style={{
@@ -2414,7 +2540,7 @@ function Messaging({ students, classes, messages, setMessages }) {
           <div style={{ position: "relative", marginBottom: 8 }}>
             <span style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: T.textMuted }}>🔍</span>
             <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search messages…" style={{ ...inputStyle, paddingLeft: 28, fontSize: 12, padding: "7px 10px 7px 28px" }} />
+              placeholder="Search messages…" style={{ ...inputStyle, paddingRight: 28, fontSize: 12, padding: "7px 10px 7px 28px" }} />
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {["all", ...Object.keys(MSG_TAGS)].map(k => (
@@ -2450,7 +2576,7 @@ function Messaging({ students, classes, messages, setMessages }) {
                       <span style={{ fontSize: 13, fontWeight: msg.read ? 500 : 700, color: T.textMain, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {student?.name || "Unknown"}
                       </span>
-                      <span style={{ fontSize: 10, color: T.textMuted, flexShrink: 0, marginLeft: 6 }}>{fmtTime(msg.timestamp)}</span>
+                      <span style={{ fontSize: 10, color: T.textMuted, flexShrink: 0, marginRight: 6 }}>{fmtTime(msg.timestamp)}</span>
                     </div>
                     <div style={{ fontSize: 12, color: msg.read ? T.textSub : T.textMain, fontWeight: msg.read ? 400 : 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 4 }}>
                       {msg.subject}
@@ -2469,7 +2595,7 @@ function Messaging({ students, classes, messages, setMessages }) {
       </div>
 
       {/* ── Right Panel: detail or compose ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
         {compose ? (
           /* Compose Panel */
           <div style={{ flex: 1, padding: 28, overflowY: "auto" }}>
@@ -2767,7 +2893,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
               <option value="ongoing">Today</option>
               <option value="completed">Completed</option>
             </select>
-            <div style={{ marginLeft: "auto" }}>
+            <div style={{ marginRight: "auto" }}>
               <button onClick={openAdd} style={{
                 display: "flex", alignItems: "center", gap: 7, padding: "9px 18px",
                 background: T.primary, color: "#fff", border: "none", borderRadius: 8,
@@ -2783,7 +2909,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
             <span style={{ fontSize: 13, fontWeight: 600, color: T.textMain }}>{selectedExam.title}</span>
             <span style={{ fontSize: 12, color: T.textMuted }}>· {fmtDate(selectedExam.date)}</span>
             <button onClick={() => { setView("schedule"); setResultsExamId(null); }} style={{
-              marginLeft: "auto", padding: "7px 14px", borderRadius: 8, border: `1px solid ${T.border}`,
+              marginRight: "auto", padding: "7px 14px", borderRadius: 8, border: `1px solid ${T.border}`,
               background: "#fff", fontSize: 12, cursor: "pointer",
             }}>← Back to Schedule</button>
           </div>
@@ -2825,11 +2951,11 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
             </div>
           ) : (
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
                 <thead>
                   <tr style={{ background: "#f8fafc" }}>
                     {["Date", "Exam", "Class", "Subject", "Type", "Duration", "Room", "Status", "Actions"].map(h => (
-                      <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase" }}>{h}</th>
+                      <th key={h} style={{ padding: "11px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -2922,11 +3048,11 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                 fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all .2s",
               }}>{scoresSaved ? "✓ Saved" : "Save Scores"}</button>
             </div>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
               <thead>
                 <tr style={{ background: "#f8fafc" }}>
                   {["Student", "ID", "Score", "Out of", "Percentage", "Grade"].map(h => (
-                    <th key={h} style={{ padding: "11px 18px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".05em" }}>{h}</th>
+                    <th key={h} style={{ padding: "11px 18px", textAlign: "right", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".05em" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -2943,7 +3069,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                       onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
                       onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                       <td style={{ padding: "12px 18px", borderBottom: i < arr.length-1 ? "1px solid #f8fafc" : "none" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
                           <Avatar name={s.name} size={30} />
                           <span style={{ fontSize: 13, fontWeight: 500, color: T.textMain }}>{s.name}</span>
                         </div>
@@ -3050,7 +3176,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
 function LogoutButton() {
   const handleLogout = () => {
     try { localStorage.removeItem("edu_auth") } catch {}
-    window.location.href = "/school/login"
+    localStorage.clear(); window.location.href = "/school/login";
   }
   return (
     <button onClick={handleLogout} style={{
@@ -3069,8 +3195,18 @@ function LogoutButton() {
 export default function App() {
   const [page, setPage] = useState("dashboard");
 
+  const [auth, setAuth] = useState(null);
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("edu_auth");
+      if (!stored) { localStorage.clear(); window.location.href = "/school/login"; return; }
+      setAuth(JSON.parse(stored));
+    } catch { localStorage.clear(); window.location.href = "/school/login"; }
+  }, []);
+
   // localStorage persistence — load on mount, save on change
   const [students, setStudents]     = useState(() => load("edu_students",   SEED_STUDENTS));
+  const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
   const [classes,  setClasses]      = useState(() => load("edu_classes",    SEED_CLASSES));
   const [attendance, setAttendance] = useState(() => load("edu_attendance", seedAttendance(SEED_STUDENTS)));
   const [subjects, setSubjects]     = useState(() => load("edu_subjects",   SEED_SUBJECTS));
@@ -3081,6 +3217,7 @@ export default function App() {
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
 
   useEffect(() => { save("edu_students",    students);    }, [students]);
+  useEffect(() => { save("edu_teachers",     teachers);     }, [teachers]);
   useEffect(() => { save("edu_classes",     classes);     }, [classes]);
   useEffect(() => { save("edu_attendance",  attendance);  }, [attendance]);
   useEffect(() => { save("edu_subjects",    subjects);    }, [subjects]);
@@ -3099,15 +3236,47 @@ export default function App() {
     timetable:  { title: "Timetable",  sub: "Weekly schedule for each class" },
     messages:   { title: "Messages",    sub: "Communicate with parents & guardians" },
     exams:      { title: "Exams",       sub: "Schedule exams & record results" },
+    teachers:   { title: "Teachers",    sub: "Manage teaching staff & assignments" },
   };
 
+  if (!auth) return null;
+
+  if (auth.role === "parent") {
+    const student = students.find(s => s.id === auth.studentId);
+    if (!student) { localStorage.clear(); window.location.href = "/school/login"; return null; }
+    return (
+      <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"system-ui,sans-serif"}}>
+        <div style={{background:"#1e1e3a",padding:"0 24px",display:"flex",alignItems:"center",gap:14,height:56}}>
+          <div style={{fontSize:14,fontWeight:700,color:"#5eead4",flex:1}}>EduManage</div>
+          <span style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Parent Portal</span>
+          <Avatar name={student.name} size={28} />
+          <span style={{fontSize:12,color:"rgba(255,255,255,.7)",fontWeight:500}}>{student.name}</span>
+          <button onClick={()=>{localStorage.clear(); window.location.href="/school/login";}} style={{padding:"6px 14px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:12,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>Sign Out</button>
+        </div>
+        <div style={{padding:"24px 20px",maxWidth:900,margin:"0 auto"}}>
+          <StudentProfile
+            student={student} classes={classes} attendance={attendance}
+            grades={grades} subjects={subjects} exams={exams}
+            examResults={examResults} messages={messages}
+            onClose={null}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "system-ui,-apple-system,sans-serif" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "system-ui,-apple-system,sans-serif", direction: "rtl" }}>
       {/* Sidebar */}
-      <div style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh" }}>
-        <div style={{ padding: "24px 20px 18px", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#5eead4" }}>EduManage</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,.35)", marginTop: 3 }}>School Management</div>
+      <div style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
+        <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#5eead4" }}>Al-Huffath Academy</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,.4)", marginTop: 2 }}>Ilm | Iman | Hifz</div>
+            </div>
+            <img src="/logo.png" style={{ width: 44, height: 44, objectFit: "contain", background: "#fff", borderRadius: 8, padding: 3, flexShrink: 0 }} />
+          </div>
         </div>
         <nav style={{ flex: 1, padding: "14px 10px", display: "flex", flexDirection: "column", gap: 3 }}>
           {NAV.map(n => {
@@ -3115,7 +3284,7 @@ export default function App() {
             return (
             <button key={n.id} onClick={() => setPage(n.id)} style={{
               display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8,
-              cursor: "pointer", fontSize: 13, border: "none", width: "100%", textAlign: "left",
+              cursor: "pointer", fontSize: 13, border: "none", width: "100%", textAlign: "right",
               background: page === n.id ? T.primary : "transparent",
               color: page === n.id ? "#fff" : "rgba(255,255,255,.55)",
               fontFamily: "inherit", transition: "all .15s",
@@ -3134,7 +3303,7 @@ export default function App() {
             <Avatar name="Admin User" size={30} />
             <div>
               <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,.8)" }}>Admin</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,.35)" }}>admin@school.edu</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,.35)" }}>admin@al-huffath.edu</div>
             </div>
           </div>
           <LogoutButton />
@@ -3142,13 +3311,15 @@ export default function App() {
       </div>
 
       {/* Main */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
         <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: "16px 28px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,.05)" }}>
           <div style={{ fontSize: 19, fontWeight: 700, color: T.textMain }}>{PAGE_TITLES[page].title}</div>
           <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>{PAGE_TITLES[page].sub}</div>
         </div>
         <div style={{ padding: 28, flex: 1 }}>
           {page === "dashboard"  && <Dashboard  students={students} classes={classes} attendance={attendance} grades={grades} subjects={subjects} timetable={timetable} messages={messages} exams={exams} onNavigate={setPage} />}
+          {page === "teachers"  && <Teachers userRole={userRole} />}
+          {page === "teachers"  && <Teachers userRole={userRole} />}
           {page === "students"   && <Students   students={students} setStudents={setStudents} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} />}
           {page === "classes"    && <Classes    classes={classes}   setClasses={setClasses}   students={students} />}
           {page === "attendance" && <Attendance students={students} classes={classes} attendance={attendance} setAttendance={setAttendance} />}
