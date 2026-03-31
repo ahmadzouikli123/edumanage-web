@@ -1,4 +1,10 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 import { useRouter as useNextRouter } from "next/navigation";
 
 // ─── Theme Constants ──────────────────────────────────────────────────────────
@@ -1575,14 +1581,37 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
   const saveStudent = () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    modal.mode === "add"
-      ? setStudents(prev => [...prev, { ...form, id: uid() }])
-      : setStudents(prev => prev.map(s => s.id === form.id ? form : s));
+    if (modal.mode === "add") {
+      supabase.from("students").insert([{
+        name: form.name, sid: form.sid, class_id: form.classId,
+        gender: form.gender, phone: form.phone, status: form.status,
+      }]).select().then(({ data, error }) => {
+        if (data && data.length > 0) {
+          const s = data[0];
+          setStudents(prev => [...prev, { id: s.id, name: s.name, sid: s.sid, classId: s.class_id, gender: s.gender, phone: s.phone, status: s.status }]);
+        } else {
+          setStudents(prev => [...prev, { ...form, id: uid() }]);
+        }
+      });
+    } else {
+      supabase.from("students").update({
+        name: form.name, sid: form.sid, class_id: form.classId,
+        gender: form.gender, phone: form.phone, status: form.status,
+      }).eq("id", form.id).then(() => {
+        setStudents(prev => prev.map(s => s.id === form.id ? form : s));
+      });
+    }
     setModal(null);
     showToast(modal.mode === "add" ? "Student added" : "Student updated");
   };
 
-  const doDelete = (id) => { setStudents(prev => prev.filter(s => s.id !== id)); setDeleteId(null); showToast("Student deleted"); };
+  const doDelete = (id) => {
+    supabase.from("students").delete().eq("id", id).then(() => {
+      setStudents(prev => prev.filter(s => s.id !== id));
+      setDeleteId(null);
+      showToast("Student deleted");
+    });
+  };
   const cls = id => classes.find(c => c.id === id)?.name || "—";
 
   const allDates = Object.keys(attendance || {}).sort();
@@ -3199,7 +3228,7 @@ export default function App() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem("edu_auth");
-      if (!stored) { localStorage.clear(); window.location.href = "/school/login"; return; }
+      if (!stored) { window.location.href = "/school/login"; return; }
       setAuth(JSON.parse(stored));
     } catch { localStorage.clear(); window.location.href = "/school/login"; }
   }, []);
@@ -3221,9 +3250,36 @@ export default function App() {
     : page;
 
   // localStorage persistence — load on mount, save on change
-  const [students, setStudents]     = useState(() => load("edu_students",   SEED_STUDENTS));
+  const [students, setStudents]     = useState(SEED_STUDENTS);
+  const [dbReady, setDbReady] = useState(false);
+  useEffect(() => {
+    supabase.from("students").select("*, classes(name)").then(({ data, error }) => {
+      if (data && data.length > 0) {
+        const mapped = data.map(s => ({
+          id: s.id, name: s.name, sid: s.sid,
+          classId: s.class_id, gender: s.gender,
+          phone: s.phone, status: s.status,
+        }));
+        setStudents(mapped);
+        save("edu_students", mapped);
+      }
+      setDbReady(true);
+    });
+  }, []);
   const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
-  const [classes,  setClasses]      = useState(() => load("edu_classes",    SEED_CLASSES));
+  const [classes,  setClasses]      = useState(SEED_CLASSES);
+  useEffect(() => {
+    supabase.from("classes").select("*").then(({ data }) => {
+      if (data && data.length > 0) {
+        const mapped = data.map(c => ({
+          id: c.id, name: c.name, grade: c.grade,
+          room: c.room, teacher: c.teacher, capacity: c.capacity || 25,
+        }));
+        setClasses(mapped);
+        save("edu_classes", mapped);
+      }
+    });
+  }, []);
   const [attendance, setAttendance] = useState(() => load("edu_attendance", seedAttendance(SEED_STUDENTS)));
   const [subjects, setSubjects]     = useState(() => load("edu_subjects",   SEED_SUBJECTS));
   const [grades,   setGrades]       = useState(() => load("edu_grades",     seedGrades(SEED_STUDENTS, SEED_SUBJECTS)));
