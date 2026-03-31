@@ -42,6 +42,73 @@ const inputStyle = {
 const inputErrorStyle = { ...inputStyle, border: "1px solid #ef4444", background: "#fff5f5" };
 const selectStyle = { ...inputStyle, cursor: "pointer" };
 
+
+// ─── Supabase Client ──────────────────────────────────────────────────────────
+const _supa = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+);
+
+// ─── DB helpers ───────────────────────────────────────────────────────────────
+async function dbGetStudents() {
+  const { data, error } = await _supa.from("students").select("*").order("id");
+  if (error) { console.error("getStudents:", error); return null; }
+  return data.map(s => ({ id: s.id, name: s.name, sid: s.sid, classId: s.class_id, gender: s.gender, phone: s.phone, status: s.status }));
+}
+async function dbUpsertStudent(s) {
+  const row = { name: s.name, sid: s.sid, class_id: s.classId, gender: s.gender, phone: s.phone, status: s.status };
+  if (s._dbId) {
+    const { error } = await _supa.from("students").update(row).eq("id", s._dbId);
+    if (error) console.error("updateStudent:", error);
+  } else {
+    const { error } = await _supa.from("students").insert(row);
+    if (error) console.error("insertStudent:", error);
+  }
+}
+async function dbDeleteStudent(dbId) {
+  const { error } = await _supa.from("students").delete().eq("id", dbId);
+  if (error) console.error("deleteStudent:", error);
+}
+async function dbGetClasses() {
+  const { data, error } = await _supa.from("classes").select("*").order("id");
+  if (error) { console.error("getClasses:", error); return null; }
+  return data.map(c => ({ id: c.id, name: c.name, grade: c.grade, room: c.room, teacher: c.teacher, capacity: c.capacity }));
+}
+async function dbGetTeachers() {
+  const { data, error } = await _supa.from("teachers").select("*").order("id");
+  if (error) { console.error("getTeachers:", error); return null; }
+  return data.map(t => ({ id: t.id, name: t.name, username: t.username, password: t.password, subject: t.subject, classIds: t.class_ids || [], phone: t.phone, email: t.email, status: t.status }));
+}
+async function dbUpsertTeacher(t) {
+  const row = { name: t.name, username: t.username, password: t.password, subject: t.subject, class_ids: t.classIds || [], phone: t.phone, email: t.email, status: t.status };
+  if (t._dbId) {
+    const { error } = await _supa.from("teachers").update(row).eq("id", t._dbId);
+    if (error) console.error("updateTeacher:", error);
+  } else {
+    const { error } = await _supa.from("teachers").insert(row);
+    if (error) console.error("insertTeacher:", error);
+  }
+}
+async function dbDeleteTeacher(dbId) {
+  const { error } = await _supa.from("teachers").delete().eq("id", dbId);
+  if (error) console.error("deleteTeacher:", error);
+}
+async function dbSaveAttendance(date, records) {
+  const rows = Object.entries(records).map(([sid, status]) => ({ date, student_id: parseInt(sid), status }));
+  const { error } = await _supa.from("attendance").upsert(rows, { onConflict: "date,student_id" });
+  if (error) console.error("saveAttendance:", error);
+}
+async function dbGetAttendance() {
+  const { data, error } = await _supa.from("attendance").select("*");
+  if (error) { console.error("getAttendance:", error); return null; }
+  const result = {};
+  data.forEach(r => {
+    if (!result[r.date]) result[r.date] = {};
+    result[r.date][r.student_id] = r.status;
+  });
+  return result;
+}
+
 // ─── Status Config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
   present: { label: "Present", color: "#059669", bg: "#d1fae5", dot: "#10b981", short: "P" },
@@ -3231,6 +3298,19 @@ export default function App() {
       if (!stored) { window.location.href = "/school/login"; return; }
       setAuth(JSON.parse(stored));
     } catch { localStorage.clear(); window.location.href = "/school/login"; }
+  }, []);
+
+  // Load from Supabase on mount
+  useEffect(() => {
+    (async () => {
+      const [dbStudents, dbClasses, dbTeachers, dbAtt] = await Promise.all([
+        dbGetStudents(), dbGetClasses(), dbGetTeachers(), dbGetAttendance()
+      ]);
+      if (dbStudents && dbStudents.length > 0) setStudents(dbStudents);
+      if (dbClasses  && dbClasses.length  > 0) setClasses(dbClasses);
+      if (dbTeachers && dbTeachers.length > 0) setTeachers(dbTeachers);
+      if (dbAtt) setAttendance(prev => ({ ...prev, ...dbAtt }));
+    })();
   }, []);
 
   const userRole   = auth?.role     || "admin";
