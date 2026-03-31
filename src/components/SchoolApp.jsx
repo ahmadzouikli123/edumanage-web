@@ -1,11 +1,9 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
 import { useRouter as useNextRouter } from "next/navigation";
+
+const supabase = createClient("https://mhrtzppoiinpnbnximuf.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ocnR6cHBvaWlucG5ibnhpbXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTE3MDEsImV4cCI6MjA5MDQ2NzcwMX0.933qWXp0vslGHmt06eKgPuihMOVh4NzGUiHXY4iDNSQ");
 
 // ─── Theme Constants ──────────────────────────────────────────────────────────
 const T = {
@@ -45,8 +43,8 @@ const selectStyle = { ...inputStyle, cursor: "pointer" };
 
 // ─── Supabase Client ──────────────────────────────────────────────────────────
 const _supa = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+  "https://mhrtzppoiinpnbnximuf.supabase.co" || "",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ocnR6cHBvaWlucG5ibnhpbXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTE3MDEsImV4cCI6MjA5MDQ2NzcwMX0.933qWXp0vslGHmt06eKgPuihMOVh4NzGUiHXY4iDNSQ" || ""
 );
 
 // ─── DB helpers ───────────────────────────────────────────────────────────────
@@ -1860,9 +1858,14 @@ function Classes({ classes, setClasses, students }) {
   const save = () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    modal.mode === "add"
-      ? setClasses(prev => [...prev, { ...form, id: uid() }])
-      : setClasses(prev => prev.map(c => c.id === form.id ? form : c));
+    if (modal.mode === "add") {
+      const newClass = { ...form, id: uid() };
+      setClasses(prev => [...prev, newClass]);
+      dbUpsertClass({ ...newClass, _dbId: null });
+    } else {
+      setClasses(prev => prev.map(c => c.id === form.id ? form : c));
+      dbUpsertClass({ ...form, _dbId: form.id });
+    }
     setModal(null);
   };
 
@@ -1949,7 +1952,7 @@ function Classes({ classes, setClasses, students }) {
           <p style={{ fontSize: 14, color: T.textSub, marginBottom: 24 }}>This class will be permanently deleted.</p>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
             <button onClick={() => setDeleteId(null)} style={{ padding: "9px 18px", borderRadius: 8, border: `1px solid ${T.border}`, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-            <button onClick={() => { setClasses(prev => prev.filter(c => c.id !== deleteId)); setDeleteId(null); }}
+            <button onClick={() => { dbDeleteClass(deleteId); setClasses(prev => prev.filter(c => c.id !== deleteId)); setDeleteId(null); }}
               style={{ padding: "9px 22px", borderRadius: 8, border: "none", background: T.danger, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
           </div>
         </Modal>
