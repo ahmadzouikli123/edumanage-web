@@ -636,16 +636,20 @@ export default function App() {
   }, []);
 
   // Load from Supabase on mount
-  useEffect(() => {
-    (async () => {
-      const [dbStudents, dbClasses, dbTeachers, dbAtt] = await Promise.all([
-        dbGetStudents(), dbGetClasses(), dbGetTeachers(), dbGetAttendance()
-      ]);
-      if (dbStudents && dbStudents.length > 0) setStudents(dbStudents);
-      if (dbClasses  && dbClasses.length  > 0) setClasses(dbClasses);
-      if (dbTeachers && dbTeachers.length > 0) setTeachers(dbTeachers);
-      if (dbAtt) setAttendance(prev => ({ ...prev, ...dbAtt }));
-    })();
+  useEffect(function() {
+    async function loadData() {
+      try {
+        const dbS = await dbGetStudents();
+        const dbC = await dbGetClasses();
+        const dbT = await dbGetTeachers();
+        const dbA = await dbGetAttendance();
+        if (dbS && dbS.length > 0) setStudents(dbS);
+        if (dbC && dbC.length > 0) setClasses(dbC);
+        if (dbT && dbT.length > 0) setTeachers(dbT);
+        if (dbA && Object.keys(dbA).length > 0) setAttendance(function(p){return Object.assign({},p,dbA);});
+      } catch(e) { console.error('Supabase:', e); }
+    }
+    loadData();
   }, []);
 
   const userRole   = auth?.role     || "admin";
