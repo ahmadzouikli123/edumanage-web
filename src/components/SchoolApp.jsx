@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 import { useRouter as useNextRouter } from "next/navigation";
