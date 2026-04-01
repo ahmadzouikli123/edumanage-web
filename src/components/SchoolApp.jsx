@@ -1,10 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+const supabase = createClient("https://mhrtzppoiinpnbnximuf.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ocnR6cHBvaWlucG5ibnhpbXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTE3MDEsImV4cCI6MjA5MDQ2NzcwMX0.933qWXp0vslGHmt06eKgPuihMOVh4NzGUiHXY4iDNSQ");
 import { useRouter as useNextRouter } from "next/navigation";
 
 // ─── Theme Constants ──────────────────────────────────────────────────────────
@@ -327,6 +324,13 @@ const NAV = [
 
 function Teachers({ userRole }) {
   const [teachers, setTeachers] = useState(SEED_TEACHERS);
+  useEffect(() => {
+    supabase.from("teachers").select("*").order("id").then(({ data }) => {
+      if (data && data.length > 0) {
+        setTeachers(data.map(t => ({ id: t.id, name: t.name, username: t.username || "", password: t.password || "teacher", subject: t.subject, classIds: t.class_ids || [], phone: t.phone || "", email: t.email || "", status: t.status || "Active" })));
+      }
+    });
+  }, []);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -349,9 +353,15 @@ function Teachers({ userRole }) {
     };
     
     if (editing) {
+      dbSaveTeacher({ ...newTeacher, classIds: newTeacher.classIds || [] }, false);
       setTeachers(teachers.map(t => t.id === editing.id ? newTeacher : t));
     } else {
-      setTeachers([...teachers, newTeacher]);
+      supabase.from("teachers").insert([{ name: newTeacher.name, username: newTeacher.name.toLowerCase().replace(/[^a-z]/g, ".").replace(/\.+/g,"."), password: "teacher", subject: newTeacher.subject, class_ids: [], phone: newTeacher.phone || "", email: newTeacher.email || "", status: newTeacher.status || "Active" }]).select().then(({ data }) => {
+        if (data && data.length > 0) {
+          const t = data[0];
+          setTeachers(prev => [...prev, { id: t.id, name: t.name, username: t.username, password: t.password, subject: t.subject, classIds: t.class_ids || [], phone: t.phone, email: t.email, status: t.status }]);
+        }
+      });
     }
     setShowForm(false);
     setEditing(null);
@@ -359,7 +369,9 @@ function Teachers({ userRole }) {
 
   const handleDelete = (id) => {
     if (confirm("Delete this teacher?")) {
-      setTeachers(teachers.filter(t => t.id !== id));
+      supabase.from("teachers").delete().eq("id", id).then(() => {
+        setTeachers(teachers.filter(t => t.id !== id));
+      });
     }
   };
 
@@ -1702,6 +1714,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
                       <div style={{ display: "flex", gap: 6 }}>
                         <button onClick={() => openEdit(s)} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${T.border}`, background: "#fff", fontSize: 12, cursor: "pointer", color: "#334155" }}>Edit</button>
                         <button onClick={() => setDeleteId(s.id)} style={{ padding: "5px 12px", borderRadius: 6, border: "none", background: T.dangerBg, fontSize: 12, cursor: "pointer", color: T.danger }}>Delete</button>
+                        <button onClick={() => exportStudentReportPDF(s, classes.find(c=>c.id===s.classId), attendance, grades, subjects, exams||[], examResults||{})} style={{ padding: "5px 12px", borderRadius: 6, border: "none", background: "#dbeafe", fontSize: 12, cursor: "pointer", color: "#1d4ed8", fontWeight: 500 }}>📄 PDF</button>
                       </div>
                     </td>
                   </tr>
@@ -1771,6 +1784,26 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
 }
 // ─── Classes ──────────────────────────────────────────────────────────────────
 function Classes({ classes, setClasses, students }) {
+  useEffect(() => {
+    supabase.from("classes").select("*").order("id").then(({ data }) => {
+      if (data && data.length > 0)
+        setClasses(data.map(c => ({ id: c.id, name: c.name, grade: c.grade || "", room: c.room || "", teacher: c.teacher || "", capacity: c.capacity || 25 })));
+    });
+  }, []);
+  useEffect(() => {
+    supabase.from("classes").select("*").order("id").then(({ data }) => {
+      if (data && data.length > 0) {
+        setClasses(data.map(c => ({ id: c.id, name: c.name, grade: c.grade || "", room: c.room || "", teacher: c.teacher || "", capacity: c.capacity || 25 })));
+      }
+    });
+  }, []);
+  useEffect(() => {
+    supabase.from("classes").select("*").order("id").then(({ data }) => {
+      if (data && data.length > 0) {
+        setClasses(data.map(c => ({ id: c.id, name: c.name, grade: c.grade || "", room: c.room || "", teacher: c.teacher || "", capacity: c.capacity || 25 })));
+      }
+    });
+  }, []);
   // FIX 3: clean modal state
   const [modal, setModal]       = useState(null); // null | { mode: "add"|"edit", data: null|class }
   const [form, setForm]         = useState(EMPTY_CLASS);
@@ -1793,9 +1826,24 @@ function Classes({ classes, setClasses, students }) {
   const save = () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    modal.mode === "add"
-      ? setClasses(prev => [...prev, { ...form, id: uid() }])
-      : setClasses(prev => prev.map(c => c.id === form.id ? form : c));
+    if (modal.mode === "add") {
+      supabase.from("classes").insert([{
+        name: form.name, grade: form.grade, room: form.room,
+        teacher: form.teacher, capacity: form.capacity || 25
+      }]).select().then(({ data }) => {
+        if (data && data.length > 0) {
+          const c = data[0];
+          setClasses(prev => [...prev, { id: c.id, name: c.name, grade: c.grade || "", room: c.room || "", teacher: c.teacher || "", capacity: c.capacity || 25 }]);
+        }
+      });
+    } else {
+      supabase.from("classes").update({
+        name: form.name, grade: form.grade, room: form.room,
+        teacher: form.teacher, capacity: form.capacity || 25
+      }).eq("id", form.id).then(() => {
+        setClasses(prev => prev.map(c => c.id === form.id ? form : c));
+      });
+    }
     setModal(null);
   };
 
@@ -1882,7 +1930,10 @@ function Classes({ classes, setClasses, students }) {
           <p style={{ fontSize: 14, color: T.textSub, marginBottom: 24 }}>This class will be permanently deleted.</p>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
             <button onClick={() => setDeleteId(null)} style={{ padding: "9px 18px", borderRadius: 8, border: `1px solid ${T.border}`, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-            <button onClick={() => { setClasses(prev => prev.filter(c => c.id !== deleteId)); setDeleteId(null); }}
+            <button onClick={() => { supabase.from("classes").delete().eq("id", deleteId).then(() => {
+      setClasses(prev => prev.filter(c => c.id !== deleteId));
+      setDeleteId(null);
+    }); }}
               style={{ padding: "9px 22px", borderRadius: 8, border: "none", background: T.danger, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
           </div>
         </Modal>
@@ -3201,6 +3252,220 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
   );
 }
 
+
+// ─── PDF Helpers ──────────────────────────────────────────────────────────────
+function loadJsPDF(callback) {
+  if (window.jspdf) { callback(); return; }
+  const s1 = document.createElement("script");
+  s1.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+  s1.onload = () => {
+    const s2 = document.createElement("script");
+    s2.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
+    s2.onload = callback;
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s1);
+}
+
+function exportStudentReportPDF(student, cls, attendance, grades, subjects, exams, examResults) {
+  loadJsPDF(() => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const P = [13,148,136], N = [30,30,58];
+    const W = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFillColor(...N); doc.rect(0,0,W,36,"F");
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(18); doc.setFont("helvetica","bold");
+    doc.text("Al-Huffath Academy", W/2, 14, {align:"center"});
+    doc.setFontSize(11); doc.setFont("helvetica","normal");
+    doc.text("Student Report Card", W/2, 24, {align:"center"});
+    doc.setFontSize(8);
+    doc.text(new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}), W/2, 31, {align:"center"});
+
+    let y = 46;
+
+    // Student Info
+    doc.setFillColor(240,253,250);
+    doc.roundedRect(14,y,W-28,34,3,3,"F");
+    doc.setDrawColor(...P); doc.setLineWidth(0.5);
+    doc.roundedRect(14,y,W-28,34,3,3,"S");
+    doc.setTextColor(...N); doc.setFontSize(13); doc.setFont("helvetica","bold");
+    doc.text(student.name, 20, y+10);
+    doc.setFontSize(8.5); doc.setFont("helvetica","normal"); doc.setTextColor(100,116,139);
+    doc.text("ID: " + student.sid, 20, y+18);
+    doc.text("Class: " + (cls?.name||"-"), 20, y+25);
+    doc.text("Teacher: " + (cls?.teacher||"-"), 20, y+32);
+    doc.text("Gender: " + student.gender, 110, y+18);
+    doc.text("Phone: " + student.phone, 110, y+25);
+    doc.text("Status: " + student.status, 110, y+32);
+    y += 42;
+
+    // Attendance
+    const allDates = Object.keys(attendance).sort();
+    let p=0,a=0,l=0,ex=0,tot=0;
+    allDates.forEach(d => {
+      const r = attendance[d]?.[student.id];
+      if (!r) return; tot++;
+      if (r==="present") p++; else if (r==="absent") a++;
+      else if (r==="late") l++; else if (r==="excused") ex++;
+    });
+    const rate = tot ? Math.round((p/tot)*100) : 0;
+
+    doc.setTextColor(...N); doc.setFontSize(11); doc.setFont("helvetica","bold");
+    doc.text("Attendance Summary", 14, y);
+    doc.setDrawColor(...P); doc.setLineWidth(0.7); doc.line(14,y+2,78,y+2);
+    y += 8;
+
+    const ac = rate>=90?[5,150,105]:rate>=75?[217,119,6]:[220,38,38];
+    doc.setFillColor(...ac); doc.roundedRect(14,y,38,18,2,2,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(15); doc.setFont("helvetica","bold");
+    doc.text(rate+"%", 33, y+10, {align:"center"});
+    doc.setFontSize(7); doc.text("Rate", 33, y+16, {align:"center"});
+
+    [[p,[5,150,105],"Present"],[a,[220,38,38],"Absent"],[l,[217,119,6],"Late"],[ex,[124,58,237],"Excused"]].forEach(([v,c,lb],i) => {
+      const bx = 58+i*36;
+      doc.setFillColor(...c,20); doc.roundedRect(bx,y,33,18,2,2,"F");
+      doc.setTextColor(...c); doc.setFontSize(14); doc.setFont("helvetica","bold");
+      doc.text(String(v), bx+16, y+10, {align:"center"});
+      doc.setFontSize(7); doc.text(lb, bx+16, y+16, {align:"center"});
+    });
+    y += 26;
+
+    // Grades
+    doc.setTextColor(...N); doc.setFontSize(11); doc.setFont("helvetica","bold");
+    doc.text("Academic Performance", 14, y);
+    doc.setDrawColor(...P); doc.line(14,y+2,88,y+2);
+    y += 8;
+
+    const studentSubs = subjects.filter(s => s.classId===student.classId);
+    const gradeRows = studentSubs.map(sub => {
+      const g = grades?.[student.id]?.[sub.id] || {};
+      const q=g.quiz??null,h=g.homework??null,m=g.midterm??null,f=g.final??null;
+      const total = (q!==null||h!==null||m!==null||f!==null)
+        ? Math.round((q||0)*0.15+(h||0)*0.15+(m||0)*0.30+(f||0)*0.40) : null;
+      const letter = total===null?"—":total>=90?"A":total>=80?"B":total>=70?"C":total>=60?"D":"F";
+      return [sub.name, q??"-", h??"-", m??"-", f??"-", total??"-", letter];
+    });
+
+    if (gradeRows.length > 0) {
+      doc.autoTable({
+        startY: y,
+        head:[["Subject","Quiz(15%)","HW(15%)","Midterm(30%)","Final(40%)","Total","Grade"]],
+        body: gradeRows,
+        theme:"grid",
+        headStyles:{fillColor:N,textColor:255,fontSize:8,fontStyle:"bold"},
+        bodyStyles:{fontSize:8,textColor:N},
+        alternateRowStyles:{fillColor:[248,250,252]},
+        columnStyles:{6:{fontStyle:"bold",halign:"center"}},
+        margin:{left:14,right:14},
+      });
+      y = doc.lastAutoTable.finalY + 10;
+    }
+
+    // Exam Results
+    const studentExams = (exams||[]).filter(e => e.classId===student.classId && new Date(e.date+"T00:00:00") < new Date());
+    if (studentExams.length > 0) {
+      if (y > 220) { doc.addPage(); y=20; }
+      doc.setTextColor(...N); doc.setFontSize(11); doc.setFont("helvetica","bold");
+      doc.text("Exam Results", 14, y);
+      doc.setDrawColor(...P); doc.line(14,y+2,65,y+2);
+      y += 8;
+      const examRows = studentExams.map(e => {
+        const score = examResults?.[e.id]?.[student.id];
+        const pct = score!=null ? Math.round((score/e.maxScore)*100) : null;
+        return [
+          e.title,
+          new Date(e.date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),
+          score!=null ? score+"/"+e.maxScore : "-",
+          pct!=null ? pct+"%" : "-",
+          pct!=null?(pct>=90?"Excellent":pct>=75?"Good":pct>=60?"Pass":"Fail"):"-",
+        ];
+      });
+      doc.autoTable({
+        startY:y,
+        head:[["Exam","Date","Score","Percentage","Result"]],
+        body:examRows,
+        theme:"grid",
+        headStyles:{fillColor:N,textColor:255,fontSize:8,fontStyle:"bold"},
+        bodyStyles:{fontSize:8,textColor:N},
+        alternateRowStyles:{fillColor:[248,250,252]},
+        margin:{left:14,right:14},
+      });
+    }
+
+    // Footer
+    const pages = doc.internal.getNumberOfPages();
+    for (let i=1;i<=pages;i++) {
+      doc.setPage(i);
+      doc.setFillColor(...N); doc.rect(0,doc.internal.pageSize.getHeight()-12,W,12,"F");
+      doc.setTextColor(255,255,255); doc.setFontSize(7);
+      doc.text("Al-Huffath Academy | Confidential Student Report", 14, doc.internal.pageSize.getHeight()-5);
+      doc.text("Page "+i+" of "+pages, W-14, doc.internal.pageSize.getHeight()-5, {align:"right"});
+    }
+    doc.save(student.name.replace(/ /g,"_")+"_Report.pdf");
+  });
+}
+
+function exportExamSchedulePDF(exams, classes, subjects) {
+  loadJsPDF(() => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const N = [30,30,58], P = [13,148,136];
+    const W = doc.internal.pageSize.getWidth();
+
+    doc.setFillColor(...N); doc.rect(0,0,W,36,"F");
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(18); doc.setFont("helvetica","bold");
+    doc.text("Al-Huffath Academy", W/2, 14, {align:"center"});
+    doc.setFontSize(11); doc.text("Exam Schedule", W/2, 24, {align:"center"});
+    doc.setFontSize(8); doc.setFont("helvetica","normal");
+    doc.text(new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}), W/2, 31, {align:"center"});
+
+    const today = new Date().toISOString().split("T")[0];
+    const rows = [...exams].sort((a,b)=>a.date.localeCompare(b.date)).map(ex => {
+      const cls = classes.find(c=>c.id===ex.classId);
+      const sub = subjects.find(s=>s.id===ex.subjectId);
+      const status = ex.date>today?"Upcoming":ex.date===today?"Today":"Completed";
+      return [
+        new Date(ex.date+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"}),
+        ex.title, cls?.name||"-", sub?.name||"-",
+        ex.type.charAt(0).toUpperCase()+ex.type.slice(1),
+        ex.duration+" min", "Room "+ex.room, status
+      ];
+    });
+
+    doc.autoTable({
+      startY:44,
+      head:[["Date","Exam","Class","Subject","Type","Duration","Room","Status"]],
+      body:rows,
+      theme:"grid",
+      headStyles:{fillColor:N,textColor:255,fontSize:8,fontStyle:"bold"},
+      bodyStyles:{fontSize:7.5,textColor:N},
+      alternateRowStyles:{fillColor:[248,250,252]},
+      margin:{left:10,right:10},
+      didParseCell:(d)=>{
+        if(d.section==="body"&&d.column.index===7){
+          const v=d.cell.raw;
+          d.cell.styles.textColor=v==="Upcoming"?P:v==="Today"?[217,119,6]:[100,116,139];
+          if(v!=="Completed") d.cell.styles.fontStyle="bold";
+        }
+      },
+    });
+
+    const pages = doc.internal.getNumberOfPages();
+    for (let i=1;i<=pages;i++) {
+      doc.setPage(i);
+      doc.setFillColor(...N); doc.rect(0,doc.internal.pageSize.getHeight()-12,W,12,"F");
+      doc.setTextColor(255,255,255); doc.setFontSize(7);
+      doc.text("Al-Huffath Academy | Exam Schedule", 10, doc.internal.pageSize.getHeight()-5);
+      doc.text("Page "+i+" of "+pages, W-10, doc.internal.pageSize.getHeight()-5, {align:"right"});
+    }
+    doc.save("Exam_Schedule_"+new Date().toISOString().split("T")[0]+".pdf");
+  });
+}
+
 // ─── App Root ─────────────────────────────────────────────────────────────────
 function LogoutButton() {
   const handleLogout = () => {
@@ -3250,7 +3515,13 @@ export default function App() {
     : page;
 
   // localStorage persistence — load on mount, save on change
-  const [students, setStudents]     = useState(SEED_STUDENTS);
+  const [students, setStudents] = useState(SEED_STUDENTS);
+  useEffect(() => {
+    supabase.from("students").select("*").order("id").then(({ data }) => {
+      if (data && data.length > 0)
+        setStudents(data.map(s => ({ id: s.id, name: s.name, sid: s.sid, classId: s.class_id, gender: s.gender, phone: s.phone, status: s.status })));
+    });
+  }, []);
   const [dbReady, setDbReady] = useState(false);
   useEffect(() => {
     supabase.from("students").select("*, classes(name)").then(({ data, error }) => {
