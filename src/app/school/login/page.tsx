@@ -92,10 +92,10 @@ export default function Login() {
           </div>
         </div>
       </div>
-    <div style={{marginTop: 24, textAlign: "center"}}>
-        <div style={{fontSize: 12, color: "rgba(255,255,255,.35)"}}>© 2025 Developed & Designed by</div>
-        <div style={{fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,.55)", marginTop: 3}}>Ahmad Zouikli</div>
-        <div style={{fontSize: 11, color: "rgba(255,255,255,.25)", marginTop: 2}}>All rights reserved</div>
+    <div style={{marginTop: 28, textAlign: "center", width: "100%", maxWidth: 420}}>
+        <div style={{fontSize: 11, color: "rgba(255,255,255,.3)", letterSpacing: ".03em"}}>© 2025 Developed & Designed by</div>
+        <div style={{fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,.6)", marginTop: 4, letterSpacing: ".02em"}}>Ahmad Zouikli</div>
+        <div style={{fontSize: 10, color: "rgba(255,255,255,.2)", marginTop: 3, letterSpacing: ".05em", textTransform: "uppercase"}}>All Rights Reserved</div>
       </div>
     </div>
   )
