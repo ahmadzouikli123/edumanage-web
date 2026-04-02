@@ -2979,6 +2979,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                 background: T.primary, color: "#fff", border: "none", borderRadius: 8,
                 fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
               }}>＋ Schedule Exam</button>
+              <button onClick={() => exportExamSchedulePDF(exams, classes, subjects)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: '#dbeafe', color: '#1d4ed8', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>📥 Export PDF</button>
             </div>
           </>
         )}
