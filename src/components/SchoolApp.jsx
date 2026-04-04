@@ -1,4 +1,36 @@
-﻿// ─── localStorage Supabase Mock ───────────────────────────────────────────────
+﻿// ─── localStorage Supabase Mock ─────────────────────────────────────────────
+const supabase = {
+  from: (name) => {
+    function loadT() { try { return JSON.parse(localStorage.getItem("db_"+name)||"[]"); } catch{return[];} }
+    function saveT(d) { localStorage.setItem("db_"+name, JSON.stringify(d)); }
+    function chain(data) {
+      return {
+        order: () => chain(data),
+        eq: (k,v) => chain(data.filter(r=>String(r[k])===String(v))),
+        then: (fn) => { fn({data,error:null}); return {catch:()=>{}}; },
+        catch: () => {},
+      };
+    }
+    return {
+      select: (_q) => chain(loadT()),
+      insert: (rows) => ({ select: () => ({ then: (fn) => {
+        const d=loadT(); const newRows=rows.map((r,i)=>({...r,id:Date.now()+i}));
+        saveT([...d,...newRows]); fn({data:newRows,error:null});
+      }})}),
+      update: (vals) => ({ eq: (k,v) => ({ then: (fn) => {
+        const d=loadT().map(r=>String(r[k])===String(v)?{...r,...vals}:r);
+        saveT(d); fn({data:d,error:null});
+      }})}),
+      delete: () => ({ eq: (k,v) => ({ then: (fn) => {
+        saveT(loadT().filter(r=>String(r[k])!==String(v)));
+        fn({data:null,error:null});
+      }})}),
+      upsert: (rows) => ({ then: (fn) => { fn({data:rows,error:null}); } }),
+    };
+  }
+};
+// ─────────────────────────────────────────────────────────────────────────────
+// ─── localStorage Supabase Mock ───────────────────────────────────────────────
 function makeTable(name) {
   function load() { try { return JSON.parse(localStorage.getItem("db_"+name)||"[]"); } catch{return[];} }
   function save(d) { localStorage.setItem("db_"+name, JSON.stringify(d)); }
@@ -3669,6 +3701,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
