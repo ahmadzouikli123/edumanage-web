@@ -377,6 +377,7 @@ function Teachers({ userRole }) {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  useEffect(() => { try { localStorage.setItem("edu_teachers", JSON.stringify(teachers)); } catch {} }, [teachers]);
 
   const filtered = teachers.filter(t => 
     t.name.toLowerCase().includes(search.toLowerCase()) ||
