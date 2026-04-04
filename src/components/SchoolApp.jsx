@@ -3516,33 +3516,10 @@ export default function App() {
   // localStorage persistence — load on mount, save on change
   const [students, setStudents] = useState(() => load("edu_students", SEED_STUDENTS));
   const [dbReady, setDbReady] = useState(false);
-  useEffect(() => {
-    supabase.from("students").select("*, classes(name)").then(({ data, error }) => {
-      if (data && data.length > 0) {
-        const mapped = data.map(s => ({
-          id: s.id, name: s.name, sid: s.sid,
-          classId: s.class_id, gender: s.gender,
-          phone: s.phone, status: s.status,
-        }));
-        setStudents(mapped);
-        save("edu_students", mapped);
-      }
-      setDbReady(true);
-    });
+  useEffect(() => { setDbReady(true); }, []);
   }, []);
   const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
   const [classes,  setClasses]      = useState(SEED_CLASSES);
-  useEffect(() => {
-    supabase.from("classes").select("*").then(({ data }) => {
-      if (data && data.length > 0) {
-        const mapped = data.map(c => ({
-          id: c.id, name: c.name, grade: c.grade,
-          room: c.room, teacher: c.teacher, capacity: c.capacity || 25,
-        }));
-        setClasses(mapped);
-        save("edu_classes", mapped);
-      }
-    });
   }, []);
   const [attendance, setAttendance] = useState(() => load("edu_attendance", seedAttendance(SEED_STUDENTS)));
   const [subjects, setSubjects]     = useState(() => load("edu_subjects",   SEED_SUBJECTS));
@@ -3667,6 +3644,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
