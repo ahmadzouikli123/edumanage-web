@@ -1,4 +1,5 @@
-﻿import { useState, useMemo, useEffect, useCallback } from "react";
+﻿const supabase = { from: (name) => ({ select: (_q) => ({ then: (fn) => { fn({data:[],error:null}); return {catch:()=>{}}; } }), insert: (rows) => ({ select: () => ({ then: (fn) => { fn({data:rows,error:null}); } }) }), update: (v) => ({ eq: (_k,_v) => ({ then: (fn) => { fn({data:[],error:null}); } }) }), delete: () => ({ eq: (_k,_v) => ({ then: (fn) => { fn({data:null,error:null}); } }) }), upsert: (rows) => ({ then: (fn) => { fn({data:rows,error:null}); } }), }) };
+import { useState, useMemo, useEffect, useCallback } from "react";
 
 import { useRouter as useNextRouter } from "next/navigation";
 
@@ -3635,6 +3636,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
