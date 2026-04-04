@@ -513,9 +513,9 @@ function Teachers({ userRole }) {
                   >Edit</button>
                   <button 
                     onClick={() => handleDelete(teacher.id)}
-                  <button onClick={() => printTeacherReport(teacher)} className="text-green-600 hover:underline">Report</button>
                     className="text-red-600 hover:underline"
                   >Delete</button>
+                  <button onClick={() => printTeacherReport(teacher)} className="text-green-600 hover:underline">Report</button>
                 </div>
               )}
             </div>
@@ -1816,6 +1816,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
                       <div style={{ display: "flex", gap: 6 }}>
                         <button onClick={() => openEdit(s)} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${T.border}`, background: "#fff", fontSize: 12, cursor: "pointer", color: "#334155" }}>Edit</button>
                         <button onClick={() => setDeleteId(s.id)} style={{ padding: "5px 12px", borderRadius: 6, border: "none", background: T.dangerBg, fontSize: 12, cursor: "pointer", color: T.danger }}>Delete</button>
+                  <button onClick={() => printTeacherReport(teacher)} className="text-green-600 hover:underline">Report</button>
                       </div>
                     </td>
                   </tr>
@@ -1874,6 +1875,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
             <button onClick={() => setDeleteId(null)} style={{ padding: "9px 18px", borderRadius: 8, border: `1px solid ${T.border}`, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
             <button onClick={() => doDelete(deleteId)} style={{ padding: "9px 22px", borderRadius: 8, border: "none", background: T.danger, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
+                  <button onClick={() => printTeacherReport(teacher)} className="text-green-600 hover:underline">Report</button>
           </div>
         </Modal>
       )}
@@ -1955,6 +1957,7 @@ function Classes({ classes, setClasses, students }) {
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={() => openEdit(c)} style={{ flex: 1, padding: "7px 0", borderRadius: 7, border: `1px solid ${T.border}`, background: "#fff", fontSize: 12, cursor: "pointer", color: "#334155", fontFamily: "inherit" }}>Edit</button>
                 <button onClick={() => setDeleteId(c.id)} style={{ flex: 1, padding: "7px 0", borderRadius: 7, border: "none", background: T.dangerBg, fontSize: 12, cursor: "pointer", color: T.danger, fontFamily: "inherit" }}>Delete</button>
+                  <button onClick={() => printTeacherReport(teacher)} className="text-green-600 hover:underline">Report</button>
               </div>
             </div>
           );
@@ -1998,6 +2001,7 @@ function Classes({ classes, setClasses, students }) {
             <button onClick={() => setDeleteId(null)} style={{ padding: "9px 18px", borderRadius: 8, border: `1px solid ${T.border}`, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
             <button onClick={() => { setClasses(prev => prev.filter(c => c.id !== deleteId)); setDeleteId(null); }}
               style={{ padding: "9px 22px", borderRadius: 8, border: "none", background: T.danger, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
+                  <button onClick={() => printTeacherReport(teacher)} className="text-green-600 hover:underline">Report</button>
           </div>
         </Modal>
       )}
@@ -3140,6 +3144,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                             )}
                             <button onClick={() => openEdit(exam)} style={{ padding: "5px 10px", borderRadius: 6, border: `1px solid ${T.border}`, background: "#fff", fontSize: 11, cursor: "pointer", color: "#334155" }}>Edit</button>
                             <button onClick={() => deleteExam(exam.id)} style={{ padding: "5px 10px", borderRadius: 6, border: "none", background: T.dangerBg, fontSize: 11, cursor: "pointer", color: T.danger }}>Delete</button>
+                  <button onClick={() => printTeacherReport(teacher)} className="text-green-600 hover:underline">Report</button>
                           </div>
                         </td>
                       </tr>
