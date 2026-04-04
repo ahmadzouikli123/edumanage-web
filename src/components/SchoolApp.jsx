@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+﻿import { useState, useMemo, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -1578,6 +1578,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
 function Students({ students, setStudents, classes, attendance, grades, subjects, exams, examResults, messages }) {
   const [search, setSearch]           = useState("");
   const [filterClass, setFilterClass] = useState("all");
+  const [filterYear, setFilterYear] = useState("all");
   const [modal, setModal]             = useState(null);
   const [form, setForm]               = useState(EMPTY_STUDENT);
   const [errors, setErrors]           = useState({});
@@ -2813,6 +2814,7 @@ function MessageBubble({ fromSchool, body, time, student }) {
 function ExamScheduler({ students, classes, subjects, exams, setExams, examResults, setExamResults }) {
   const [view, setView]         = useState("schedule"); // "schedule" | "results"
   const [filterClass, setFilterClass] = useState("all");
+  const [filterYear, setFilterYear] = useState("all");
   const [filterType,  setFilterType]  = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [modal, setModal]       = useState(null); // null | { mode:"add"|"edit", data }
@@ -3638,3 +3640,4 @@ export default function App() {
     </div>
   );
 }
+
