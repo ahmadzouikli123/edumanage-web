@@ -3449,7 +3449,7 @@ function exportExamSchedulePDF(exams, classes, subjects) {
 function LogoutButton() {
   const handleLogout = () => {
     try { localStorage.removeItem("edu_auth") } catch {}
-    localStorage.clear(); window.location.href = "/school/login";
+    window.location.href = "/school/login";
   }
   return (
     <button onClick={handleLogout} style={{
@@ -3475,7 +3475,7 @@ export default function App() {
       const stored = localStorage.getItem("edu_auth");
       if (!stored) { window.location.href = "/school/login"; return; }
       setAuth(JSON.parse(stored));
-    } catch { localStorage.clear(); window.location.href = "/school/login"; }
+    } catch { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; }
   }, []);
 
   const userRole   = auth?.role     || "admin";
@@ -3560,7 +3560,7 @@ export default function App() {
 
   if (auth.role === "parent") {
     const student = students.find(s => s.id === auth.studentId);
-    if (!student) { localStorage.clear(); window.location.href = "/school/login"; return null; }
+    if (!student) { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; return null; }
     return (
       <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"system-ui,sans-serif"}}>
         <div style={{background:"#1e1e3a",padding:"0 24px",display:"flex",alignItems:"center",gap:14,height:56}}>
@@ -3568,7 +3568,7 @@ export default function App() {
           <span style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Parent Portal</span>
           <Avatar name={student.name} size={28} />
           <span style={{fontSize:12,color:"rgba(255,255,255,.7)",fontWeight:500}}>{student.name}</span>
-          <button onClick={()=>{localStorage.clear(); window.location.href="/school/login";}} style={{padding:"6px 14px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:12,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>Sign Out</button>
+          <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"6px 14px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:12,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>Sign Out</button>
         </div>
         <div style={{padding:"24px 20px",maxWidth:900,margin:"0 auto"}}>
           <StudentProfile
@@ -3648,6 +3648,8 @@ export default function App() {
     </div>
   );
 }
+
+
 
 
 
