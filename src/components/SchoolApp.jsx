@@ -3516,7 +3516,7 @@ export default function App() {
     : page;
 
   // localStorage persistence — load on mount, save on change
-  const [students, setStudents]     = useState(SEED_STUDENTS);
+  const [students, setStudents] = useState(() => load("edu_students", SEED_STUDENTS));
   const [dbReady, setDbReady] = useState(false);
   useEffect(() => {
     supabase.from("students").select("*, classes(name)").then(({ data, error }) => {
@@ -3669,5 +3669,6 @@ export default function App() {
     </div>
   );
 }
+
 
 
