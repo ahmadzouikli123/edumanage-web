@@ -1,5 +1,17 @@
-﻿const supabase = { from: (name) => ({ select: (_q) => ({ then: (fn) => { fn({data:[],error:null}); return {catch:()=>{}}; } }), insert: (rows) => ({ select: () => ({ then: (fn) => { fn({data:rows,error:null}); } }) }), update: (v) => ({ eq: (_k,_v) => ({ then: (fn) => { fn({data:[],error:null}); } }) }), delete: () => ({ eq: (_k,_v) => ({ then: (fn) => { fn({data:null,error:null}); } }) }), upsert: (rows) => ({ then: (fn) => { fn({data:rows,error:null}); } }), }) };
-import { useState, useMemo, useEffect, useCallback } from "react";
+﻿const supabase = {
+  from: (name) => {
+    const key = "db_" + name;
+    const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
+    const saveT = (d) => { try { localStorage.setItem(key, JSON.stringify(d)); } catch{} };
+    return {
+      select: (_q) => ({ order: () => ({ then: (fn) => { fn({data:loadT(),error:null}); return {catch:()=>{}}; } }), then: (fn) => { fn({data:loadT(),error:null}); return {catch:()=>{}}; } }),
+      insert: (rows) => ({ select: () => ({ then: (fn) => { const d=loadT(); const nr=rows.map((r,i)=>({...r,id:r.id||Date.now()+i})); saveT([...d,...nr]); fn({data:nr,error:null}); } }) }),
+      update: (vals) => ({ eq: (k,v) => ({ then: (fn) => { const d=loadT().map(r=>String(r[k])===String(v)?{...r,...vals}:r); saveT(d); fn({data:d,error:null}); } }) }),
+      delete: () => ({ eq: (k,v) => ({ then: (fn) => { saveT(loadT().filter(r=>String(r[k])!==String(v))); fn({data:null,error:null}); } }) }),
+      upsert: (rows) => ({ then: (fn) => { fn({data:rows,error:null}); } }),
+    };
+  }
+};import { useState, useMemo, useEffect, useCallback } from "react";
 
 import { useRouter as useNextRouter } from "next/navigation";
 
@@ -361,7 +373,7 @@ const NAV = [
 
 
 function Teachers({ userRole }) {
-  const [teachers, setTeachers] = useState(() => { try { const v=localStorage.getItem("edu_teachers"); return v?JSON.parse(v):SEED_TEACHERS; } catch{return SEED_TEACHERS;} });
+  const [teachers, setTeachers] = useState(SEED_TEACHERS);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -3483,7 +3495,7 @@ export default function App() {
     : page;
 
   // localStorage persistence — load on mount, save on change
-  const [students, setStudents] = useState(() => { try { const v=localStorage.getItem("edu_students"); return v?JSON.parse(v):SEED_STUDENTS; } catch{return SEED_STUDENTS;} });
+  const [students, setStudents]     = useState(SEED_STUDENTS);
   const [dbReady, setDbReady] = useState(false);
   useEffect(() => {
     supabase.from("students").select("*, classes(name)").then(({ data, error }) => {
@@ -3636,7 +3648,5 @@ export default function App() {
     </div>
   );
 }
-
-
 
 
