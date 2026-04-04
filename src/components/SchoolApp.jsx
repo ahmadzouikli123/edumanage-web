@@ -1672,7 +1672,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
   const printStudentReport = (s) => {
     const today = new Date().toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const clsName = classes.find(c => c.id === s.classId)?.name || '-';
-    const att = attendance.filter(a => a.studentId === s.id);
+    const att = (attendance || []).filter(a => a.studentId === s.id);
     const present = att.filter(a => a.status === 'Present').length;
     const absent  = att.filter(a => a.status === 'Absent').length;
     const late    = att.filter(a => a.status === 'Late').length;
