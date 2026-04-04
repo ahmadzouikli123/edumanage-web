@@ -1,6 +1,6 @@
 ﻿const supabase = {
   from: (name) => {
-    const key = "db_" + name;
+    const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
     const saveT = (d) => { try { localStorage.setItem(key, JSON.stringify(d)); } catch{} };
     return {
@@ -3648,5 +3648,6 @@ export default function App() {
     </div>
   );
 }
+
 
 
