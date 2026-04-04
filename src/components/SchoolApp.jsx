@@ -2,8 +2,13 @@
 function makeTable(name) {
   function load() { try { return JSON.parse(localStorage.getItem("db_"+name)||"[]"); } catch{return[];} }
   function save(d) { localStorage.setItem("db_"+name, JSON.stringify(d)); }
+  const chain = () => ({
+    order: () => chain(),
+    eq: (k,v) => chain(),
+    then: (fn) => fn({data:load(),error:null}),
+  });
   return {
-    select: () => ({ order: () => ({ then: (fn) => fn({data:load(),error:null}) }) }),
+    select: (_q) => chain(),
     insert: (rows) => ({ select: () => ({ then: (fn) => { const d=load(); const newRows=rows.map((r,i)=>({...r,id:Date.now()+i})); save([...d,...newRows]); fn({data:newRows,error:null}); } }) }),
     update: (vals) => ({ eq: (k,v) => ({ then: (fn) => { const d=load().map(r=>r[k]===v?{...r,...vals}:r); save(d); fn({data:d,error:null}); } }) }),
     delete: () => ({ eq: (k,v) => ({ then: (fn) => { save(load().filter(r=>r[k]!==v)); fn({data:null,error:null}); } }) }),
@@ -3372,5 +3377,6 @@ export default function App() {
     </div>
   );
 }
+
 
 
