@@ -373,7 +373,7 @@ const NAV = [
 
 
 function Teachers({ userRole }) {
-  const [teachers, setTeachers] = useState(SEED_TEACHERS);
+  const [teachers, setTeachers] = useState(() => { try { const v = localStorage.getItem("edu_teachers"); return v ? JSON.parse(v) : SEED_TEACHERS; } catch { return SEED_TEACHERS; } });
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -3495,7 +3495,7 @@ export default function App() {
     : page;
 
   // localStorage persistence — load on mount, save on change
-  const [students, setStudents]     = useState(SEED_STUDENTS);
+  const [students, setStudents]     = useState(() => load("edu_students", SEED_STUDENTS));
   const [dbReady, setDbReady] = useState(false);
   useEffect(() => {
     supabase.from("students").select("*, classes(name)").then(({ data, error }) => {
@@ -3512,7 +3512,7 @@ export default function App() {
     });
   }, []);
   const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
-  const [classes,  setClasses]      = useState(SEED_CLASSES);
+  const [classes,  setClasses]      = useState(() => load("edu_classes", SEED_CLASSES));
   useEffect(() => {
     supabase.from("classes").select("*").then(({ data }) => {
       if (data && data.length > 0) {
@@ -3648,6 +3648,9 @@ export default function App() {
     </div>
   );
 }
+
+
+
 
 
 
