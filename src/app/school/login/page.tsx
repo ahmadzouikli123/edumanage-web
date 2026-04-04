@@ -92,9 +92,6 @@ export default function Login() {
           </div>
         </div>
       </div>
-    <div style={{position: "fixed", bottom: 16, left: 0, right: 0, textAlign: "center", pointerEvents: "none"}}>
-        <div style={{fontSize: 11, color: "rgba(255,255,255,.3)"}}>© 2025 Developed & Designed by <span style={{fontWeight: 600, color: "rgba(255,255,255,.5)"}}>Ahmad Zouikli</span> · All Rights Reserved</div>
-      </div>
     </div>
   )
 }
