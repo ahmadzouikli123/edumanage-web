@@ -41,9 +41,32 @@ export default function Login() {
         if (user === "admin" && pass === "admin123") { save("edu_auth",{role:"admin",name:"Admin User"}); router.replace("/school") }
         else setErr("Invalid credentials")
       } else if (role === "teacher") {
-        const c = CLS.find(x => x.u === user.toLowerCase().trim())
-        if (c && pass === "teacher") { save("edu_auth",{role:"teacher",name:c.name,classId:c.id}); router.replace("/school") }
-        else setErr("Invalid credentials")
+        // Fetch teacher from Supabase
+        fetch(`https://${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace("https://","")}/rest/v1/teachers?username=eq.${encodeURIComponent(user.toLowerCase().trim())}&select=*`, {
+          headers: {
+            "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""}`,
+          }
+        }).then(r => r.json()).then((data: any[]) => {
+          setBusy(false);
+          if (!data || data.length === 0 || data[0].password !== pass) {
+            setErr("Invalid credentials");
+            return;
+          }
+          const t = data[0];
+          // Determine teacher type: subject teacher (has subject) or class teacher (has class_ids)
+          const teacherType = t.subject ? "subject" : "class";
+          save("edu_auth", {
+            role: "teacher",
+            name: t.name,
+            classId: t.class_ids?.[0] || null,
+            classIds: t.class_ids || [],
+            subject: t.subject || null,
+            teacherType,
+          });
+          router.replace("/school");
+        }).catch(() => { setBusy(false); setErr("Connection error"); });
+        return;
       } else {
         const stored = load("edu_students", SEED_STUDENTS)
         const all = stored.length > 0 ? stored : SEED_STUDENTS
