@@ -515,6 +515,7 @@ function Teachers({ userRole }) {
                     onClick={() => handleDelete(teacher.id)}
                     className="text-red-600 hover:underline"
                   >Delete</button>
+                  <button onClick={() => printTeacherReport(teacher)} className="text-green-600 hover:underline">Report</button>
                 </div>
               )}
             </div>
