@@ -1,10 +1,4 @@
-﻿import { useState, useMemo, useEffect, useCallback } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter as useNextRouter } from "next/navigation";
 
 // ─── Theme Constants ──────────────────────────────────────────────────────────
@@ -31,22 +25,7 @@ const T = {
   cardShadow:"0 1px 4px rgba(0,0,0,.06)",
 };
 
-const uid = () => Date.now() + Math.random();
-
-// ─── Academic Year ────────────────────────────────────────────────────────────
-function getCurrentAcademicYear() {
-  const now = new Date();
-  const y = now.getFullYear();
-  return now.getMonth() >= 8 ? (y + "/" + (y+1)) : ((y-1) + "/" + y);
-}
-const CURRENT_YEAR = getCurrentAcademicYear();
-function getAcademicYears(students) {
-  const years = [...new Set((students||[]).map(s => s.academicYear).filter(Boolean))];
-  if (!years.includes(CURRENT_YEAR)) years.unshift(CURRENT_YEAR);
-  return years.sort().reverse();
-}
-
- // collision-safe unique ID
+const uid = () => Date.now() + Math.random(); // collision-safe unique ID
 
 const inputStyle = {
   width: "100%", padding: "9px 12px", border: `1px solid ${T.border}`,
@@ -56,30 +35,6 @@ const inputStyle = {
 };
 const inputErrorStyle = { ...inputStyle, border: "1px solid #ef4444", background: "#fff5f5" };
 const selectStyle = { ...inputStyle, cursor: "pointer" };
-
-
-// ─── Mobile CSS ───────────────────────────────────────────────────────────────
-const MOBILE_CSS = `
-  @media (max-width: 768px) {
-    .edu-sidebar { position: fixed !important; left: 0; top: 0; height: 100vh; z-index: 50; transform: translateX(-100%); transition: transform .25s ease; }
-    .edu-sidebar.open { transform: translateX(0) !important; }
-    .edu-overlay { display: block !important; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; cursor: pointer; }
-    .edu-menu-btn { display: flex !important; }
-    .edu-content { padding: 12px !important; }
-    .edu-header-inner { padding: 12px 14px !important; }
-  }
-  @media (min-width: 769px) {
-    .edu-overlay { display: none !important; }
-    .edu-menu-btn { display: none !important; }
-    .edu-sidebar { transform: translateX(0) !important; position: sticky !important; }
-  }
-  @media (max-width: 640px) {
-    .edu-grid-6 { grid-template-columns: repeat(2,1fr) !important; gap: 10px !important; }
-    .edu-grid-4 { grid-template-columns: repeat(2,1fr) !important; }
-    .edu-grid-2 { grid-template-columns: 1fr !important; }
-    .edu-modal-box { width: 95vw !important; padding: 18px 14px !important; max-height: 90vh; overflow-y: auto; }
-  }
-`;
 
 // ─── Status Config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -95,13 +50,6 @@ const SEED_CLASSES = [
   { id: 2, name: "Grade 1 — B", grade: "Grade 1", room: "102", teacher: "Mr. David Lee",     capacity: 25 },
   { id: 3, name: "Grade 2 — A", grade: "Grade 2", room: "201", teacher: "Ms. Emily Carter",  capacity: 25 },
   { id: 4, name: "Grade 3 — A", grade: "Grade 3", room: "301", teacher: "Mr. James Miller",  capacity: 25 },
-];
-
-const SEED_TEACHERS = [
-  { id: 1, name: "Ms. Sarah Johnson", username: "sarah.johnson", password: "teacher", subject: "Mathematics", classIds: [1], phone: "555-1001", email: "sarah@al-huffath.edu", status: "Active" },
-  { id: 2, name: "Mr. David Lee",     username: "david.lee",     password: "teacher", subject: "English",     classIds: [2], phone: "555-1002", email: "david@al-huffath.edu", status: "Active" },
-  { id: 3, name: "Ms. Emily Carter",  username: "emily.carter",  password: "teacher", subject: "Science",     classIds: [3], phone: "555-1003", email: "emily@al-huffath.edu", status: "Active" },
-  { id: 4, name: "Mr. James Miller",  username: "james.miller",  password: "teacher", subject: "Arabic",      classIds: [4], phone: "555-1004", email: "james@al-huffath.edu", status: "Active" },
 ];
 
 const SEED_STUDENTS = [
@@ -353,7 +301,6 @@ function seedExamResults(exams, students) {
 const NAV = [
   { id: "dashboard",  icon: "⊞", label: "Dashboard"  },
   { id: "students",   icon: "◉", label: "Students"   },
-  { id: "teachers", icon: "👤", label: "Teachers" },
   { id: "classes",    icon: "▦", label: "Classes"     },
   { id: "attendance", icon: "✓", label: "Attendance"  },
   { id: "grades",     icon: "★", label: "Grades"      },
@@ -361,122 +308,6 @@ const NAV = [
   { id: "messages",   icon: "💬", label: "Messages"   },
   { id: "exams",      icon: "📋", label: "Exams"      },
 ];
-
-
-
-function Teachers({ userRole }) {
-  const [teachers, setTeachers] = useState(SEED_TEACHERS);
-  const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null);
-
-  const filtered = teachers.filter(t => 
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.subject.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const newTeacher = {
-      id: editing ? editing.id : Date.now(),
-      name: form.name.value,
-      subject: form.subject.value,
-      phone: form.phone.value,
-      email: form.email.value,
-      status: form.status.value,
-    };
-    
-    if (editing) {
-      setTeachers(teachers.map(t => t.id === editing.id ? newTeacher : t));
-    } else {
-      setTeachers([...teachers, newTeacher]);
-    }
-    setShowForm(false);
-    setEditing(null);
-  };
-
-  const handleDelete = (id) => {
-    if (confirm("Delete this teacher?")) {
-      setTeachers(teachers.filter(t => t.id !== id));
-    }
-  };
-
-  return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-slate-800">👤 Teachers</h2>
-        {userRole === "admin" && (
-          <button 
-            onClick={() => setShowForm(true)}
-            className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700"
-          >
-            + Add Teacher
-          </button>
-        )}
-      </div>
-
-      <input
-        type="text"
-        placeholder="Search teachers..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-full p-3 border rounded-lg mb-4"
-      />
-
-      <div className="grid gap-4">
-        {filtered.map(teacher => (
-          <div key={teacher.id} className="bg-white p-4 rounded-lg shadow border-l-4 border-teal-500">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-bold text-lg">{teacher.name}</h3>
-                <p className="text-teal-600 font-medium">{teacher.subject}</p>
-                <p className="text-slate-500 text-sm">{teacher.email}</p>
-                <p className="text-slate-400 text-sm">{teacher.phone}</p>
-                <span className={teacher.status === "active" ? "inline-block px-2 py-1 rounded text-xs mt-2 bg-green-100 text-green-700" : "inline-block px-2 py-1 rounded text-xs mt-2 bg-gray-100 text-gray-600"}>
-                  {teacher.status}
-                </span>
-              </div>
-              {userRole === "admin" && (
-                <div className="space-x-2">
-                  <button 
-                    onClick={() => { setEditing(teacher); setShowForm(true); }}
-                    className="text-blue-600 hover:underline"
-                  >Edit</button>
-                  <button 
-                    onClick={() => handleDelete(teacher.id)}
-                    className="text-red-600 hover:underline"
-                  >Delete</button>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <form onSubmit={handleSave} className="bg-white p-6 rounded-lg w-96">
-            <h3 className="text-xl font-bold mb-4">{editing ? "Edit" : "Add"} Teacher</h3>
-            <input name="name" defaultValue={editing?.name} placeholder="Name" required className="w-full p-2 border rounded mb-3" />
-            <input name="subject" defaultValue={editing?.subject} placeholder="Subject" required className="w-full p-2 border rounded mb-3" />
-            <input name="email" defaultValue={editing?.email} placeholder="Email" type="email" className="w-full p-2 border rounded mb-3" />
-            <input name="phone" defaultValue={editing?.phone} placeholder="Phone" className="w-full p-2 border rounded mb-3" />
-            <select name="status" defaultValue={editing?.status || "active"} className="w-full p-2 border rounded mb-4">
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-            <div className="flex gap-2">
-              <button type="submit" className="flex-1 bg-teal-600 text-white py-2 rounded">Save</button>
-              <button type="button" onClick={() => {setShowForm(false); setEditing(null);}} className="flex-1 bg-slate-300 py-2 rounded">Cancel</button>
-            </div>
-          </form>
-        </div>
-      )}
-    </div>
-  );
-}
-
 
 // ─── Shared Components ────────────────────────────────────────────────────────
 function Avatar({ name, size = 34 }) {
@@ -515,12 +346,13 @@ function Modal({ title, onClose, children }) {
     <div style={{
       position: "fixed", inset: 0, background: "rgba(15,15,30,.55)",
       display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
-    }} onClick={e => e.target === e.currentTarget && onClose && onClose()}>
+    }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{
         background: "#fff", borderRadius: 16, padding: 28, width: 480,
         maxWidth: "90vw", boxShadow: "0 20px 60px rgba(0,0,0,.2)",
         animation: "fadeUp .18s ease",
       }}>
+        <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }`}</style>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
           <h3 style={{ fontSize: 17, fontWeight: 600, color: T.textMain }}>{title}</h3>
           <button onClick={onClose} style={{
@@ -534,12 +366,12 @@ function Modal({ title, onClose, children }) {
   );
 }
 
-// Field accepts an error prop and displays validation message
+// FIX 6: Field now accepts an `error` prop and displays validation message
 function Field({ label, error, children }) {
   return (
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: error ? "#ef4444" : "#475569", marginBottom: 6 }}>
-        {label}{error && <span style={{ marginRight: 6, fontWeight: 400, color: "#ef4444" }}>— {error}</span>}
+        {label}{error && <span style={{ marginLeft: 6, fontWeight: 400, color: "#ef4444" }}>— {error}</span>}
       </label>
       {children}
     </div>
@@ -758,12 +590,12 @@ function Attendance({ students, classes, attendance, setAttendance }) {
             </div>
           </div>
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#f8fafc" }}>
                   {["Student", "Present", "Absent", "Late", "Excused", "Rate", ""].map(h => (
                     <th key={h} style={{
-                      padding: "11px 18px", textAlign: "right", fontSize: 11,
+                      padding: "11px 18px", textAlign: "left", fontSize: 11,
                       fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9",
                       whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase",
                     }}>{h}</th>
@@ -776,7 +608,7 @@ function Attendance({ students, classes, attendance, setAttendance }) {
                     onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                     <td style={{ padding: "13px 18px", borderBottom: "1px solid #f8fafc" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <Avatar name={s.name} size={32} />
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 500, color: T.textMain }}>{s.name}</div>
@@ -796,7 +628,7 @@ function Attendance({ students, classes, attendance, setAttendance }) {
                       );
                     })}
                     <td style={{ padding: "13px 18px", borderBottom: "1px solid #f8fafc", minWidth: 140 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <div style={{ flex: 1, height: 6, background: "#f1f5f9", borderRadius: 6, overflow: "hidden" }}>
                           <div style={{
                             height: "100%", borderRadius: 6, transition: "width .4s",
@@ -909,7 +741,7 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
             <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{topStudent.name}</div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>{classes.find(c => c.id === topStudent.classId)?.name}</div>
           </div>
-          <div style={{ marginRight: "auto", textAlign: "right" }}>
+          <div style={{ marginLeft: "auto", textAlign: "right" }}>
             <div style={{ fontSize: 32, fontWeight: 800, color: "#5eead4", lineHeight: 1 }}>{topStudent.gpa}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,.55)" }}>GPA Average</div>
           </div>
@@ -1188,13 +1020,10 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
 
   return (
     <div style={{
-      position: onClose ? "fixed" : "relative",
-      inset: onClose ? 0 : "auto",
-      background: onClose ? "rgba(15,15,30,.6)" : "transparent",
-      zIndex: onClose ? 200 : "auto",
+      position: "fixed", inset: 0, background: "rgba(15,15,30,.6)", zIndex: 200,
       display: "flex", alignItems: "flex-start", justifyContent: "center",
-      overflowY: "auto", padding: onClose ? "20px 16px 40px" : 0,
-    }} onClick={e => e.target === e.currentTarget && onClose && onClose()}>
+      overflowY: "auto", padding: "20px 16px 40px",
+    }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ width: "100%", maxWidth: 860, fontFamily: "system-ui,-apple-system,sans-serif" }}>
         <style>{`@keyframes profileIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
         <div style={{ background: "#f1f5f9", borderRadius: 18, overflow: "hidden", animation: "profileIn .22s ease" }}>
@@ -1202,7 +1031,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
           {/* Hero */}
           <div style={{ background: "#1e1e3a", padding: "28px 28px 0", position: "relative" }}>
             <button onClick={onClose} style={{
-              display: onClose ? "flex" : "none", position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,.12)",
+              position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,.12)",
               border: "none", borderRadius: 8, width: 32, height: 32, color: "rgba(255,255,255,.8)",
               fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
             }}>×</button>
@@ -1387,9 +1216,9 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                   {attStats.history.length === 0
                     ? <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>No records yet</div>
                     : <div style={{ overflowX: "auto" }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <thead><tr style={{ background: "#f8fafc" }}>
-                          {["Date", "Day", "Status"].map(h => <th key={h} style={{ padding: "10px 18px", textAlign: "right", fontSize: 11, fontWeight: 600, color: "#94a3b8", borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".05em" }}>{h}</th>)}
+                          {["Date", "Day", "Status"].map(h => <th key={h} style={{ padding: "10px 18px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#94a3b8", borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".05em" }}>{h}</th>)}
                         </tr></thead>
                         <tbody>
                           {[...attStats.history].reverse().map(({ date, status }) => {
@@ -1437,10 +1266,10 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                 </div>
                 <ProfileCard title="Subject Breakdown">
                   <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead><tr style={{ background: "#f8fafc" }}>
                         {["Subject", "Quiz 15%", "HW 15%", "Midterm 30%", "Final 40%", "Total", "Grade"].map(h => (
-                          <th key={h} style={{ padding: "10px 14px", textAlign: "right", fontSize: 11, fontWeight: 600, color: "#94a3b8", borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".04em", whiteSpace: "nowrap" }}>{h}</th>
+                          <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#94a3b8", borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".04em", whiteSpace: "nowrap" }}>{h}</th>
                         ))}
                       </tr></thead>
                       <tbody>
@@ -1535,7 +1364,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                       <div key={msg.id} style={{ background: "#fff", border: "1px solid #e8ecf2", borderRadius: 14, marginBottom: 14, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,.04)", borderLeft: `4px solid ${tag.color}` }}>
                         <div style={{ padding: "14px 18px 12px" }}>
                           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                               <div style={{ width: 30, height: 30, borderRadius: "50%", background: msg.fromSchool ? "#1e1e3a" : "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>{msg.fromSchool ? "🏫" : "👤"}</div>
                               <div>
                                 <div style={{ fontSize: 13, fontWeight: 600, color: "#1e1e3a" }}>{msg.subject}</div>
@@ -1547,7 +1376,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                               {!msg.read && <Pill label="Unread" bg="#fee2e2" color="#dc2626" />}
                             </div>
                           </div>
-                          <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.6, paddingRight: 40 }}>{msg.body}</div>
+                          <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.6, paddingLeft: 40 }}>{msg.body}</div>
                         </div>
                         {msg.replies?.length > 0 && (
                           <div style={{ borderTop: "1px solid #f1f5f9", background: "#f8fafc" }}>
@@ -1578,7 +1407,6 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
 function Students({ students, setStudents, classes, attendance, grades, subjects, exams, examResults, messages }) {
   const [search, setSearch]           = useState("");
   const [filterClass, setFilterClass] = useState("all");
-  const [filterYear, setFilterYear] = useState("all");
   const [modal, setModal]             = useState(null);
   const [form, setForm]               = useState(EMPTY_STUDENT);
   const [errors, setErrors]           = useState({});
@@ -1593,9 +1421,8 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
     const q = search.toLowerCase();
     const m = s.name.toLowerCase().includes(q) || s.sid.toLowerCase().includes(q) || (s.phone || "").toLowerCase().includes(q);
     const c = filterClass === "all" || s.classId === parseInt(filterClass);
-    const y = filterYear === "all" || (s.academicYear || CURRENT_YEAR) === filterYear;
-    return m && c && y;
-  }), [students, search, filterClass, filterYear]);
+    return m && c;
+  }), [students, search, filterClass]);
 
   const allFilteredSelected = filtered.length > 0 && filtered.every(s => selected.has(s.id));
   const toggleSelect = (id) => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -1622,37 +1449,14 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
   const saveStudent = () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    if (modal.mode === "add") {
-      supabase.from("students").insert([{
-        name: form.name, sid: form.sid, class_id: form.classId,
-        gender: form.gender, phone: form.phone, status: form.status,
-      }]).select().then(({ data, error }) => {
-        if (data && data.length > 0) {
-          const s = data[0];
-          setStudents(prev => [...prev, { id: s.id, name: s.name, sid: s.sid, classId: s.class_id, gender: s.gender, phone: s.phone, status: s.status }]);
-        } else {
-          setStudents(prev => [...prev, { ...form, id: uid() }]);
-        }
-      });
-    } else {
-      supabase.from("students").update({
-        name: form.name, sid: form.sid, class_id: form.classId,
-        gender: form.gender, phone: form.phone, status: form.status,
-      }).eq("id", form.id).then(() => {
-        setStudents(prev => prev.map(s => s.id === form.id ? form : s));
-      });
-    }
+    modal.mode === "add"
+      ? setStudents(prev => [...prev, { ...form, id: uid() }])
+      : setStudents(prev => prev.map(s => s.id === form.id ? form : s));
     setModal(null);
     showToast(modal.mode === "add" ? "Student added" : "Student updated");
   };
 
-  const doDelete = (id) => {
-    supabase.from("students").delete().eq("id", id).then(() => {
-      setStudents(prev => prev.filter(s => s.id !== id));
-      setDeleteId(null);
-      showToast("Student deleted");
-    });
-  };
+  const doDelete = (id) => { setStudents(prev => prev.filter(s => s.id !== id)); setDeleteId(null); showToast("Student deleted"); };
   const cls = id => classes.find(c => c.id === id)?.name || "—";
 
   const allDates = Object.keys(attendance || {}).sort();
@@ -1672,13 +1476,9 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
       <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius, padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", boxShadow: T.cardShadow }}>
         <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
           <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: T.textMuted }}>🔍</span>
-          <input placeholder="Search name, ID or phone…" value={search} onChange={e => setSearch(e.target.value)} style={{ ...inputStyle, paddingRight: 32 }} />
+          <input placeholder="Search name, ID or phone…" value={search} onChange={e => setSearch(e.target.value)} style={{ ...inputStyle, paddingLeft: 32 }} />
         </div>
-        <select value={filterYear} onChange={e => setFilterYear(e.target.value)} style={{ ...selectStyle, width: 155, fontWeight: 600 }}>
-          <option value="all">All Years</option>
-          {getAcademicYears(students).map(y => <option key={y} value={y}>{y}{y === CURRENT_YEAR ? " ✦" : ""}</option>)}
-        </select>
-        <select value={filterClass} onChange={e => setFilterClass(e.target.value)} style={{ ...selectStyle, width: 170 }}>
+        <select value={filterClass} onChange={e => setFilterClass(e.target.value)} style={{ ...selectStyle, width: 180 }}>
           <option value="all">All Classes</option>
           {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
@@ -1695,7 +1495,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
       </div>
 
       {atRiskIds.size > 0 && (
-        <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
+        <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 16 }}>⚠️</span>
           <span style={{ fontSize: 13, color: "#9a3412", fontWeight: 500 }}>{atRiskIds.size} student{atRiskIds.size > 1 ? "s" : ""} with attendance below 75% — highlighted below</span>
         </div>
@@ -1707,14 +1507,14 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
           <div style={{ fontSize: 12, color: T.textMuted, background: "#f1f5f9", padding: "3px 10px", borderRadius: 20 }}>{filtered.length} records</div>
         </div>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#f8fafc" }}>
                 <th style={{ padding: "11px 14px", width: 36 }}>
                   <input type="checkbox" checked={allFilteredSelected} onChange={toggleAll} style={{ cursor: "pointer" }} />
                 </th>
-                {["Student", "ID", "Year", "Class", "Gender", "Phone", "Status", "Actions"].map(h => (
-                  <th key={h} style={{ padding: "11px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase" }}>{h}</th>
+                {["Student", "ID", "Class", "Gender", "Phone", "Status", "Actions"].map(h => (
+                  <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -1730,7 +1530,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
                       <input type="checkbox" checked={isSel} onChange={() => toggleSelect(s.id)} style={{ cursor: "pointer" }} />
                     </td>
                     <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <Avatar name={s.name} />
                         <button onClick={() => setProfile(s)} style={{ fontSize: 14, fontWeight: 500, color: T.primary, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", textDecoration: "underline dotted" }}>
                           {s.name}
@@ -2084,7 +1884,7 @@ function Grades({ students, classes, subjects, grades, setGrades }) {
               borderRadius: 20, background: bg, color: col,
             }}>{lbl} — {pct}</span>
           ))}
-          <span style={{ fontSize: 11, color: T.textMuted, marginRight: 4, alignSelf: "center" }}>
+          <span style={{ fontSize: 11, color: T.textMuted, marginLeft: 4, alignSelf: "center" }}>
             All scores out of 100
           </span>
         </div>
@@ -2115,11 +1915,11 @@ function Grades({ students, classes, subjects, grades, setGrades }) {
             <div style={{ padding: 48, textAlign: "center", color: T.textMuted }}>No active students</div>
           ) : (
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: "#f8fafc" }}>
                     {["Student", "Quiz /100", "Homework /100", "Midterm /100", "Final /100", "Total", "Grade"].map(h => (
-                      <th key={h} style={{ padding: "11px 16px", textAlign: h === "Student" ? "right" : "center",
+                      <th key={h} style={{ padding: "11px 16px", textAlign: h === "Student" ? "left" : "center",
                         fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9",
                         whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase" }}>{h}</th>
                     ))}
@@ -2134,7 +1934,7 @@ function Grades({ students, classes, subjects, grades, setGrades }) {
                         onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
                         onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                         <td style={{ padding: "11px 16px", borderBottom: "1px solid #f8fafc" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <Avatar name={s.name} size={30} />
                             <div>
                               <div style={{ fontSize: 13, fontWeight: 500, color: T.textMain }}>{s.name}</div>
@@ -2198,11 +1998,11 @@ function Grades({ students, classes, subjects, grades, setGrades }) {
             </div>
           </div>
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#f8fafc" }}>
-                  <th style={{ padding: "11px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" }}>RANK</th>
-                  <th style={{ padding: "11px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9" }}>STUDENT</th>
+                  <th style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" }}>RANK</th>
+                  <th style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9" }}>STUDENT</th>
                   {classSubjects.map(sub => (
                     <th key={sub.id} style={{ padding: "11px 16px", textAlign: "center", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" }}>
                       {sub.icon} {sub.name}
@@ -2223,7 +2023,7 @@ function Grades({ students, classes, subjects, grades, setGrades }) {
                       )}
                     </td>
                     <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <Avatar name={s.name} size={30} />
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 500, color: T.textMain }}>{s.name}</div>
@@ -2333,7 +2133,7 @@ function Timetable({ classes, subjects, timetable, setTimetable }) {
         <div style={{ fontSize: 13, color: T.textSub }}>
           👤 {currentClass?.teacher} &nbsp;·&nbsp; 🚪 Room {currentClass?.room}
         </div>
-        <div style={{ marginRight: "auto", fontSize: 12, color: T.textMuted }}>
+        <div style={{ marginLeft: "auto", fontSize: 12, color: T.textMuted }}>
           Click any cell to edit · Today highlighted in teal
         </div>
       </div>
@@ -2350,7 +2150,7 @@ function Timetable({ classes, subjects, timetable, setTimetable }) {
                 {/* Period header */}
                 <th style={{
                   padding: "12px 16px", background: T.navy, color: "rgba(255,255,255,.5)",
-                  fontSize: 11, fontWeight: 600, textAlign: "right",
+                  fontSize: 11, fontWeight: 600, textAlign: "left",
                   borderRight: `1px solid rgba(255,255,255,.08)`, width: 130,
                   letterSpacing: ".05em", textTransform: "uppercase",
                 }}>Period</th>
@@ -2602,7 +2402,7 @@ function Messaging({ students, classes, messages, setMessages }) {
             <div style={{ fontSize: 14, fontWeight: 600, color: T.textMain }}>
               Inbox
               {unread > 0 && (
-                <span style={{ marginRight: 8, background: T.primary, color: "#fff", borderRadius: 20, fontSize: 11, fontWeight: 700, padding: "2px 8px" }}>{unread}</span>
+                <span style={{ marginLeft: 8, background: T.primary, color: "#fff", borderRadius: 20, fontSize: 11, fontWeight: 700, padding: "2px 8px" }}>{unread}</span>
               )}
             </div>
             <button onClick={() => { setCompose(true); setSelected(null); }} style={{
@@ -2614,7 +2414,7 @@ function Messaging({ students, classes, messages, setMessages }) {
           <div style={{ position: "relative", marginBottom: 8 }}>
             <span style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: T.textMuted }}>🔍</span>
             <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search messages…" style={{ ...inputStyle, paddingRight: 28, fontSize: 12, padding: "7px 10px 7px 28px" }} />
+              placeholder="Search messages…" style={{ ...inputStyle, paddingLeft: 28, fontSize: 12, padding: "7px 10px 7px 28px" }} />
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {["all", ...Object.keys(MSG_TAGS)].map(k => (
@@ -2650,7 +2450,7 @@ function Messaging({ students, classes, messages, setMessages }) {
                       <span style={{ fontSize: 13, fontWeight: msg.read ? 500 : 700, color: T.textMain, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {student?.name || "Unknown"}
                       </span>
-                      <span style={{ fontSize: 10, color: T.textMuted, flexShrink: 0, marginRight: 6 }}>{fmtTime(msg.timestamp)}</span>
+                      <span style={{ fontSize: 10, color: T.textMuted, flexShrink: 0, marginLeft: 6 }}>{fmtTime(msg.timestamp)}</span>
                     </div>
                     <div style={{ fontSize: 12, color: msg.read ? T.textSub : T.textMain, fontWeight: msg.read ? 400 : 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 4 }}>
                       {msg.subject}
@@ -2669,7 +2469,7 @@ function Messaging({ students, classes, messages, setMessages }) {
       </div>
 
       {/* ── Right Panel: detail or compose ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         {compose ? (
           /* Compose Panel */
           <div style={{ flex: 1, padding: 28, overflowY: "auto" }}>
@@ -2814,7 +2614,6 @@ function MessageBubble({ fromSchool, body, time, student }) {
 function ExamScheduler({ students, classes, subjects, exams, setExams, examResults, setExamResults }) {
   const [view, setView]         = useState("schedule"); // "schedule" | "results"
   const [filterClass, setFilterClass] = useState("all");
-  const [filterYear, setFilterYear] = useState("all");
   const [filterType,  setFilterType]  = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [modal, setModal]       = useState(null); // null | { mode:"add"|"edit", data }
@@ -2968,7 +2767,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
               <option value="ongoing">Today</option>
               <option value="completed">Completed</option>
             </select>
-            <div style={{ marginRight: "auto" }}>
+            <div style={{ marginLeft: "auto" }}>
               <button onClick={openAdd} style={{
                 display: "flex", alignItems: "center", gap: 7, padding: "9px 18px",
                 background: T.primary, color: "#fff", border: "none", borderRadius: 8,
@@ -2984,7 +2783,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
             <span style={{ fontSize: 13, fontWeight: 600, color: T.textMain }}>{selectedExam.title}</span>
             <span style={{ fontSize: 12, color: T.textMuted }}>· {fmtDate(selectedExam.date)}</span>
             <button onClick={() => { setView("schedule"); setResultsExamId(null); }} style={{
-              marginRight: "auto", padding: "7px 14px", borderRadius: 8, border: `1px solid ${T.border}`,
+              marginLeft: "auto", padding: "7px 14px", borderRadius: 8, border: `1px solid ${T.border}`,
               background: "#fff", fontSize: 12, cursor: "pointer",
             }}>← Back to Schedule</button>
           </div>
@@ -3026,11 +2825,11 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
             </div>
           ) : (
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: "#f8fafc" }}>
                     {["Date", "Exam", "Class", "Subject", "Type", "Duration", "Room", "Status", "Actions"].map(h => (
-                      <th key={h} style={{ padding: "11px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase" }}>{h}</th>
+                      <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap", letterSpacing: ".05em", textTransform: "uppercase" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -3123,11 +2922,11 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                 fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all .2s",
               }}>{scoresSaved ? "✓ Saved" : "Save Scores"}</button>
             </div>
-            <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#f8fafc" }}>
                   {["Student", "ID", "Score", "Out of", "Percentage", "Grade"].map(h => (
-                    <th key={h} style={{ padding: "11px 18px", textAlign: "right", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".05em" }}>{h}</th>
+                    <th key={h} style={{ padding: "11px 18px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "1px solid #f1f5f9", textTransform: "uppercase", letterSpacing: ".05em" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -3144,7 +2943,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                       onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
                       onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                       <td style={{ padding: "12px 18px", borderBottom: i < arr.length-1 ? "1px solid #f8fafc" : "none" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <Avatar name={s.name} size={30} />
                           <span style={{ fontSize: 13, fontWeight: 500, color: T.textMain }}>{s.name}</span>
                         </div>
@@ -3247,201 +3046,11 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
   );
 }
 
-
-// ─── PDF Helpers ──────────────────────────────────────────────────────────────
-function loadJsPDF(cb) {
-  if (window.jspdf) { cb(); return; }
-  var s1 = document.createElement("script");
-  s1.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-  s1.onload = function() {
-    var s2 = document.createElement("script");
-    s2.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
-    s2.onload = cb;
-    document.head.appendChild(s2);
-  };
-  document.head.appendChild(s1);
-}
-
-function exportStudentReportPDF(student, cls, attendance, grades, subjects, exams, examResults) {
-  loadJsPDF(function() {
-    var jsPDF = window.jspdf.jsPDF;
-    var doc = new jsPDF();
-    var N = [30,30,58], P = [13,148,136];
-    var W = doc.internal.pageSize.getWidth();
-
-    // Header
-    doc.setFillColor(N[0],N[1],N[2]); doc.rect(0,0,W,36,"F");
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(18); doc.setFont("helvetica","bold");
-    doc.text("Al-Huffath Academy", W/2, 14, {align:"center"});
-    doc.setFontSize(11); doc.setFont("helvetica","normal");
-    doc.text("Student Report Card", W/2, 24, {align:"center"});
-    doc.setFontSize(8);
-    doc.text(new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}), W/2, 31, {align:"center"});
-
-    var y = 46;
-    // Student Info
-    doc.setFillColor(240,253,250);
-    doc.roundedRect(14,y,W-28,36,3,3,"F");
-    doc.setDrawColor(P[0],P[1],P[2]); doc.setLineWidth(0.5);
-    doc.roundedRect(14,y,W-28,36,3,3,"S");
-    doc.setTextColor(N[0],N[1],N[2]); doc.setFontSize(13); doc.setFont("helvetica","bold");
-    doc.text(student.name, 20, y+10);
-    doc.setFontSize(8.5); doc.setFont("helvetica","normal"); doc.setTextColor(100,116,139);
-    doc.text("ID: " + student.sid, 20, y+18);
-    doc.text("Class: " + (cls ? cls.name : "-"), 20, y+25);
-    doc.text("Teacher: " + (cls ? cls.teacher : "-"), 20, y+32);
-    doc.text("Academic Year: " + (student.academicYear || "-"), 110, y+18);
-    doc.text("Gender: " + student.gender, 110, y+25);
-    doc.text("Status: " + student.status, 110, y+32);
-    y += 44;
-
-    // Attendance
-    var allDates = Object.keys(attendance||{}).sort();
-    var p=0,ab=0,l=0,ex=0,tot=0;
-    allDates.forEach(function(d) {
-      var r = (attendance[d]||{})[student.id];
-      if (!r) return; tot++;
-      if (r==="present") p++; else if (r==="absent") ab++;
-      else if (r==="late") l++; else if (r==="excused") ex++;
-    });
-    var rate = tot ? Math.round((p/tot)*100) : 0;
-
-    doc.setTextColor(N[0],N[1],N[2]); doc.setFontSize(11); doc.setFont("helvetica","bold");
-    doc.text("Attendance Summary", 14, y);
-    doc.setDrawColor(P[0],P[1],P[2]); doc.setLineWidth(0.7); doc.line(14,y+2,78,y+2);
-    y += 8;
-
-    var ac = rate>=90?[5,150,105]:rate>=75?[217,119,6]:[220,38,38];
-    doc.setFillColor(ac[0],ac[1],ac[2]); doc.roundedRect(14,y,38,18,2,2,"F");
-    doc.setTextColor(255,255,255); doc.setFontSize(15); doc.setFont("helvetica","bold");
-    doc.text(rate+"%", 33, y+10, {align:"center"});
-    doc.setFontSize(7); doc.text("Rate", 33, y+16, {align:"center"});
-
-    var attItems = [[p,[5,150,105],"Present"],[ab,[220,38,38],"Absent"],[l,[217,119,6],"Late"],[ex,[124,58,237],"Excused"]];
-    attItems.forEach(function(item, i) {
-      var bx = 58+i*36;
-      doc.setFillColor(item[1][0],item[1][1],item[1][2]); doc.roundedRect(bx,y,33,18,2,2,"F");
-      doc.setTextColor(255,255,255); doc.setFontSize(14); doc.setFont("helvetica","bold");
-      doc.text(String(item[0]), bx+16, y+10, {align:"center"});
-      doc.setFontSize(7); doc.text(item[2], bx+16, y+16, {align:"center"});
-    });
-    y += 26;
-
-    // Grades
-    var studentSubs = (subjects||[]).filter(function(s){ return s.classId===student.classId; });
-    if (studentSubs.length > 0) {
-      doc.setTextColor(N[0],N[1],N[2]); doc.setFontSize(11); doc.setFont("helvetica","bold");
-      doc.text("Academic Performance", 14, y);
-      doc.setDrawColor(P[0],P[1],P[2]); doc.line(14,y+2,90,y+2);
-      y += 8;
-      var gradeRows = studentSubs.map(function(sub) {
-        var g = ((grades||{})[student.id]||{})[sub.id] || {};
-        var q=g.quiz!=null?g.quiz:null, h=g.homework!=null?g.homework:null;
-        var m=g.midterm!=null?g.midterm:null, f=g.final!=null?g.final:null;
-        var total = (q!==null||h!==null||m!==null||f!==null)
-          ? Math.round((q||0)*0.15+(h||0)*0.15+(m||0)*0.30+(f||0)*0.40) : null;
-        var letter = total===null?"—":total>=90?"A":total>=80?"B":total>=70?"C":total>=60?"D":"F";
-        return [sub.name, q!=null?q:"-", h!=null?h:"-", m!=null?m:"-", f!=null?f:"-", total!=null?total:"-", letter];
-      });
-      doc.autoTable({
-        startY:y, head:[["Subject","Quiz(15%)","HW(15%)","Mid(30%)","Final(40%)","Total","Grade"]],
-        body:gradeRows, theme:"grid",
-        headStyles:{fillColor:N,textColor:255,fontSize:8,fontStyle:"bold"},
-        bodyStyles:{fontSize:8,textColor:N},
-        alternateRowStyles:{fillColor:[248,250,252]},
-        columnStyles:{6:{fontStyle:"bold",halign:"center"}},
-        margin:{left:14,right:14},
-      });
-      y = doc.lastAutoTable.finalY + 10;
-    }
-
-    // Exams
-    var studentExams = (exams||[]).filter(function(e){ return e.classId===student.classId && new Date(e.date+"T00:00:00") < new Date(); });
-    if (studentExams.length > 0) {
-      if (y > 220) { doc.addPage(); y=20; }
-      doc.setTextColor(N[0],N[1],N[2]); doc.setFontSize(11); doc.setFont("helvetica","bold");
-      doc.text("Exam Results", 14, y);
-      doc.setDrawColor(P[0],P[1],P[2]); doc.line(14,y+2,65,y+2); y+=8;
-      var examRows = studentExams.map(function(e) {
-        var score = ((examResults||{})[e.id]||{})[student.id];
-        var pct = score!=null ? Math.round((score/e.maxScore)*100) : null;
-        return [e.title,
-          new Date(e.date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),
-          score!=null?score+"/"+e.maxScore:"-", pct!=null?pct+"%":"-",
-          pct!=null?(pct>=90?"Excellent":pct>=75?"Good":pct>=60?"Pass":"Fail"):"-"];
-      });
-      doc.autoTable({
-        startY:y, head:[["Exam","Date","Score","Pct","Result"]], body:examRows, theme:"grid",
-        headStyles:{fillColor:N,textColor:255,fontSize:8,fontStyle:"bold"},
-        bodyStyles:{fontSize:8,textColor:N}, alternateRowStyles:{fillColor:[248,250,252]}, margin:{left:14,right:14},
-      });
-    }
-
-    // Footer
-    var pages = doc.internal.getNumberOfPages();
-    for (var i=1;i<=pages;i++) {
-      doc.setPage(i);
-      doc.setFillColor(N[0],N[1],N[2]); doc.rect(0,doc.internal.pageSize.getHeight()-12,W,12,"F");
-      doc.setTextColor(255,255,255); doc.setFontSize(7);
-      doc.text("Al-Huffath Academy | Student Report", 14, doc.internal.pageSize.getHeight()-5);
-      doc.text("Page "+i+" of "+pages, W-14, doc.internal.pageSize.getHeight()-5, {align:"right"});
-    }
-    doc.save(student.name.replace(/ /g,"_")+"_Report_"+(student.academicYear||"").replace("/","-")+".pdf");
-  });
-}
-
-function exportExamSchedulePDF(exams, classes, subjects) {
-  loadJsPDF(function() {
-    var jsPDF = window.jspdf.jsPDF;
-    var doc = new jsPDF();
-    var N = [30,30,58], P = [13,148,136];
-    var W = doc.internal.pageSize.getWidth();
-    doc.setFillColor(N[0],N[1],N[2]); doc.rect(0,0,W,36,"F");
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(18); doc.setFont("helvetica","bold");
-    doc.text("Al-Huffath Academy", W/2, 14, {align:"center"});
-    doc.setFontSize(11); doc.text("Exam Schedule", W/2, 24, {align:"center"});
-    doc.setFontSize(8); doc.setFont("helvetica","normal");
-    doc.text(new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}), W/2, 31, {align:"center"});
-    var today = new Date().toISOString().split("T")[0];
-    var rows = (exams||[]).slice().sort(function(a,b){return a.date.localeCompare(b.date);}).map(function(ex) {
-      var cls = (classes||[]).find(function(c){return c.id===ex.classId;});
-      var sub = (subjects||[]).find(function(s){return s.id===ex.subjectId;});
-      var status = ex.date>today?"Upcoming":ex.date===today?"Today":"Completed";
-      return [new Date(ex.date+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"}),
-        ex.title, cls?cls.name:"-", sub?sub.name:"-",
-        ex.type.charAt(0).toUpperCase()+ex.type.slice(1), ex.duration+" min", "Room "+(ex.room||"-"), status];
-    });
-    doc.autoTable({
-      startY:44, head:[["Date","Exam","Class","Subject","Type","Duration","Room","Status"]], body:rows, theme:"grid",
-      headStyles:{fillColor:N,textColor:255,fontSize:8,fontStyle:"bold"},
-      bodyStyles:{fontSize:7.5,textColor:N}, alternateRowStyles:{fillColor:[248,250,252]}, margin:{left:10,right:10},
-      didParseCell:function(d){
-        if(d.section==="body"&&d.column.index===7){
-          var v=d.cell.raw;
-          d.cell.styles.textColor=v==="Upcoming"?P:v==="Today"?[217,119,6]:[100,116,139];
-          if(v!=="Completed") d.cell.styles.fontStyle="bold";
-        }
-      },
-    });
-    var pages = doc.internal.getNumberOfPages();
-    for (var i=1;i<=pages;i++) {
-      doc.setPage(i);
-      doc.setFillColor(N[0],N[1],N[2]); doc.rect(0,doc.internal.pageSize.getHeight()-12,W,12,"F");
-      doc.setTextColor(255,255,255); doc.setFontSize(7);
-      doc.text("Al-Huffath Academy | Exam Schedule", 10, doc.internal.pageSize.getHeight()-5);
-      doc.text("Page "+i+" of "+pages, W-10, doc.internal.pageSize.getHeight()-5, {align:"right"});
-    }
-    doc.save("Exam_Schedule_"+new Date().toISOString().split("T")[0]+".pdf");
-  });
-}
-
 // ─── App Root ─────────────────────────────────────────────────────────────────
 function LogoutButton() {
   const handleLogout = () => {
     try { localStorage.removeItem("edu_auth") } catch {}
-    localStorage.clear(); window.location.href = "/school/login";
+    window.location.href = "/school/login"
   }
   return (
     <button onClick={handleLogout} style={{
@@ -3459,64 +3068,10 @@ function LogoutButton() {
 }
 export default function App() {
   const [page, setPage] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [auth, setAuth] = useState(null);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("edu_auth");
-      if (!stored) { window.location.href = "/school/login"; return; }
-      setAuth(JSON.parse(stored));
-    } catch { localStorage.clear(); window.location.href = "/school/login"; }
-  }, []);
-
-  const userRole   = auth?.role     || "admin";
-  const teacherClassId = auth?.classId || null;   // classId for teacher
-  const teacherName    = auth?.name    || "";
-
-  // ─── Teacher: pages allowed ───────────────────────────────────────────────
-  const TEACHER_PAGES = ["dashboard", "attendance", "grades", "timetable", "messages"];
-  const PARENT_PAGES  = ["dashboard"];
-
-  const allowedPages = userRole === "teacher" ? TEACHER_PAGES
-                     : userRole === "parent"  ? PARENT_PAGES
-                     : null; // admin: all pages
-
-  const effectivePage = allowedPages && !allowedPages.includes(page)
-    ? "dashboard"
-    : page;
 
   // localStorage persistence — load on mount, save on change
-  const [students, setStudents]     = useState(SEED_STUDENTS);
-  const [dbReady, setDbReady] = useState(false);
-  useEffect(() => {
-    supabase.from("students").select("*, classes(name)").then(({ data, error }) => {
-      if (data && data.length > 0) {
-        const mapped = data.map(s => ({
-          id: s.id, name: s.name, sid: s.sid,
-          classId: s.class_id, gender: s.gender,
-          phone: s.phone, status: s.status,
-        }));
-        setStudents(mapped);
-        save("edu_students", mapped);
-      }
-      setDbReady(true);
-    });
-  }, []);
-  const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
-  const [classes,  setClasses]      = useState(SEED_CLASSES);
-  useEffect(() => {
-    supabase.from("classes").select("*").then(({ data }) => {
-      if (data && data.length > 0) {
-        const mapped = data.map(c => ({
-          id: c.id, name: c.name, grade: c.grade,
-          room: c.room, teacher: c.teacher, capacity: c.capacity || 25,
-        }));
-        setClasses(mapped);
-        save("edu_classes", mapped);
-      }
-    });
-  }, []);
+  const [students, setStudents]     = useState(() => load("edu_students",   SEED_STUDENTS));
+  const [classes,  setClasses]      = useState(() => load("edu_classes",    SEED_CLASSES));
   const [attendance, setAttendance] = useState(() => load("edu_attendance", seedAttendance(SEED_STUDENTS)));
   const [subjects, setSubjects]     = useState(() => load("edu_subjects",   SEED_SUBJECTS));
   const [grades,   setGrades]       = useState(() => load("edu_grades",     seedGrades(SEED_STUDENTS, SEED_SUBJECTS)));
@@ -3526,7 +3081,6 @@ export default function App() {
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
 
   useEffect(() => { save("edu_students",    students);    }, [students]);
-  useEffect(() => { save("edu_teachers",     teachers);     }, [teachers]);
   useEffect(() => { save("edu_classes",     classes);     }, [classes]);
   useEffect(() => { save("edu_attendance",  attendance);  }, [attendance]);
   useEffect(() => { save("edu_subjects",    subjects);    }, [subjects]);
@@ -3545,55 +3099,23 @@ export default function App() {
     timetable:  { title: "Timetable",  sub: "Weekly schedule for each class" },
     messages:   { title: "Messages",    sub: "Communicate with parents & guardians" },
     exams:      { title: "Exams",       sub: "Schedule exams & record results" },
-    teachers:   { title: "Teachers",    sub: "Manage teaching staff & assignments" },
   };
 
-  if (!auth) return null;
-
-  if (auth.role === "parent") {
-    const student = students.find(s => s.id === auth.studentId);
-    if (!student) { localStorage.clear(); window.location.href = "/school/login"; return null; }
-    return (
-      <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"system-ui,sans-serif"}}>
-        <div style={{background:"#1e1e3a",padding:"0 24px",display:"flex",alignItems:"center",gap:14,height:56}}>
-          <div style={{fontSize:14,fontWeight:700,color:"#5eead4",flex:1}}>EduManage</div>
-          <span style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Parent Portal</span>
-          <Avatar name={student.name} size={28} />
-          <span style={{fontSize:12,color:"rgba(255,255,255,.7)",fontWeight:500}}>{student.name}</span>
-          <button onClick={()=>{localStorage.clear(); window.location.href="/school/login";}} style={{padding:"6px 14px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:12,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>Sign Out</button>
-        </div>
-        <div style={{padding:"24px 20px",maxWidth:900,margin:"0 auto"}}>
-          <StudentProfile
-            student={student} classes={classes} attendance={attendance}
-            grades={grades} subjects={subjects} exams={exams}
-            examResults={examResults} messages={messages}
-            onClose={null}
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "system-ui,-apple-system,sans-serif", direction: "rtl" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "system-ui,-apple-system,sans-serif" }}>
       {/* Sidebar */}
-      <div style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
-        <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#5eead4" }}>Al-Huffath Academy</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,.4)", marginTop: 2 }}>Ilm | Iman | Hifz</div>
-            </div>
-            <img src="/logo.png" style={{ width: 44, height: 44, objectFit: "contain", background: "#fff", borderRadius: 8, padding: 3, flexShrink: 0 }} />
-          </div>
+      <div style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh" }}>
+        <div style={{ padding: "24px 20px 18px", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#5eead4" }}>EduManage</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,.35)", marginTop: 3 }}>School Management</div>
         </div>
         <nav style={{ flex: 1, padding: "14px 10px", display: "flex", flexDirection: "column", gap: 3 }}>
-          {NAV.filter(n => !allowedPages || allowedPages.includes(n.id)).map(n => {
+          {NAV.map(n => {
             const unreadCount = n.id === "messages" ? messages.filter(m => !m.read).length : 0;
             return (
-            <button key={n.id} onClick={() => { setPage(n.id); setSidebarOpen(false); }} style={{
+            <button key={n.id} onClick={() => setPage(n.id)} style={{
               display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8,
-              cursor: "pointer", fontSize: 13, border: "none", width: "100%", textAlign: "right",
+              cursor: "pointer", fontSize: 13, border: "none", width: "100%", textAlign: "left",
               background: page === n.id ? T.primary : "transparent",
               color: page === n.id ? "#fff" : "rgba(255,255,255,.55)",
               fontFamily: "inherit", transition: "all .15s",
@@ -3612,7 +3134,7 @@ export default function App() {
             <Avatar name="Admin User" size={30} />
             <div>
               <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,.8)" }}>Admin</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,.35)" }}>admin@al-huffath.edu</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,.35)" }}>admin@school.edu</div>
             </div>
           </div>
           <LogoutButton />
@@ -3620,14 +3142,13 @@ export default function App() {
       </div>
 
       {/* Main */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: "16px 28px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,.05)" }}>
           <div style={{ fontSize: 19, fontWeight: 700, color: T.textMain }}>{PAGE_TITLES[page].title}</div>
           <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>{PAGE_TITLES[page].sub}</div>
         </div>
-        <div className="edu-content" style={{ padding: 28, flex: 1 }}>
+        <div style={{ padding: 28, flex: 1 }}>
           {page === "dashboard"  && <Dashboard  students={students} classes={classes} attendance={attendance} grades={grades} subjects={subjects} timetable={timetable} messages={messages} exams={exams} onNavigate={setPage} />}
-          {effectivePage === "teachers"  && userRole === "admin" && <Teachers userRole={userRole} teachers={teachers} setTeachers={setTeachers} classes={classes} subjects={subjects} />}
           {page === "students"   && <Students   students={students} setStudents={setStudents} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} />}
           {page === "classes"    && <Classes    classes={classes}   setClasses={setClasses}   students={students} />}
           {page === "attendance" && <Attendance students={students} classes={classes} attendance={attendance} setAttendance={setAttendance} />}
@@ -3640,4 +3161,3 @@ export default function App() {
     </div>
   );
 }
-

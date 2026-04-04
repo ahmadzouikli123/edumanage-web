@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
@@ -16,11 +16,11 @@ const SEED_STUDENTS = [
   {id:8,name:"Isabella White",  sid:"S008",phone:"555-0108"},
 ]
 
-const CLS = [
-  {id:1,name:"Ms. Sarah Johnson",u:"sarah.johnson"},
-  {id:2,name:"Mr. David Lee",    u:"david.lee"},
-  {id:3,name:"Ms. Emily Carter", u:"emily.carter"},
-  {id:4,name:"Mr. James Miller", u:"james.miller"},
+const SEED_TEACHERS = [
+  {username:"sarah.johnson", password:"teacher", name:"Ms. Sarah Johnson", class_ids:[1]},
+  {username:"david.lee",     password:"teacher", name:"Mr. David Lee",     class_ids:[2]},
+  {username:"emily.carter",  password:"teacher", name:"Ms. Emily Carter",  class_ids:[3]},
+  {username:"james.miller",  password:"teacher", name:"Mr. James Miller",  class_ids:[4]},
 ]
 
 export default function Login() {
@@ -38,41 +38,31 @@ export default function Login() {
     setTimeout(() => {
       setBusy(false)
       if (role === "admin") {
-        if (user === "admin" && pass === "admin123") { save("edu_auth",{role:"admin",name:"Admin User"}); router.replace("/school") }
-        else setErr("Invalid credentials")
+        if (user === "admin" && pass === "admin123") {
+          save("edu_auth", {role:"admin", name:"Admin User"})
+          router.replace("/school")
+        } else {
+          setErr("Invalid credentials")
+        }
       } else if (role === "teacher") {
-        // Fetch teacher from Supabase
-        fetch(`https://${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace("https://","")}/rest/v1/teachers?username=eq.${encodeURIComponent(user.toLowerCase().trim())}&select=*`, {
-          headers: {
-            "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""}`,
-          }
-        }).then(r => r.json()).then((data: any[]) => {
-          setBusy(false);
-          if (!data || data.length === 0 || data[0].password !== pass) {
-            setErr("Invalid credentials");
-            return;
-          }
-          const t = data[0];
-          // Determine teacher type: subject teacher (has subject) or class teacher (has class_ids)
-          const teacherType = t.subject ? "subject" : "class";
-          save("edu_auth", {
-            role: "teacher",
-            name: t.name,
-            classId: t.class_ids?.[0] || null,
-            classIds: t.class_ids || [],
-            subject: t.subject || null,
-            teacherType,
-          });
-          router.replace("/school");
-        }).catch(() => { setBusy(false); setErr("Connection error"); });
-        return;
+        const teachers = load("edu_teachers", SEED_TEACHERS)
+        const t = teachers.find((x: any) => x.username === user.toLowerCase().trim() && x.password === pass)
+        if (t) {
+          save("edu_auth", {role:"teacher", name:t.name, classIds:t.class_ids, classId:t.class_ids[0]})
+          router.replace("/school")
+        } else {
+          setErr("Invalid credentials")
+        }
       } else {
         const stored = load("edu_students", SEED_STUDENTS)
         const all = stored.length > 0 ? stored : SEED_STUDENTS
-        const s = all.find((x:any) => x.sid.toLowerCase()===user.toLowerCase().trim() && x.phone.replace(/\D/g,"")===pass.replace(/\D/g,""))
-        if (s) { save("edu_auth",{role:"parent",name:s.name,studentId:s.id}); router.replace("/school") }
-        else setErr("Invalid Student ID or phone !")
+        const s = all.find((x: any) => x.sid.toLowerCase() === user.toLowerCase().trim() && x.phone.replace(/\D/g,"") === pass.replace(/\D/g,""))
+        if (s) {
+          save("edu_auth", {role:"parent", name:s.name, studentId:s.id})
+          router.replace("/school")
+        } else {
+          setErr("Invalid Student ID or phone!")
+        }
       }
     }, 500)
   }
@@ -109,9 +99,9 @@ export default function Login() {
           </button>
           <div style={{marginTop:18,padding:"12px 14px",background:"rgba(13,148,136,.08)",border:"1px solid rgba(13,148,136,.2)",borderRadius:10,fontSize:11,color:"rgba(255,255,255,.45)"}}>
             <div style={{fontWeight:600,color:"#5eead4",marginBottom:6}}>Demo credentials</div>
-            {role==="admin" && <div>Username: admin / Password: admin123</div>}
+            {role==="admin"   && <div>Username: admin / Password: admin123</div>}
             {role==="teacher" && <div>Username: sarah.johnson / Password: teacher</div>}
-            {role==="parent" && <div>Student ID: S001 / Phone: 555-0101</div>}
+            {role==="parent"  && <div>Student ID: S001 / Phone: 555-0101</div>}
           </div>
         </div>
       </div>
