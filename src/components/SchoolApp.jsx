@@ -1,10 +1,39 @@
-﻿import { useState, useMemo, useEffect, useCallback } from "react";
-import { createClient } from "@supabase/supabase-js";
+﻿// ─── localStorage Supabase Mock ───────────────────────────────────────────────
+function makeTable(name) {
+  function load() { try { return JSON.parse(localStorage.getItem("db_"+name)||"[]"); } catch{return[];} }
+  function save(d) { localStorage.setItem("db_"+name, JSON.stringify(d)); }
+  function chain(data) {
+    return {
+      order: () => chain(data),
+      eq: (k,v) => chain(data.filter(r=>r[k]===v)),
+      then: (fn) => { fn({data,error:null}); return {catch:()=>{}}; },
+      catch: () => {},
+    };
+  }
+  return {
+    select: (_q) => chain(load()),
+    insert: (rows) => ({ select: () => ({ then: (fn) => {
+      const d=load();
+      const newRows=rows.map((r,i)=>({...r,id:Date.now()+i}));
+      save([...d,...newRows]);
+      fn({data:newRows,error:null});
+    }})}),
+    update: (vals) => ({ eq: (k,v) => ({ then: (fn) => {
+      const d=load().map(r=>r[k]===v?{...r,...vals}:r);
+      save(d);
+      fn({data:d,error:null});
+    }})}),
+    delete: () => ({ eq: (k,v) => ({ then: (fn) => {
+      save(load().filter(r=>r[k]!==v));
+      fn({data:null,error:null});
+    }})}),
+    upsert: (rows) => ({ then: (fn) => { fn({data:rows,error:null}); } }),
+  };
+}
+const supabase = { from: (name) => makeTable(name) };
+// ─────────────────────────────────────────────────────────────────────────────
+import { useState, useMemo, useEffect, useCallback } from "react";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
 import { useRouter as useNextRouter } from "next/navigation";
 
 // ─── Theme Constants ──────────────────────────────────────────────────────────
@@ -3640,4 +3669,5 @@ export default function App() {
     </div>
   );
 }
+
 
