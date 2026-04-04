@@ -440,7 +440,7 @@ function Teachers({ userRole }) {
   };
   const filtered = teachers.filter(t => 
     t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.subject.toLowerCase().includes(search.toLowerCase())
+    (t.subject||'').toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSave = (e) => {
