@@ -1672,13 +1672,13 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
   const printStudentReport = (s) => {
     const today = new Date().toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const clsName = classes.find(c => c.id === s.classId)?.name || '-';
-    const att = (attendance || []).filter(a => a.studentId === s.id);
-    const present = att.filter(a => a.status === 'Present').length;
-    const absent  = att.filter(a => a.status === 'Absent').length;
-    const late    = att.filter(a => a.status === 'Late').length;
-    const excused = att.filter(a => a.status === 'Excused').length;
-    const total   = att.length;
-    const pct     = total ? Math.round(present / total * 100) : 0;
+    const attObj = attendance || {};
+    let present = 0, absent = 0, late = 0, excused = 0, total = 0;
+    Object.values(attObj).forEach(dayRec => {
+      const rec = dayRec[s.id];
+      if (rec) { total++; if (rec === 'Present') present++; else if (rec === 'Absent') absent++; else if (rec === 'Late') late++; else if (rec === 'Excused') excused++; }
+    });
+    const pct = total ? Math.round(present / total * 100) : 0;
     const win = window.open('', '_blank');
     const html = '<!DOCTYPE html><html><head><title>Student Report - ' + s.name + '</title>'
       + '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Times New Roman,serif;color:#1a1a1a;padding:60px;max-width:800px;margin:0 auto}.header{display:flex;align-items:center;border-bottom:3px solid #0d9488;padding-bottom:16px;margin-bottom:30px}.logo{width:70px;height:70px;object-fit:contain;margin-right:20px}.school-center{flex:1;text-align:center}.school-name{font-size:22px;font-weight:bold;color:#0d9488}.school-sub{font-size:12px;color:#64748b;margin-top:3px}p{font-size:14px;line-height:1.9;margin-bottom:14px}h2{font-size:14px;font-weight:bold;color:#0d9488;margin:20px 0 8px}table{width:100%;border-collapse:collapse;margin:8px 0}td,th{padding:9px 14px;border:1px solid #d1d5db;font-size:13px}td:first-child{background:#f9fafb;font-weight:bold;width:38%}th{background:#f1f5f9;font-weight:600;text-align:left}.sig-line{border-top:1px solid #1a1a1a;width:200px;margin-top:48px;margin-bottom:6px}.footer{margin-top:40px;padding-top:12px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#9ca3af}@media print{button{display:none!important}}</style></head><body>'
