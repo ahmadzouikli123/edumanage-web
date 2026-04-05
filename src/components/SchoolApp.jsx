@@ -3874,6 +3874,7 @@ export default function App() {
     messages:   { title: "Messages",    sub: "Communicate with parents & guardians" },
     exams:      { title: "Exams",       sub: "Schedule exams & record results" },
     teachers:   { title: "Teachers",    sub: "Manage teaching staff & assignments" },
+    settings:   { title: "Settings",    sub: "Manage accounts & access" },
   };
 
   if (!auth) return null;
