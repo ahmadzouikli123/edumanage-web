@@ -2445,6 +2445,7 @@ function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds
     timetable[classId]?.[dayIdx]?.[periodId] || null;
 
   const openEdit = (dayIdx, periodId) => {
+    if (teacherClassIds) return; // teachers cannot edit timetable
     const slot = getSlot(dayIdx, periodId);
     setForm({
       subjectId: slot?.subjectId ?? "",
@@ -2491,7 +2492,7 @@ function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds
       }}>
         <select value={classId} onChange={e => setClassId(parseInt(e.target.value))}
           style={{ ...selectStyle, width: 200 }}>
-          {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          {visibleClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <div style={{ fontSize: 13, color: T.textSub }}>
           👤 {currentClass?.teacher} &nbsp;·&nbsp; 🚪 Room {currentClass?.room}
@@ -3664,7 +3665,7 @@ function LogoutButton() {
   )
 }
 export default function App() {
-  const [page, setPage] = useState("dashboard");
+  const [page, setPage] = useState((() => { try { const a = JSON.parse(localStorage.getItem("edu_auth")||"{}"); return a.role === "teacher" ? "attendance" : "dashboard"; } catch { return "dashboard"; } })());
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [auth, setAuth] = useState(null);
 
@@ -3690,8 +3691,9 @@ export default function App() {
                      : null; // admin: all pages
 
   const effectivePage = allowedPages && !allowedPages.includes(page)
-    ? "attendance"
+    ? TEACHER_PAGES[0]
     : page;
+  const initialPage = userRole === "teacher" ? "attendance" : "dashboard";
 
   // localStorage persistence — load on mount, save on change
   const [students, setStudents]     = useState(() => load("edu_students", SEED_STUDENTS));
