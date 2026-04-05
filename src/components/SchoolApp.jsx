@@ -372,7 +372,7 @@ const NAV = [
 
 
 
-function Teachers({ userRole }) {
+function Teachers({ userRole, classes = [] }) {
   const [teachers, setTeachers] = useState(() => { try { const v = localStorage.getItem("edu_teachers"); return v ? JSON.parse(v) : SEED_TEACHERS; } catch { return SEED_TEACHERS; } });
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -446,6 +446,7 @@ function Teachers({ userRole }) {
   const handleSave = (e) => {
     e.preventDefault();
     const form = e.target;
+    const checkedClasses = Array.from(form.querySelectorAll('input[name="classIds"]:checked')).map(cb => parseInt(cb.value));
     const newTeacher = {
       id: editing ? editing.id : Date.now(),
       name: form.name.value,
@@ -453,6 +454,8 @@ function Teachers({ userRole }) {
       phone: form.phone.value,
       email: form.email.value,
       status: form.status.value,
+      startDate: form.startDate.value,
+      classIds: checkedClasses,
     };
     
     if (editing) {
@@ -531,10 +534,26 @@ function Teachers({ userRole }) {
             <input name="subject" defaultValue={editing?.subject} placeholder="Subject" required className="w-full p-2 border rounded mb-3" />
             <input name="email" defaultValue={editing?.email} placeholder="Email" type="email" className="w-full p-2 border rounded mb-3" />
             <input name="phone" defaultValue={editing?.phone} placeholder="Phone" className="w-full p-2 border rounded mb-3" />
-            <select name="status" defaultValue={editing?.status || "active"} className="w-full p-2 border rounded mb-4">
+            <select name="status" defaultValue={editing?.status || "active"} className="w-full p-2 border rounded mb-3">
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
+            <label className="block text-sm font-medium text-slate-600 mb-1">Start Date</label>
+            <input name="startDate" type="date" defaultValue={editing?.startDate} className="w-full p-2 border rounded mb-3" />
+            {classes.length > 0 && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-600 mb-2">Assigned Classes</label>
+                <div className="border rounded p-2 max-h-36 overflow-y-auto flex flex-col gap-1">
+                  {classes.map(cls => (
+                    <label key={cls.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                      <input type="checkbox" name="classIds" value={cls.id}
+                        defaultChecked={(editing?.classIds||[]).map(x=>parseInt(x)).includes(cls.id)} />
+                      {cls.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex gap-2">
               <button type="submit" className="flex-1 bg-teal-600 text-white py-2 rounded">Save</button>
               <button type="button" onClick={() => {setShowForm(false); setEditing(null);}} className="flex-1 bg-slate-300 py-2 rounded">Cancel</button>
