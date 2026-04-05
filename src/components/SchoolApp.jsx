@@ -635,7 +635,9 @@ function Field({ label, error, children }) {
 }
 
 // ─── Attendance Module ────────────────────────────────────────────────────────
-function Attendance({ students, classes, attendance, setAttendance }) {
+function Attendance({ students, classes, attendance, setAttendance, teacherClassIds = null }) {
+  const visibleClasses = teacherClassIds ? classes.filter(c => teacherClassIds.includes(c.id)) : classes;
+  const visibleStudents = teacherClassIds ? students.filter(s => teacherClassIds.includes(s.classId)) : students;
   const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD, no timezone issues
   const [date, setDate]       = useState(todayStr);
   const [classId, setClassId] = useState(classes[0]?.id || 1);
@@ -1687,7 +1689,8 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
   );
 }
 
-function Students({ students, setStudents, classes, attendance, grades, subjects, exams, examResults, messages }) {
+function Students({ students, setStudents, classes, attendance, grades, subjects, exams, examResults, messages, teacherClassIds = null, userRole = "admin" }) {
+  const visibleStudents = teacherClassIds ? students.filter(s => teacherClassIds.includes(s.classId)) : students;
   const [search, setSearch]           = useState("");
   const [filterClass, setFilterClass] = useState("all");
   const [filterYear, setFilterYear] = useState("all");
@@ -2094,7 +2097,9 @@ function Classes({ classes, setClasses, students }) {
 }
 
 // ─── Grades Module ───────────────────────────────────────────────────────────
-function Grades({ students, classes, subjects, grades, setGrades }) {
+function Grades({ students, classes, subjects, grades, setGrades, teacherClassIds = null }) {
+  const visibleClasses = teacherClassIds ? classes.filter(c => teacherClassIds.includes(c.id)) : classes;
+  const visibleStudents = teacherClassIds ? students.filter(s => teacherClassIds.includes(s.classId)) : students;
   const [view, setView]       = useState("enter"); // "enter" | "report"
   const [classId, setClassId] = useState(classes[0]?.id || 1);
   const [subjectId, setSubjectId] = useState(null);
@@ -3672,10 +3677,11 @@ export default function App() {
 
   const userRole   = auth?.role     || "admin";
   const teacherClassId = auth?.classId || null;   // classId for teacher
+  const teacherClassIds = auth?.classIds || (teacherClassId ? [teacherClassId] : null); // all classIds for teacher
   const teacherName    = auth?.name    || "";
 
   // ─── Teacher: pages allowed ───────────────────────────────────────────────
-  const TEACHER_PAGES = ["dashboard", "attendance", "grades", "timetable", "messages"];
+  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages"];
   const PARENT_PAGES  = ["dashboard"];
 
   const allowedPages = userRole === "teacher" ? TEACHER_PAGES
@@ -3683,7 +3689,7 @@ export default function App() {
                      : null; // admin: all pages
 
   const effectivePage = allowedPages && !allowedPages.includes(page)
-    ? "dashboard"
+    ? "attendance"
     : page;
 
   // localStorage persistence — load on mount, save on change
@@ -3814,10 +3820,10 @@ export default function App() {
         <div className="edu-content" style={{ padding: 28, flex: 1 }}>
           {page === "dashboard"  && <Dashboard  students={students} classes={classes} attendance={attendance} grades={grades} subjects={subjects} timetable={timetable} messages={messages} exams={exams} onNavigate={setPage} />}
           {effectivePage === "teachers"  && userRole === "admin" && <Teachers userRole={userRole} teachers={teachers} setTeachers={setTeachers} classes={classes} subjects={subjects} />}
-          {page === "students"   && <Students   students={students} setStudents={setStudents} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} />}
+          {page === "students"   && <Students   students={students} setStudents={setStudents} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} teacherClassIds={teacherClassIds} userRole={userRole} />}
           {page === "classes"    && <Classes    classes={classes}   setClasses={setClasses}   students={students} />}
-          {page === "attendance" && <Attendance students={students} classes={classes} attendance={attendance} setAttendance={setAttendance} />}
-          {page === "grades"     && <Grades     students={students} classes={classes} subjects={subjects} grades={grades} setGrades={setGrades} />}
+          {page === "attendance" && <Attendance students={students} classes={classes} attendance={attendance} setAttendance={setAttendance} teacherClassIds={teacherClassIds} />}
+          {page === "grades"     && <Grades     students={students} classes={classes} subjects={subjects} grades={grades} setGrades={setGrades} teacherClassIds={teacherClassIds} />}
           {page === "timetable"  && <Timetable  classes={classes} subjects={subjects} timetable={timetable} setTimetable={setTimetable} />}
           {page === "messages"   && <Messaging  students={students} classes={classes} messages={messages} setMessages={setMessages} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
