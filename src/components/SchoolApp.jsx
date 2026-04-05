@@ -3649,10 +3649,10 @@ function exportExamSchedulePDF(exams, classes, subjects) {
 // ─── Settings ────────────────────────────────────────────────────────────────
 function Settings({ teachers, setTeachers, students }) {
   const S = { primary: "#0d9488", border: "#e2e8f0", textMain: "#1e293b", textSub: "#64748b", textMuted: "#94a3b8" };
-  const [tab, setTab] = React.useState("teachers");
-  const [editId, setEditId] = React.useState(null);
-  const [form, setForm] = React.useState({ username: "", password: "" });
-  const [saved, setSaved] = React.useState(null);
+  const [tab, setTab] = useState("teachers");
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState({ username: "", password: "" });
+  const [saved, setSaved] = useState(null);
 
   const openEdit = (person) => {
     setEditId(person.id);
