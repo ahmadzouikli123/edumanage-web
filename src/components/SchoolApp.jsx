@@ -3604,20 +3604,6 @@ export default function App() {
   // localStorage persistence — load on mount, save on change
   const [students, setStudents]     = useState(() => load("edu_students", SEED_STUDENTS));
   const [dbReady, setDbReady] = useState(false);
-  useEffect(() => {
-    supabase.from("students").select("*, classes(name)").then(({ data, error }) => {
-      if (data && data.length > 0) {
-        const mapped = data.map(s => ({
-          id: s.id, name: s.name, sid: s.sid,
-          classId: s.class_id, gender: s.gender,
-          phone: s.phone, status: s.status,
-        }));
-        setStudents(mapped);
-        save("edu_students", mapped);
-      }
-      setDbReady(true);
-    });
-  }, []);
   const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
   const [classes,  setClasses]      = useState(() => load("edu_classes", SEED_CLASSES));
   useEffect(() => {
