@@ -2429,8 +2429,9 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
 }
 
 // ─── Timetable Module ────────────────────────────────────────────────────────
-function Timetable({ classes, subjects, timetable, setTimetable }) {
-  const [classId,  setClassId]  = useState(classes[0]?.id || 1);
+function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds = null }) {
+  const visibleClasses = teacherClassIds ? classes.filter(c => teacherClassIds.includes(c.id)) : classes;
+  const [classId,  setClassId]  = useState((teacherClassIds ? classes.filter(c => teacherClassIds.includes(c.id)) : classes)[0]?.id || 1);
   const [modal,    setModal]    = useState(null); // { day, periodId } | null
   const [form,     setForm]     = useState({ subjectId: "", room: "" });
   const todayDayIdx = (new Date().getDay() + 6) % 7; // 0=Mon … 4=Fri
@@ -3824,7 +3825,7 @@ export default function App() {
           {page === "classes"    && <Classes    classes={classes}   setClasses={setClasses}   students={students} />}
           {page === "attendance" && <Attendance students={students} classes={classes} attendance={attendance} setAttendance={setAttendance} teacherClassIds={teacherClassIds} />}
           {page === "grades"     && <Grades     students={students} classes={classes} subjects={subjects} grades={grades} setGrades={setGrades} teacherClassIds={teacherClassIds} />}
-          {page === "timetable"  && <Timetable  classes={classes} subjects={subjects} timetable={timetable} setTimetable={setTimetable} />}
+          {page === "timetable"  && <Timetable  classes={classes} subjects={subjects} timetable={timetable} setTimetable={setTimetable} teacherClassIds={teacherClassIds} />}
           {page === "messages"   && <Messaging  students={students} classes={classes} messages={messages} setMessages={setMessages} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
         </div>
