@@ -104,7 +104,11 @@ export default function Login() {
             {role==="parent"  && <div>Student ID: S001 / Phone: 555-0101</div>}
           </div>
         </div>
+              <div style={{textAlign:"center",marginTop:24,fontSize:11,color:"rgba(255,255,255,.25)"}}>
+          © 2025 Al-Huffath Academy · Developed by <span style={{color:"rgba(13,148,136,.7)"}}>Eng: Ahmad Zouikli</span>
+        </div>
       </div>
     </div>
   )
 }
+
