@@ -956,8 +956,32 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
     </div>
   );
 
+  const printMonthlyReport = () => {
+    const now = new Date();
+    const monthName = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    const attendanceDays = Object.keys(attendance);
+    const totalPresent = attendanceDays.reduce((sum, day) => sum + Object.values(attendance[day]).filter(v => v === "present").length, 0);
+    const totalRecords = attendanceDays.reduce((sum, day) => sum + Object.values(attendance[day]).length, 0);
+    const attendanceRate = totalRecords ? Math.round((totalPresent / totalRecords) * 100) : 0;
+    const w = window.open("", "_blank");
+    w.document.write(`<html><head><title>Monthly Report</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#1e1e3a}h1{color:#0d9488;border-bottom:3px solid #0d9488;padding-bottom:10px}table{width:100%;border-collapse:collapse;margin-top:10px}th{background:#0d9488;color:white;padding:10px 14px;text-align:left}td{padding:10px 14px;border-bottom:1px solid #e8ecf2}.stat{display:inline-block;background:#f1f5f9;border-radius:10px;padding:16px 24px;margin:8px;text-align:center}.sv{font-size:28px;font-weight:bold;color:#0d9488}.sl{font-size:12px;color:#64748b}.footer{margin-top:40px;text-align:center;color:#94a3b8;font-size:12px;border-top:1px solid #e8ecf2;padding-top:16px}</style></head><body>
+      <h1>Monthly Report - ${monthName}</h1>
+      <p>Generated: ${now.toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
+      <div><div class="stat"><div class="sv">${students.length}</div><div class="sl">Total Students</div></div><div class="stat"><div class="sv">${classes.length}</div><div class="sl">Total Classes</div></div><div class="stat"><div class="sv">${attendanceRate}%</div><div class="sl">Attendance Rate</div></div><div class="stat"><div class="sv">${(messages||[]).filter(m=>!m.read).length}</div><div class="sl">Unread Messages</div></div></div>
+      <h2>Students by Class</h2><table><tr><th>Class</th><th>Students</th></tr>${classes.map(c=>`<tr><td>${c.name}</td><td>${students.filter(s=>String(s.classId)===String(c.id)).length}</td></tr>`).join("")}</table>
+      <h2>Recent Attendance (Last 10 Days)</h2><table><tr><th>Date</th><th>Present</th><th>Absent</th><th>Late</th></tr>${Object.keys(attendance).sort().slice(-10).map(day=>{const r=attendance[day];const p=Object.values(r).filter(v=>v==="present").length;const a=Object.values(r).filter(v=>v==="absent").length;const l=Object.values(r).filter(v=>v==="late").length;return`<tr><td>${day}</td><td>${p}</td><td>${a}</td><td>${l}</td></tr>`;}).join("")}</table>
+      <div class="footer">Al-Huffath Academy - Developed by Eng: Ahmad Zouikli</div>
+      </body></html>`);
+    w.document.close(); w.print();
+  };
+
   return (
     <div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+        <button onClick={printMonthlyReport} style={{ padding: "10px 20px", background: "#0d9488", color: "white", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+          🖨️ Monthly Report
+        </button>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 14, marginBottom: 28 }}>
         <StatCard icon="👥" value={students.length} label="Total Students"  sub="Enrolled"        subColor={T.primary} />
         <StatCard icon="🏫" value={classes.length}  label="Total Classes"   sub="This semester"   subColor="#7c3aed" />
