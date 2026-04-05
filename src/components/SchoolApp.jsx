@@ -3648,6 +3648,7 @@ function exportExamSchedulePDF(exams, classes, subjects) {
 
 // ─── Settings ────────────────────────────────────────────────────────────────
 function Settings({ teachers, setTeachers, students }) {
+  const S = { primary: "#0d9488", border: "#e2e8f0", textMain: "#1e293b", textSub: "#64748b", textMuted: "#94a3b8" };
   const [tab, setTab] = React.useState("teachers");
   const [editId, setEditId] = React.useState(null);
   const [form, setForm] = React.useState({ username: "", password: "" });
@@ -3668,8 +3669,8 @@ function Settings({ teachers, setTeachers, students }) {
   const tabStyle = (t) => ({
     padding: "8px 20px", borderRadius: 8, border: "none", cursor: "pointer",
     fontFamily: "inherit", fontSize: 13, fontWeight: 600,
-    background: tab === t ? T.primary : "#f1f5f9",
-    color: tab === t ? "#fff" : T.textSub,
+    background: tab === t ? S.primary : "#f1f5f9",
+    color: tab === t ? "#fff" : S.textSub,
   });
 
   return (
@@ -3686,27 +3687,27 @@ function Settings({ teachers, setTeachers, students }) {
       )}
 
       {tab === "teachers" && (
-        <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${T.border}`, overflow: "hidden" }}>
-          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${T.border}`, fontSize: 14, fontWeight: 600, color: T.textMain }}>
+        <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, overflow: "hidden" }}>
+          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>
             Teacher Login Credentials
           </div>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#f8fafc" }}>
                 {["Name", "Subject", "Username", "Password", "Action"].map(h => (
-                  <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: T.textSub, borderBottom: `1px solid ${T.border}` }}>{h}</th>
+                  <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: S.textSub, borderBottom: `1px solid ${S.border}` }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {teachers.map(t => (
-                <tr key={t.id} style={{ borderBottom: `1px solid ${T.border}` }}>
+                <tr key={t.id} style={{ borderBottom: `1px solid ${S.border}` }}>
                   <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{t.name}</td>
-                  <td style={{ padding: "12px 16px", fontSize: 13, color: T.textSub }}>{t.subject}</td>
+                  <td style={{ padding: "12px 16px", fontSize: 13, color: S.textSub }}>{t.subject}</td>
                   <td style={{ padding: "12px 16px" }}>
                     {editId === t.id ? (
                       <input value={form.username} onChange={e => setForm({...form, username: e.target.value})}
-                        style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 13, fontFamily: "inherit", width: 140 }} />
+                        style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "inherit", width: 140 }} />
                     ) : (
                       <span style={{ fontSize: 13, fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4 }}>{t.username || "—"}</span>
                     )}
@@ -3714,7 +3715,7 @@ function Settings({ teachers, setTeachers, students }) {
                   <td style={{ padding: "12px 16px" }}>
                     {editId === t.id ? (
                       <input value={form.password} onChange={e => setForm({...form, password: e.target.value})}
-                        style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 13, fontFamily: "inherit", width: 140 }} />
+                        style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "inherit", width: 140 }} />
                     ) : (
                       <span style={{ fontSize: 13, fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4 }}>{t.password ? "••••••••" : "—"}</span>
                     )}
@@ -3722,11 +3723,11 @@ function Settings({ teachers, setTeachers, students }) {
                   <td style={{ padding: "12px 16px" }}>
                     {editId === t.id ? (
                       <div style={{ display: "flex", gap: 6 }}>
-                        <button onClick={saveTeacher} style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: T.primary, color: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Save</button>
-                        <button onClick={() => setEditId(null)} style={{ padding: "6px 14px", borderRadius: 6, border: `1px solid ${T.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+                        <button onClick={saveTeacher} style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: S.primary, color: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Save</button>
+                        <button onClick={() => setEditId(null)} style={{ padding: "6px 14px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
                       </div>
                     ) : (
-                      <button onClick={() => openEdit(t)} style={{ padding: "6px 14px", borderRadius: 6, border: `1px solid ${T.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit", color: T.textMain }}>✏️ Edit</button>
+                      <button onClick={() => openEdit(t)} style={{ padding: "6px 14px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit", color: S.textMain }}>✏️ Edit</button>
                     )}
                   </td>
                 </tr>
@@ -3737,11 +3738,11 @@ function Settings({ teachers, setTeachers, students }) {
       )}
 
       {tab === "parents" && (
-        <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${T.border}`, overflow: "hidden" }}>
-          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${T.border}`, fontSize: 14, fontWeight: 600, color: T.textMain }}>
+        <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, overflow: "hidden" }}>
+          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>
             Parent Access — Login by Student ID + Phone
           </div>
-          <div style={{ padding: 20, fontSize: 13, color: T.textSub, lineHeight: 1.8 }}>
+          <div style={{ padding: 20, fontSize: 13, color: S.textSub, lineHeight: 1.8 }}>
             <p style={{ marginBottom: 12 }}>Parents log in using their child's <b>Student ID</b> and <b>Phone Number</b>.</p>
             <p style={{ marginBottom: 16 }}>To grant access, make sure each student has a phone number set.</p>
           </div>
@@ -3749,13 +3750,13 @@ function Settings({ teachers, setTeachers, students }) {
             <thead>
               <tr style={{ background: "#f8fafc" }}>
                 {["Student Name", "Student ID", "Phone", "Access Status"].map(h => (
-                  <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: T.textSub, borderBottom: `1px solid ${T.border}` }}>{h}</th>
+                  <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: S.textSub, borderBottom: `1px solid ${S.border}` }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {students.map(s => (
-                <tr key={s.id} style={{ borderBottom: `1px solid ${T.border}` }}>
+                <tr key={s.id} style={{ borderBottom: `1px solid ${S.border}` }}>
                   <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{s.name}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13, fontFamily: "monospace", background: "#f8fafc" }}>{s.sid}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13 }}>{s.phone || <span style={{ color: "#ef4444" }}>Not set</span>}</td>
