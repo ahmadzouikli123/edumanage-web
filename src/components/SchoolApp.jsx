@@ -1765,7 +1765,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
       showToast("Student deleted");
     });
   };
-  const cls = id => classes.find(c => c.id === id)?.name || "—";
+  const cls = id => classes.find(c => String(c.id) === String(id))?.name || "—";
 
   const allDates = Object.keys(attendance || {}).sort();
   const atRiskIds = useMemo(() => {
@@ -3755,6 +3755,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
