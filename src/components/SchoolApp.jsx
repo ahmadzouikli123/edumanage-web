@@ -1850,8 +1850,8 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
                         {isAtRisk && <span title="Attendance at risk" style={{ fontSize: 12 }}>⚠️</span>}
                       </div>
                     </td>
-                    <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.academicYear || "—"}</td>
                     <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub, fontFamily: "monospace" }}>{s.sid}</td>
+                    <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.academicYear || "—"}</td>
                     <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: "#334155" }}>{cls(s.classId)}</td>
                     <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.gender}</td>
                     <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.phone}</td>
@@ -3264,6 +3264,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                         </div>
                       </td>
                       <td style={{ padding: "12px 18px", borderBottom: i < arr.length-1 ? "1px solid #f8fafc" : "none", fontSize: 12, color: T.textMuted, fontFamily: "monospace" }}>{s.sid}</td>
+                    <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.academicYear || "—"}</td>
                       <td style={{ padding: "12px 18px", borderBottom: i < arr.length-1 ? "1px solid #f8fafc" : "none" }}>
                         <input
                           type="number" min={0} max={selectedExam.maxScore}
