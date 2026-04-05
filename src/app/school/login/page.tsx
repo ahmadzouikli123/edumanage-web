@@ -45,8 +45,8 @@ export default function Login() {
           setErr("Invalid credentials")
         }
       } else if (role === "teacher") {
-        const teachers = load("edu_teachers", SEED_TEACHERS)
-        const t = teachers.find((x: any) => x.username === user.toLowerCase().trim() && x.password === pass)
+        const allTeachers = [...SEED_TEACHERS]
+        const t = allTeachers.find((x: any) => x.username === user.toLowerCase().trim() && x.password === pass)
         if (t) {
           save("edu_auth", {role:"teacher", name:t.name, classIds:t.class_ids||[], classId:(t.class_ids||[])[0]})
           router.replace("/school")
