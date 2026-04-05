@@ -2659,6 +2659,8 @@ function Timetable({ classes, subjects, timetable, setTimetable }) {
 function Messaging({ students, classes, messages, setMessages }) {
   const [selected, setSelected]     = useState(null); // selected message id
   const [compose, setCompose]       = useState(false);
+  const [broadcast, setBroadcast]   = useState(false);
+  const [bcForm, setBcForm]         = useState({ classId: "all", tag: "general", subject: "", body: "" });
   const [replyText, setReplyText]   = useState("");
   const [filterTag, setFilterTag]   = useState("all");
   const [search, setSearch]         = useState("");
@@ -2701,6 +2703,22 @@ function Messaging({ students, classes, messages, setMessages }) {
     if (!form.subject.trim()) e.subject = "Required";
     if (!form.body.trim())    e.body    = "Required";
     return e;
+  };
+
+  const sendBroadcast = () => {
+    if (!bcForm.subject.trim() || !bcForm.body.trim()) return;
+    const targets = bcForm.classId === "all"
+      ? students
+      : students.filter(s => s.classId === parseInt(bcForm.classId));
+    const newMsgs = targets.map(s => ({
+      id: uid(), studentId: s.id,
+      tag: bcForm.tag, subject: bcForm.body.trim(),
+      body: bcForm.body.trim(), fromSchool: true,
+      timestamp: Date.now(), read: true, replies: [],
+    }));
+    setMessages(prev => [...newMsgs, ...prev]);
+    setBroadcast(false);
+    setBcForm({ classId: "all", tag: "general", subject: "", body: "" });
   };
 
   const sendNew = () => {
@@ -2748,6 +2766,7 @@ function Messaging({ students, classes, messages, setMessages }) {
               background: T.primary, color: "#fff", border: "none", borderRadius: 8,
               fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
             }}>✏️ Compose</button>
+            <button onClick={() => { setBroadcast(true); setCompose(false); setSelected(null); }} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", background: "#7c3aed", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>📢 Broadcast</button>
           </div>
           <div style={{ position: "relative", marginBottom: 8 }}>
             <span style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: T.textMuted }}>🔍</span>
@@ -2808,7 +2827,30 @@ function Messaging({ students, classes, messages, setMessages }) {
 
       {/* ── Right Panel: detail or compose ── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
-        {compose ? (
+        {broadcast ? (
+          /* Broadcast Panel */
+          <div style={{ flex: 1, padding: 28, overflowY: "auto" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#7c3aed", marginBottom: 20 }}>📢 Broadcast Message</div>
+            <Field label="Send To">
+              <select value={bcForm.classId} onChange={e => setBcForm({...bcForm, classId: e.target.value})} style={selectStyle}>
+                <option value="all">📚 All Students</option>
+                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </Field>
+            <Field label="Subject">
+              <input value={bcForm.subject} onChange={e => setBcForm({...bcForm, subject: e.target.value})} placeholder="Message subject..." style={inputStyle} />
+            </Field>
+            <Field label="Message">
+              <textarea value={bcForm.body} onChange={e => setBcForm({...bcForm, body: e.target.value})} placeholder="Write your message..." rows={6} style={{...inputStyle, resize: "vertical"}} />
+            </Field>
+            <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+              <button onClick={sendBroadcast} style={{ flex: 1, padding: "11px", borderRadius: 9, border: "none", background: "#7c3aed", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                📢 Send to {bcForm.classId === "all" ? "All Students" : classes.find(c=>c.id===parseInt(bcForm.classId))?.name || "Class"}
+              </button>
+              <button onClick={() => setBroadcast(false)} style={{ padding: "11px 20px", borderRadius: 9, border: `1px solid ${T.border}`, background: "#fff", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+            </div>
+          </div>
+        ) : compose ? (
           /* Compose Panel */
           <div style={{ flex: 1, padding: 28, overflowY: "auto" }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: T.textMain, marginBottom: 20 }}>✉️ New Message to Parent</div>
