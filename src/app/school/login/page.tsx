@@ -45,7 +45,8 @@ export default function Login() {
           setErr("Invalid credentials")
         }
       } else if (role === "teacher") {
-        const allTeachers = [...SEED_TEACHERS]
+        const storedTeachers = (() => { try { return JSON.parse(localStorage.getItem('edu_teachers') || '[]'); } catch { return []; } })()
+        const allTeachers = [...SEED_TEACHERS, ...storedTeachers.filter((t: any) => t.username && !SEED_TEACHERS.find((s: any) => s.username === t.username))]
         const t = allTeachers.find((x: any) => x.username === user.toLowerCase().trim() && x.password === pass)
         if (t) {
           save("edu_auth", {role:"teacher", name:t.name, classIds:t.class_ids||[], classId:(t.class_ids||[])[0]})
