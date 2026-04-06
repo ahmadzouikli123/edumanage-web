@@ -1392,11 +1392,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
 
           {/* Hero */}
           <div style={{ background: "#1e1e3a", padding: "28px 28px 0", position: "relative" }}>
-            <button onClick={onClose} style={{
-              display: onClose ? "flex" : "none", position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,.12)",
-              border: "none", borderRadius: 8, width: 32, height: 32, color: "rgba(255,255,255,.8)",
-              fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-            }}>×</button>
+            {onClose && (<button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,.12)", border: "none", borderRadius: 8, width: 32, height: 32, color: "rgba(255,255,255,.8)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>)}
 
             <div style={{ display: "flex", alignItems: "flex-end", gap: 20, flexWrap: "wrap" }}>
               <div style={{ position: "relative" }}>
@@ -1716,8 +1712,59 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
             )}
 
             {/* ── MESSAGES ── */}
+
+            {tab === "Schedule" && (
+              <div>
+                <div style={{ marginBottom: 16, fontSize: 13, color: T.textMuted }}>
+                  Weekly timetable for <strong style={{ color: T.textMain }}>{cls?.name}</strong>
+                </div>
+                <div style={{ background: "#fff", border: "1px solid #e8ecf2", borderRadius: 14, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
+                      <thead>
+                        <tr>
+                          <th style={{ padding: "12px 16px", background: "#1e1e3a", color: "rgba(255,255,255,.5)", fontSize: 11, fontWeight: 600, textAlign: "left", width: 130, borderRight: "1px solid rgba(255,255,255,.08)" }}>Period</th>
+                          {DAYS.map((day, di) => {
+                            const todayDi = (new Date().getDay() + 6) % 7;
+                            const isToday = di === todayDi;
+                            return (<th key={day} style={{ padding: "12px 10px", textAlign: "center", background: isToday ? T.primary : "#1e1e3a", color: isToday ? "#fff" : "rgba(255,255,255,.7)", fontSize: 12, fontWeight: 600, borderRight: di < 4 ? "1px solid rgba(255,255,255,.08)" : "none" }}>{day.slice(0,3)}</th>);
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {PERIODS.map(period => {
+                          if (period.isBreak) return (<tr key={period.id}><td colSpan={6} style={{ padding: "7px 16px", background: "#f8fafc", borderTop: "1px solid #e8ecf2", borderBottom: "1px solid #e8ecf2", fontSize: 11, color: T.textMuted, textAlign: "center", fontWeight: 600 }}>Break - {period.time}</td></tr>);
+                          const todayDi = (new Date().getDay() + 6) % 7;
+                          return (
+                            <tr key={period.id} style={{ borderTop: "1px solid #f1f5f9" }}>
+                              <td style={{ padding: "10px 16px", background: "#f8fafc", borderRight: "1px solid #e8ecf2" }}>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: "#334155" }}>{period.label}</div>
+                                <div style={{ fontSize: 10, color: T.textMuted }}>{period.time}</div>
+                              </td>
+                              {DAYS.map((day, di) => {
+                                const isToday = di === todayDi;
+                                const slot = timetable?.[student.classId]?.[di]?.[period.id] || null;
+                                const subj = slot ? stdSubjs.find(s => s.id === slot.subjectId) : null;
+                                const clr = subj ? subjectColor(subj.name) : null;
+                                return (
+                                  <td key={day} style={{ padding: "6px 8px", textAlign: "center", borderRight: di < 4 ? "1px solid #f1f5f9" : "none", background: isToday ? "#f0fdf9" : "transparent", verticalAlign: "top" }}>
+                                    {subj ? (<div style={{ background: clr.bg, border: "1px solid " + clr.border, borderRadius: 7, padding: "5px 8px" }}><div style={{ fontSize: 12, fontWeight: 600, color: clr.text }}>{subj.icon} {subj.name}</div></div>) : (<div style={{ height: 36, display: "flex", alignItems: "center", justifyContent: "center", color: "#e2e8f0" }}>-</div>)}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {tab === "Messages" && (
               <div>
+                {!onClose && (<ParentCompose student={student} messages={messages} />)}
                 {stdMsgs.length === 0
                   ? <div style={{ textAlign: "center", padding: "60px 0", color: "#94a3b8", fontSize: 14 }}>No messages for this student</div>
                   : stdMsgs.map(msg => {
