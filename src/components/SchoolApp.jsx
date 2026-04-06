@@ -3890,6 +3890,26 @@ function Settings({ teachers, setTeachers, students }) {
             <label style={{ fontSize: 12, fontWeight: 600, color: S.textSub, display: "block", marginBottom: 4 }}>New Password (leave blank to keep current)</label>
             <input type="password" style={inputStyle} placeholder="••••••••" value={schoolForm.adminPassword} onChange={e => setSchoolForm({...schoolForm, adminPassword: e.target.value})} />
           </div>
+                    <div style={{ borderTop: "1px solid " + S.border, paddingTop: 16, marginTop: 4, marginBottom: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: S.textMain, marginBottom: 12 }}>School Logo</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div style={{ width: 80, height: 80, borderRadius: 12, border: "2px solid " + S.border, overflow: "hidden", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <img src={schoolForm.logoPreview || "/logo.png"} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, color: S.textSub, marginBottom: 8 }}>Upload a new logo (PNG, JPG, max 2MB)</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <label style={{ display: "inline-block", padding: "8px 16px", borderRadius: 8, border: "1px solid " + S.border, background: "#f8fafc", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", color: S.textMain }}>
+                    Choose File
+                    <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: "none" }} />
+                  </label>
+                  {schoolForm.logoPreview && (
+                    <button onClick={removeLogo} style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: S.dangerBg, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", color: S.danger }}>Remove</button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
           <button onClick={saveSchoolInfo} style={{ padding: "10px 24px", borderRadius: 8, border: "none", background: S.primary, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>💾 Save Settings</button>
         </div>
       )}
