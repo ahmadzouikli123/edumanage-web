@@ -304,7 +304,7 @@ function seedMessages(students) {
 const EXAM_TYPES = {
   quiz:    { label: "Quiz",         bg: "#dbeafe", color: "#1d4ed8", icon: "📝" },
   test:    { label: "Chapter Test", bg: "#ede9fe", color: "#6d28d9", icon: "📄" },
-  midterm: { label: "Midterm",      bg: "#fef3c7", color: "#b45309", icon: "📋" },
+  midterm: { label: "Midterm",      bg: "#fef3c7", color: "#b45309", icon: "??" },
   final:   { label: "Final Exam",   bg: "#fee2e2", color: "#b91c1c", icon: "🎓" },
 };
 
@@ -367,8 +367,8 @@ const NAV = [
   { id: "attendance", icon: "✓", label: "Attendance"  },
   { id: "grades",     icon: "★", label: "Grades"      },
   { id: "timetable",  icon: "▦", label: "Timetable"   },
-  { id: "messages",   icon: "💬", label: "Messages"   },
-  { id: "exams",      icon: "📋", label: "Exams"      },
+  { id: "messages",   icon: "??", label: "Messages"   },
+  { id: "exams",      icon: "??", label: "Exams"      },
   { id: "settings",   icon: "⚙️", label: "Settings"   },
 ];
 
@@ -1009,9 +1009,9 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
         <StatCard icon="👥" value={students.length} label="Total Students"  sub="Enrolled"        subColor={T.primary} />
         <StatCard icon="🏫" value={classes.length}  label="Total Classes"   sub="This semester"   subColor="#7c3aed" />
         <StatCard icon="✅" value={hasToday ? todayPresent : "—"} label="Present Today" sub={hasToday ? `${todayRate}% rate` : "Not taken yet"} subColor="#16a34a" />
-        <StatCard icon="⚠️" value={hasToday ? todayAbsent  : "—"} label="Absent Today"  sub={hasToday ? "Needs follow-up" : "Not taken yet"}   subColor={T.danger} />
-        <StatCard icon="💬" value={(messages || []).filter(m => !m.read).length} label="Unread Messages" sub="From parents" subColor="#7c3aed" />
-        <StatCard icon="📋" value={(exams || []).filter(e => getExamStatus(e.date) !== "completed").length} label="Upcoming Exams" sub="Scheduled" subColor="#b45309" />
+        <StatCard icon="??" value={hasToday ? todayAbsent  : "—"} label="Absent Today"  sub={hasToday ? "Needs follow-up" : "Not taken yet"}   subColor={T.danger} />
+        <StatCard icon="??" value={(messages || []).filter(m => !m.read).length} label="Unread Messages" sub="From parents" subColor="#7c3aed" />
+        <StatCard icon="??" value={(exams || []).filter(e => getExamStatus(e.date) !== "completed").length} label="Upcoming Exams" sub="Scheduled" subColor="#b45309" />
       </div>
       {topStudent && (
         <div style={{
@@ -1247,56 +1247,53 @@ function ProfileCard({ title, action, children }) {
 
 function ParentNotifications({ student, attendance, grades, subjects, exams, messages }) {
   const alerts = [];
-  const today = new Date().toISOString().split("T")[0];
 
-  // 1. ???? ?? ?????? ?? ??? 7 ????
   const last7 = Object.keys(attendance || {}).sort().slice(-7);
   last7.forEach(date => {
     const status = attendance[date]?.[student.id];
-    if (status === "absent") alerts.push({ type: "danger", icon: "??", title: "Absence Recorded", body: "Your child was marked absent on " + new Date(date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
-    if (status === "late")   alerts.push({ type: "warning", icon: "??", title: "Late Arrival", body: "Your child arrived late on " + new Date(date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
+    if (status === "absent") alerts.push({ type: "danger", icon: "!", title: "Absence Recorded", body: "Your child was marked absent on " + new Date(date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
+    if (status === "late")   alerts.push({ type: "warning", icon: "~", title: "Late Arrival", body: "Your child arrived late on " + new Date(date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
   });
 
-  // 2. ???? ?? ??????? ????????
   const stdSubjs = (subjects || []).filter(s => s.classId === student.classId);
   stdSubjs.forEach(sub => {
     const g = (grades?.[student.id])?.[sub.id];
     if (!g) return;
     const total = Math.round((g.quiz||0)*0.15 + (g.homework||0)*0.15 + (g.midterm||0)*0.30 + (g.final||0)*0.40);
-    if (total < 60) alerts.push({ type: "danger", icon: "??", title: "Low Grade Alert", body: sub.name + " grade is " + total + "/100 ? needs improvement" });
-    else if (total < 75) alerts.push({ type: "warning", icon: "??", title: "Grade Warning", body: sub.name + " grade is " + total + "/100 ? below average" });
+    if (total < 60) alerts.push({ type: "danger", icon: "v", title: "Low Grade Alert", body: sub.name + " grade is " + total + "/100 - needs improvement" });
+    else if (total < 75) alerts.push({ type: "warning", icon: "w", title: "Grade Warning", body: sub.name + " grade is " + total + "/100 - below average" });
   });
 
-  // 3. ???????? ????? ???? 3 ????
   (exams || []).filter(e => e.classId === student.classId).forEach(ex => {
     const diff = (new Date(ex.date + "T00:00:00") - new Date()) / 86400000;
-    if (diff >= 0 && diff <= 3) alerts.push({ type: "info", icon: "??", title: "Exam Coming Soon", body: ex.title + " on " + new Date(ex.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
+    if (diff >= 0 && diff <= 3) alerts.push({ type: "info", icon: "e", title: "Exam Coming Soon", body: ex.title + " on " + new Date(ex.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
   });
 
-  // 4. ????? ??? ??????
   const unread = (messages || []).filter(m => m.studentId === student.id && !m.read).length;
-  if (unread > 0) alerts.push({ type: "info", icon: "??", title: "Unread Messages", body: "You have " + unread + " unread message" + (unread > 1 ? "s" : "") + " from school" });
+  if (unread > 0) alerts.push({ type: "info", icon: "m", title: "Unread Messages", body: "You have " + unread + " unread message" + (unread > 1 ? "s" : "") + " from school" });
 
   if (alerts.length === 0) return null;
 
   const colors = {
-    danger:  { bg: "#fee2e2", border: "#fca5a5", color: "#991b1b" },
-    warning: { bg: "#fef3c7", border: "#fcd34d", color: "#92400e" },
-    info:    { bg: "#dbeafe", border: "#93c5fd", color: "#1e40af" },
+    danger:  { bg: "#fee2e2", border: "#fca5a5", color: "#991b1b", iconBg: "#dc2626" },
+    warning: { bg: "#fef3c7", border: "#fcd34d", color: "#92400e", iconBg: "#d97706" },
+    info:    { bg: "#dbeafe", border: "#93c5fd", color: "#1e40af", iconBg: "#2563eb" },
   };
+
+  const iconLabel = { "!": "AB", "~": "LT", "v": "F", "w": "C-", "e": "EX", "m": "MSG" };
 
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: "#1e1e3a", marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
-        ?? Notifications
+        Notifications
         <span style={{ background: "#ef4444", color: "#fff", borderRadius: 20, fontSize: 11, padding: "1px 8px", fontWeight: 700 }}>{alerts.length}</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {alerts.map((a, i) => {
           const c = colors[a.type];
           return (
-            <div key={i} style={{ background: c.bg, border: "1px solid " + c.border, borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "flex-start", gap: 10 }}>
-              <span style={{ fontSize: 18, flexShrink: 0 }}>{a.icon}</span>
+            <div key={i} style={{ background: c.bg, border: "1px solid " + c.border, borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: c.iconBg, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{iconLabel[a.icon] || a.icon}</div>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{a.title}</div>
                 <div style={{ fontSize: 12, color: c.color, opacity: .85, marginTop: 2 }}>{a.body}</div>
@@ -1308,6 +1305,7 @@ function ParentNotifications({ student, attendance, grades, subjects, exams, mes
     </div>
   );
 }
+
 
 function ParentCompose({ student, messages }) {
   const [open, setOpen] = useState(false);
