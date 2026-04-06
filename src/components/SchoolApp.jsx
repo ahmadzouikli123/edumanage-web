@@ -1244,6 +1244,81 @@ function ProfileCard({ title, action, children }) {
   );
 }
 
+function ParentCompose({ student, messages }) {
+  const [open, setOpen] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [sent, setSent] = useState(false);
+  const send = () => {
+    if (!subject.trim() || !body.trim()) return;
+    const msg = { id: Date.now(), studentId: student.id, tag: "general", subject, body, fromSchool: false, timestamp: Date.now(), read: false, replies: [] };
+    try { const stored = JSON.parse(localStorage.getItem("edu_messages") || "[]"); localStorage.setItem("edu_messages", JSON.stringify([msg, ...stored])); } catch {}
+    setSubject(""); setBody(""); setOpen(false); setSent(true);
+    setTimeout(() => setSent(false), 3000);
+  };
+  return (
+    <div style={{ marginBottom: 18 }}>
+      {sent && <div style={{ background: "#d1fae5", color: "#065f46", padding: "10px 16px", borderRadius: 10, marginBottom: 12, fontSize: 13, fontWeight: 500 }}>Message sent to school successfully!</div>}
+      {!open ? (
+        <button onClick={() => setOpen(true)} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "2px dashed #0d9488", background: "#f0fdf9", color: "#0d9488", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+          Send a Message to School
+        </button>
+      ) : (
+        <div style={{ background: "#fff", border: "1px solid #e8ecf2", borderRadius: 14, padding: "18px", marginBottom: 14, boxShadow: "0 2px 8px rgba(0,0,0,.06)" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "#1e1e3a", marginBottom: 14 }}>New Message to School</div>
+          <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Subject..." style={{ width: "100%", padding: "9px 12px", border: "1px solid #e8ecf2", borderRadius: 8, fontSize: 13, fontFamily: "inherit", outline: "none", marginBottom: 10, boxSizing: "border-box" }} />
+          <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Write your message..." rows={4} style={{ width: "100%", padding: "9px 12px", border: "1px solid #e8ecf2", borderRadius: 8, fontSize: 13, fontFamily: "inherit", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
+          <div style={{ display: "flex", gap: 10, marginTop: 10, justifyContent: "flex-end" }}>
+            <button onClick={() => setOpen(false)} style={{ padding: "8px 18px", borderRadius: 8, border: "1px solid #e8ecf2", background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+            <button onClick={send} disabled={!subject.trim() || !body.trim()} style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: "#0d9488", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: (!subject.trim() || !body.trim()) ? .5 : 1 }}>Send</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ParentNotifications({ student, attendance, grades, subjects, exams, messages }) {
+  const alerts = [];
+  const last7 = Object.keys(attendance || {}).sort().slice(-7);
+  last7.forEach(date => {
+    const status = attendance[date]?.[student.id];
+    if (status === "absent") alerts.push({ type: "danger", label: "AB", title: "Absence Recorded", body: "Marked absent on " + new Date(date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
+    if (status === "late")   alerts.push({ type: "warning", label: "LT", title: "Late Arrival", body: "Arrived late on " + new Date(date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
+  });
+  const stdSubjs = (subjects || []).filter(s => s.classId === student.classId);
+  stdSubjs.forEach(sub => {
+    const g = (grades?.[student.id])?.[sub.id];
+    if (!g) return;
+    const total = Math.round((g.quiz||0)*0.15+(g.homework||0)*0.15+(g.midterm||0)*0.30+(g.final||0)*0.40);
+    if (total < 60) alerts.push({ type: "danger", label: "F", title: "Low Grade - " + sub.name, body: "Grade is " + total + "/100 - needs improvement" });
+    else if (total < 75) alerts.push({ type: "warning", label: "C-", title: "Grade Warning - " + sub.name, body: "Grade is " + total + "/100 - below average" });
+  });
+  (exams || []).filter(e => e.classId === student.classId).forEach(ex => {
+    const diff = (new Date(ex.date + "T00:00:00") - new Date()) / 86400000;
+    if (diff >= 0 && diff <= 3) alerts.push({ type: "info", label: "EX", title: "Exam Soon", body: ex.title + " on " + new Date(ex.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
+  });
+  const unread = (messages || []).filter(m => m.studentId === student.id && !m.read).length;
+  if (unread > 0) alerts.push({ type: "info", label: "MSG", title: "Unread Messages", body: "You have " + unread + " unread message" + (unread > 1 ? "s" : "") + " from school" });
+  if (alerts.length === 0) return null;
+  const clrs = { danger: { bg: "#fee2e2", border: "#fca5a5", color: "#991b1b", ic: "#dc2626" }, warning: { bg: "#fef3c7", border: "#fcd34d", color: "#92400e", ic: "#d97706" }, info: { bg: "#dbeafe", border: "#93c5fd", color: "#1e40af", ic: "#2563eb" } };
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#1e1e3a", marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+        Notifications <span style={{ background: "#ef4444", color: "#fff", borderRadius: 20, fontSize: 11, padding: "1px 8px", fontWeight: 700 }}>{alerts.length}</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {alerts.map((a, i) => { const c = clrs[a.type]; return (
+          <div key={i} style={{ background: c.bg, border: "1px solid " + c.border, borderRadius: 10, padding: "10px 14px", display: "flex", gap: 12 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: c.ic, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800, flexShrink: 0 }}>{a.label}</div>
+            <div><div style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{a.title}</div><div style={{ fontSize: 12, color: c.color, opacity: .85, marginTop: 2 }}>{a.body}</div></div>
+          </div>
+        );})}
+      </div>
+    </div>
+  );
+}
+
 function StudentProfile({ student, classes, attendance, grades, subjects, exams, examResults, messages, onClose }) {
   const [tab, setTab] = useState("Overview");
 
@@ -3989,22 +4064,45 @@ export default function App() {
   if (!auth) return null;
 
   if (auth.role === "parent") {
-    const student = students.find(s => s.id === auth.studentId);
+    const parentPhone = auth.phone;
+    const allChildren = students.filter(s => s.phone === parentPhone);
+    const [activeChildId, setActiveChildId] = useState(auth.studentId || (allChildren[0] && allChildren[0].id) || null);
+    const student = students.find(s => s.id === activeChildId) || allChildren[0];
     if (!student) { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; return null; }
     return (
       <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"system-ui,sans-serif"}}>
-        <div style={{background:"#1e1e3a",padding:"0 24px",display:"flex",alignItems:"center",gap:14,height:56}}>
+        <div style={{background:"#1e1e3a",padding:"0 24px",display:"flex",alignItems:"center",gap:14,height:56,flexWrap:"wrap"}}>
           <div style={{fontSize:14,fontWeight:700,color:"#5eead4",flex:1}}>EduManage</div>
           <span style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Parent Portal</span>
-          <Avatar name={student.name} size={28} />
-          <span style={{fontSize:12,color:"rgba(255,255,255,.7)",fontWeight:500}}>{student.name}</span>
+          {allChildren.length > 1 && allChildren.map(child => (
+            <button key={child.id} onClick={() => setActiveChildId(child.id)} style={{
+              padding:"5px 12px", borderRadius:7,
+              border:"1px solid rgba(255,255,255,.2)",
+              background: child.id === activeChildId ? "#0d9488" : "rgba(255,255,255,.08)",
+              color: child.id === activeChildId ? "#fff" : "rgba(255,255,255,.6)",
+              fontSize:12, cursor:"pointer", fontFamily:"inherit", fontWeight:600
+            }}>{child.name.split(" ")[0]}</button>
+          ))}
+          {allChildren.length === 1 && (
+            <><Avatar name={student.name} size={28} /><span style={{fontSize:12,color:"rgba(255,255,255,.7)",fontWeight:500}}>{student.name}</span></>
+          )}
           <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"6px 14px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:12,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>Sign Out</button>
         </div>
+        {allChildren.length > 1 && (
+          <div style={{background:"#0d9488",padding:"8px 24px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:12,color:"rgba(255,255,255,.7)"}}>Viewing:</span>
+            <span style={{fontSize:13,fontWeight:700,color:"#fff"}}>{student.name}</span>
+            <span style={{fontSize:11,color:"rgba(255,255,255,.6)",marginRight:8}}>{classes.find(c=>c.id===student.classId)?.name||""}</span>
+            <span style={{fontSize:11,color:"rgba(255,255,255,.5)",marginLeft:"auto"}}>{allChildren.length} children linked</span>
+          </div>
+        )}
         <div style={{padding:"24px 20px",maxWidth:900,margin:"0 auto"}}>
+          <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
           <StudentProfile
             student={student} classes={classes} attendance={attendance}
             grades={grades} subjects={subjects} exams={exams}
             examResults={examResults} messages={messages}
+            timetable={timetable}
             onClose={null}
           />
         </div>
