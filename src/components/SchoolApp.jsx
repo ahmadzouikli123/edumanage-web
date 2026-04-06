@@ -4061,13 +4061,15 @@ export default function App() {
     settings:   { title: "Settings",    sub: "Manage accounts & access" },
   };
 
+  const [activeChildId, setActiveChildId] = useState(null);
+
   if (!auth) return null;
 
   if (auth.role === "parent") {
     const parentPhone = auth.phone;
     const allChildren = students.filter(s => s.phone === parentPhone);
-    const [activeChildId, setActiveChildId] = useState(auth.studentId || (allChildren[0] && allChildren[0].id) || null);
-    const student = students.find(s => s.id === activeChildId) || allChildren[0];
+    const effectiveChildId = activeChildId || auth.studentId || (allChildren[0] && allChildren[0].id);
+    const student = students.find(s => s.id === effectiveChildId) || allChildren[0];
     if (!student) { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; return null; }
     return (
       <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"system-ui,sans-serif"}}>
@@ -4078,7 +4080,7 @@ export default function App() {
             <button key={child.id} onClick={() => setActiveChildId(child.id)} style={{
               padding:"5px 12px", borderRadius:7,
               border:"1px solid rgba(255,255,255,.2)",
-              background: child.id === activeChildId ? "#0d9488" : "rgba(255,255,255,.08)",
+              background: child.id === effectiveChildId ? "#0d9488" : "rgba(255,255,255,.08)",
               color: child.id === activeChildId ? "#fff" : "rgba(255,255,255,.6)",
               fontSize:12, cursor:"pointer", fontFamily:"inherit", fontWeight:600
             }}>{child.name.split(" ")[0]}</button>
