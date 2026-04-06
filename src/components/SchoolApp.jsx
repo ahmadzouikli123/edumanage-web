@@ -4173,11 +4173,13 @@ export default function App() {
 
   if (!auth) return null;
 
+  const parentPhone = auth?.phone;
+  const allChildren = auth?.role === "parent" ? students.filter(s => s.phone === parentPhone) : [];
+  const [activeChildId, setActiveChildId] = useState(auth?.studentId || null);
+
   if (auth.role === "parent") {
-    const parentPhone = auth.phone;
-    const allChildren = students.filter(s => s.phone === parentPhone);
-    const [activeChildId, setActiveChildId] = useState(auth.studentId || allChildren[0]?.id);
-    const student = students.find(s => s.id === activeChildId) || allChildren[0];
+    const activeId = activeChildId || allChildren[0]?.id;
+    const student = students.find(s => s.id === activeId) || allChildren[0];
     if (!student) { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; return null; }
     return (
       <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"system-ui,sans-serif"}}>
@@ -4187,7 +4189,7 @@ export default function App() {
           {allChildren.length > 1 && allChildren.map(child => (
             <button key={child.id} onClick={() => setActiveChildId(child.id)} style={{
               padding:"5px 12px", borderRadius:7, border:"1px solid rgba(255,255,255,.2)",
-              background: child.id === activeChildId ? "#0d9488" : "rgba(255,255,255,.08)",
+              background: child.id === activeId ? "#0d9488" : "rgba(255,255,255,.08)",
               color: child.id === activeChildId ? "#fff" : "rgba(255,255,255,.6)",
               fontSize:12, cursor:"pointer", fontFamily:"inherit", fontWeight:600,
               display:"flex", alignItems:"center", gap:6, transition:"all .15s"
