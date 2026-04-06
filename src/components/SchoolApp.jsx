@@ -4346,7 +4346,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "system-ui,-apple-system,sans-serif", direction: "rtl", position: "relative" }}>
       {/* Sidebar */}
-      <div style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
+      <div className={"edu-sidebar" + (sidebarOpen ? " open" : "")} style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
         <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
             <div style={{ textAlign: "right" }}>
@@ -4388,6 +4388,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
         </div>
       </div>
 
+      {sidebarOpen && <div className="edu-overlay" onClick={() => setSidebarOpen(false)} style={{ display: "none" }} />}
       {/* Main */}
       <div className="edu-main" style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
         <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: "16px 28px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,.05)" }}>
