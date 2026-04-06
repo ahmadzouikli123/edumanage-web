@@ -1244,6 +1244,71 @@ function ProfileCard({ title, action, children }) {
   );
 }
 
+
+function ParentNotifications({ student, attendance, grades, subjects, exams, messages }) {
+  const alerts = [];
+  const today = new Date().toISOString().split("T")[0];
+
+  // 1. ???? ?? ?????? ?? ??? 7 ????
+  const last7 = Object.keys(attendance || {}).sort().slice(-7);
+  last7.forEach(date => {
+    const status = attendance[date]?.[student.id];
+    if (status === "absent") alerts.push({ type: "danger", icon: "??", title: "Absence Recorded", body: "Your child was marked absent on " + new Date(date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
+    if (status === "late")   alerts.push({ type: "warning", icon: "??", title: "Late Arrival", body: "Your child arrived late on " + new Date(date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
+  });
+
+  // 2. ???? ?? ??????? ????????
+  const stdSubjs = (subjects || []).filter(s => s.classId === student.classId);
+  stdSubjs.forEach(sub => {
+    const g = (grades?.[student.id])?.[sub.id];
+    if (!g) return;
+    const total = Math.round((g.quiz||0)*0.15 + (g.homework||0)*0.15 + (g.midterm||0)*0.30 + (g.final||0)*0.40);
+    if (total < 60) alerts.push({ type: "danger", icon: "??", title: "Low Grade Alert", body: sub.name + " grade is " + total + "/100 ? needs improvement" });
+    else if (total < 75) alerts.push({ type: "warning", icon: "??", title: "Grade Warning", body: sub.name + " grade is " + total + "/100 ? below average" });
+  });
+
+  // 3. ???????? ????? ???? 3 ????
+  (exams || []).filter(e => e.classId === student.classId).forEach(ex => {
+    const diff = (new Date(ex.date + "T00:00:00") - new Date()) / 86400000;
+    if (diff >= 0 && diff <= 3) alerts.push({ type: "info", icon: "??", title: "Exam Coming Soon", body: ex.title + " on " + new Date(ex.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) });
+  });
+
+  // 4. ????? ??? ??????
+  const unread = (messages || []).filter(m => m.studentId === student.id && !m.read).length;
+  if (unread > 0) alerts.push({ type: "info", icon: "??", title: "Unread Messages", body: "You have " + unread + " unread message" + (unread > 1 ? "s" : "") + " from school" });
+
+  if (alerts.length === 0) return null;
+
+  const colors = {
+    danger:  { bg: "#fee2e2", border: "#fca5a5", color: "#991b1b" },
+    warning: { bg: "#fef3c7", border: "#fcd34d", color: "#92400e" },
+    info:    { bg: "#dbeafe", border: "#93c5fd", color: "#1e40af" },
+  };
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#1e1e3a", marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+        ?? Notifications
+        <span style={{ background: "#ef4444", color: "#fff", borderRadius: 20, fontSize: 11, padding: "1px 8px", fontWeight: 700 }}>{alerts.length}</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {alerts.map((a, i) => {
+          const c = colors[a.type];
+          return (
+            <div key={i} style={{ background: c.bg, border: "1px solid " + c.border, borderRadius: 10, padding: "10px 14px", display: "flex", alignItems: "flex-start", gap: 10 }}>
+              <span style={{ fontSize: 18, flexShrink: 0 }}>{a.icon}</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{a.title}</div>
+                <div style={{ fontSize: 12, color: c.color, opacity: .85, marginTop: 2 }}>{a.body}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function ParentCompose({ student, messages }) {
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState("");
@@ -4123,6 +4188,7 @@ export default function App() {
           <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"6px 14px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:12,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>Sign Out</button>
         </div>
         <div style={{padding:"24px 20px",maxWidth:900,margin:"0 auto"}}>
+          <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
           <StudentProfile
             student={student} classes={classes} attendance={attendance}
             grades={grades} subjects={subjects} exams={exams}
