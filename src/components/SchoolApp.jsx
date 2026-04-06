@@ -12,6 +12,7 @@
     };
   }
 };import { useState, useMemo, useEffect, useCallback } from "react";
+import { syncStudents, loadStudents, syncTeachers, loadTeachers, syncClasses, loadClasses, syncAttendance, loadAttendance, syncMessages, loadMessages } from "../lib/db";
 
 import { useRouter as useNextRouter } from "next/navigation";
 
@@ -3938,16 +3939,20 @@ export default function App() {
   const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
   const [classes,  setClasses]      = useState(() => load("edu_classes", SEED_CLASSES));
   useEffect(() => {
-    supabase.from("classes").select("*").then(({ data }) => {
-      if (data && data.length > 0) {
-        const mapped = data.map(c => ({
-          id: c.id, name: c.name, grade: c.grade,
-          room: c.room, teacher: c.teacher, capacity: c.capacity || 25,
-        }));
-        setClasses(mapped);
-        save("edu_classes", mapped);
-      }
-    });
+    async function loadFromDb() {
+      try {
+        const [dbStudents, dbTeachers, dbClasses, dbAttendance, dbMessages] = await Promise.all([
+          loadStudents(), loadTeachers(), loadClasses(), loadAttendance(), loadMessages()
+        ]);
+        if (dbStudents && dbStudents.length > 0) { setStudents(dbStudents); save('edu_students', dbStudents); }
+        if (dbTeachers && dbTeachers.length > 0) { setTeachers(dbTeachers); save('edu_teachers', dbTeachers); }
+        if (dbClasses && dbClasses.length > 0) { setClasses(dbClasses); save('edu_classes', dbClasses); }
+        if (dbAttendance && Object.keys(dbAttendance).length > 0) { setAttendance(dbAttendance); save('edu_attendance', dbAttendance); }
+        if (dbMessages && dbMessages.length > 0) { setMessages(dbMessages); save('edu_messages', dbMessages); }
+        setDbReady(true);
+      } catch(e) { console.error('Supabase load error:', e); setDbReady(true); }
+    }
+    loadFromDb();
   }, []);
   const [attendance, setAttendance] = useState(() => load("edu_attendance", seedAttendance(SEED_STUDENTS)));
   const [subjects, setSubjects]     = useState(() => load("edu_subjects",   SEED_SUBJECTS));
@@ -3957,14 +3962,14 @@ export default function App() {
   const [exams,     setExams]       = useState(() => load("edu_exams",        seedExams(SEED_CLASSES, SEED_SUBJECTS)));
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
 
-  useEffect(() => { save("edu_students",    students);    }, [students]);
-  useEffect(() => { save("edu_teachers",     teachers);     }, [teachers]);
-  useEffect(() => { save("edu_classes",     classes);     }, [classes]);
-  useEffect(() => { save("edu_attendance",  attendance);  }, [attendance]);
+  useEffect(() => { save("edu_students", students); if (dbReady) syncStudents(students); }, [students]);
+  useEffect(() => { save("edu_teachers", teachers); if (dbReady) syncTeachers(teachers); }, [teachers]);
+  useEffect(() => { save("edu_classes", classes); if (dbReady) syncClasses(classes); }, [classes]);
+  useEffect(() => { save("edu_attendance", attendance); if (dbReady) syncAttendance(attendance); }, [attendance]);
   useEffect(() => { save("edu_subjects",    subjects);    }, [subjects]);
   useEffect(() => { save("edu_grades",      grades);      }, [grades]);
   useEffect(() => { save("edu_timetable",   timetable);   }, [timetable]);
-  useEffect(() => { save("edu_messages",    messages);    }, [messages]);
+  useEffect(() => { save("edu_messages", messages); if (dbReady) syncMessages(messages); }, [messages]);
   useEffect(() => { save("edu_exams",       exams);       }, [exams]);
   useEffect(() => { save("edu_exam_results",examResults); }, [examResults]);
 

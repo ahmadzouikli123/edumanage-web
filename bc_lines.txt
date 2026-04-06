@@ -1,0 +1,7 @@
+﻿  const [selected, setSelected]     = useState(null); // selected message id
+  const [compose, setCompose]       = useState(false);
+  const [replyText, setReplyText]   = useState("");
+  const [filterTag, setFilterTag]   = useState("all");
+  const [search, setSearch]         = useState("");
+  const [form, setForm]             = useState({ studentId: students[0]?.id || "", tag: "general", subject: "", body: "" });
+  const [formErrors, setFormErrors] = useState({});

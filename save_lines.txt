@@ -1,0 +1,15 @@
+﻿    const newTeacher = {
+      id: editing ? editing.id : Date.now(),
+      name: form.name.value,
+      subject: form.subject.value,
+      phone: form.phone.value,
+      email: form.email.value,
+      status: form.status.value,
+    };
+    
+    if (editing) {
+      setTeachers(teachers.map(t => t.id === editing.id ? newTeacher : t));
+    } else {
+      setTeachers([...teachers, newTeacher]);
+    }
+    setShowForm(false);
