@@ -3781,8 +3781,9 @@ function Settings({ teachers, setTeachers, students }) {
   const [schoolForm, setSchoolForm] = useState(() => {
     try {
       const info = JSON.parse(localStorage.getItem("edu_school_info") || "{}");
-      return { name: info.name || "Al-Huffath Academy", sub: info.sub || "Ilm | Iman | Hifz", email: info.email || "admin@al-huffath.edu", year: info.year || "2024/2025", adminPassword: "" };
-    } catch { return { name: "Al-Huffath Academy", sub: "Ilm | Iman | Hifz", email: "admin@al-huffath.edu", year: "2024/2025", adminPassword: "" }; }
+      const savedLogo = localStorage.getItem("edu_logo") || null;
+      return { name: info.name || "Al-Huffath Academy", sub: info.sub || "Ilm | Iman | Hifz", email: info.email || "admin@al-huffath.edu", year: info.year || "2024/2025", adminPassword: "", logoPreview: savedLogo };
+    } catch { return { name: "Al-Huffath Academy", sub: "Ilm | Iman | Hifz", email: "admin@al-huffath.edu", year: "2024/2025", adminPassword: "", logoPreview: null }; }
   });
 
   const showSaved = (msg) => { setSaved(msg); setTimeout(() => setSaved(null), 3000); };
@@ -3792,6 +3793,25 @@ function Settings({ teachers, setTeachers, students }) {
     localStorage.setItem("edu_school_info", JSON.stringify(info));
     if (schoolForm.adminPassword) localStorage.setItem("edu_admin_password", schoolForm.adminPassword);
     showSaved("School settings saved!");
+  };
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { showSaved("ERROR: Image must be under 2MB!"); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      localStorage.setItem("edu_logo", ev.target.result);
+      setSchoolForm(f => ({ ...f, logoPreview: ev.target.result }));
+      showSaved("Logo updated! Refresh to see changes.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeLogo = () => {
+    localStorage.removeItem("edu_logo");
+    setSchoolForm(f => ({ ...f, logoPreview: null }));
+    showSaved("Logo removed. Using default.");
   };
 
   const saveTheme = (t) => { setTheme(t); localStorage.setItem("edu_theme", t); showSaved("Theme updated!"); };
@@ -4313,7 +4333,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
               <div style={{ fontSize: 13, fontWeight: 700, color: "#5eead4" }}>Al-Huffath Academy</div>
               <div style={{ fontSize: 10, color: "rgba(255,255,255,.4)", marginTop: 2 }}>Ilm | Iman | Hifz</div>
             </div>
-            <img src="/logo.png" style={{ width: 44, height: 44, objectFit: "contain", background: "#fff", borderRadius: 8, padding: 3, flexShrink: 0 }} />
+            <img src={(() => { try { return localStorage.getItem("edu_logo") || "/logo.png"; } catch { return "/logo.png"; } })()} style={{ width: 44, height: 44, objectFit: "contain", background: "#fff", borderRadius: 8, padding: 3, flexShrink: 0 }} />
           </div>
         </div>
         <nav style={{ flex: 1, padding: "14px 10px", display: "flex", flexDirection: "column", gap: 3 }}>
