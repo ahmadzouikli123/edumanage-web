@@ -12,7 +12,7 @@
     };
   }
 };import { useState, useMemo, useEffect, useCallback } from "react";
-import { syncStudents, loadStudents, syncTeachers, loadTeachers, syncClasses, loadClasses, syncAttendance, loadAttendance, syncMessages, loadMessages } from "../lib/db";
+import { syncStudents, loadStudents, syncTeachers, loadTeachers, syncClasses, loadClasses, syncAttendance, loadAttendance, syncMessages, loadMessages, syncGrades, loadGrades, syncExams, loadExams, syncTimetable, loadTimetable, syncSubjects, loadSubjects } from "../lib/db";
 
 import { useRouter as useNextRouter } from "next/navigation";
 
@@ -4063,14 +4063,18 @@ export default function App() {
   useEffect(() => {
     async function loadFromDb() {
       try {
-        const [dbStudents, dbTeachers, dbClasses, dbAttendance, dbMessages] = await Promise.all([
-          loadStudents(), loadTeachers(), loadClasses(), loadAttendance(), loadMessages()
+        const [dbStudents, dbTeachers, dbClasses, dbAttendance, dbMessages, dbGrades, dbExams, dbTimetable, dbSubjects] = await Promise.all([
+          loadStudents(), loadTeachers(), loadClasses(), loadAttendance(), loadMessages(), loadGrades(), loadExams(), loadTimetable(), loadSubjects()
         ]);
         if (dbStudents && dbStudents.length > 0) { setStudents(dbStudents); save('edu_students', dbStudents); }
         if (dbTeachers && dbTeachers.length > 0) { setTeachers(dbTeachers); save('edu_teachers', dbTeachers); }
         if (dbClasses && dbClasses.length > 0) { setClasses(dbClasses); save('edu_classes', dbClasses); }
         if (dbAttendance && Object.keys(dbAttendance).length > 0) { setAttendance(dbAttendance); save('edu_attendance', dbAttendance); }
         if (dbMessages && dbMessages.length > 0) { setMessages(dbMessages); save('edu_messages', dbMessages); }
+        if (dbGrades && Object.keys(dbGrades).length > 0) { setGrades(dbGrades); save('edu_grades', dbGrades); }
+        if (dbExams && dbExams.length > 0) { setExams(dbExams); save('edu_exams', dbExams); }
+        if (dbTimetable && Object.keys(dbTimetable).length > 0) { setTimetable(dbTimetable); save('edu_timetable', dbTimetable); }
+        if (dbSubjects && dbSubjects.length > 0) { setSubjects(dbSubjects); save('edu_subjects', dbSubjects); }
         setDbReady(true);
       } catch(e) { console.error('Supabase load error:', e); setDbReady(true); }
     }
@@ -4088,11 +4092,11 @@ export default function App() {
   useEffect(() => { save("edu_teachers", teachers); if (dbReady) syncTeachers(teachers); }, [teachers]);
   useEffect(() => { save("edu_classes", classes); if (dbReady) syncClasses(classes); }, [classes]);
   useEffect(() => { save("edu_attendance", attendance); if (dbReady) syncAttendance(attendance); }, [attendance]);
-  useEffect(() => { save("edu_subjects",    subjects);    }, [subjects]);
-  useEffect(() => { save("edu_grades",      grades);      }, [grades]);
-  useEffect(() => { save("edu_timetable",   timetable);   }, [timetable]);
+  useEffect(() => { save("edu_subjects", subjects); if (dbReady) syncSubjects(subjects); }, [subjects]);
+  useEffect(() => { save("edu_grades", grades); if (dbReady) syncGrades(grades); }, [grades]);
+  useEffect(() => { save("edu_timetable", timetable); if (dbReady) syncTimetable(timetable); }, [timetable]);
   useEffect(() => { save("edu_messages", messages); if (dbReady) syncMessages(messages); }, [messages]);
-  useEffect(() => { save("edu_exams",       exams);       }, [exams]);
+  useEffect(() => { save("edu_exams", exams); if (dbReady) syncExams(exams); }, [exams]);
   useEffect(() => { save("edu_exam_results",examResults); }, [examResults]);
 
   const PAGE_TITLES = {
