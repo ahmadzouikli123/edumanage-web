@@ -4176,7 +4176,7 @@ export default function App() {
   if (auth.role === "parent") {
     const parentPhone = auth.phone;
     const allChildren = students.filter(s => s.phone === parentPhone);
-    const [activeChildId, setActiveChildId] = React.useState(auth.studentId || allChildren[0]?.id);
+    const [activeChildId, setActiveChildId] = useState(auth.studentId || allChildren[0]?.id);
     const student = students.find(s => s.id === activeChildId) || allChildren[0];
     if (!student) { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; return null; }
     return (
