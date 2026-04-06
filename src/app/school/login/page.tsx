@@ -6,7 +6,7 @@ function load(key: string, fb: any) { try { const v = localStorage.getItem(key);
 function save(key: string, val: any) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 
 const SUPABASE_URL = "https://mhrtzppoiinpnbnximuf.supabase.co"
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ocnR6cHBvaWlucG5ibnhpbXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzNTk0MzYsImV4cCI6MjA1ODkzNTQzNn0.zv8Z8lKPpNGDT2FDlOOtT3GpFMi_YHjWBNLRnNhPBOI"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ocnR6cHBvaWlucG5ibnhpbXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTE3MDEsImV4cCI6MjA5MDQ2NzcwMX0.933qWXp0vslGHmt06eKgPuihMOVh4NzGUiHXY4iDNSQ"
 
 async function supabaseGet(table: string, filters: string) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + table + "?" + filters, {
