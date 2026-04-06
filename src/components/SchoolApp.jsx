@@ -4174,17 +4174,50 @@ export default function App() {
   if (!auth) return null;
 
   if (auth.role === "parent") {
-    const student = students.find(s => s.id === auth.studentId);
+    const parentPhone = auth.phone;
+    const allChildren = students.filter(s => s.phone === parentPhone);
+    const [activeChildId, setActiveChildId] = React.useState(auth.studentId || allChildren[0]?.id);
+    const student = students.find(s => s.id === activeChildId) || allChildren[0];
     if (!student) { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; return null; }
     return (
       <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"system-ui,sans-serif"}}>
         <div style={{background:"#1e1e3a",padding:"0 24px",display:"flex",alignItems:"center",gap:14,height:56}}>
           <div style={{fontSize:14,fontWeight:700,color:"#5eead4",flex:1}}>EduManage</div>
           <span style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Parent Portal</span>
-          <Avatar name={student.name} size={28} />
-          <span style={{fontSize:12,color:"rgba(255,255,255,.7)",fontWeight:500}}>{student.name}</span>
+          {allChildren.length > 1 && allChildren.map(child => (
+            <button key={child.id} onClick={() => setActiveChildId(child.id)} style={{
+              padding:"5px 12px", borderRadius:7, border:"1px solid rgba(255,255,255,.2)",
+              background: child.id === activeChildId ? "#0d9488" : "rgba(255,255,255,.08)",
+              color: child.id === activeChildId ? "#fff" : "rgba(255,255,255,.6)",
+              fontSize:12, cursor:"pointer", fontFamily:"inherit", fontWeight:600,
+              display:"flex", alignItems:"center", gap:6, transition:"all .15s"
+            }}>
+              <div style={{width:20,height:20,borderRadius:"50%",background:"rgba(255,255,255,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800}}>
+                {child.name.split(" ").map(w=>w[0]).join("").slice(0,2)}
+              </div>
+              {child.name.split(" ")[0]}
+            </button>
+          ))}
+          {allChildren.length === 1 && (
+            <>
+              <Avatar name={student.name} size={28} />
+              <span style={{fontSize:12,color:"rgba(255,255,255,.7)",fontWeight:500}}>{student.name}</span>
+            </>
+          )}
           <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"6px 14px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:12,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>Sign Out</button>
         </div>
+        {allChildren.length > 1 && (
+          <div style={{background:"#0d9488",padding:"8px 24px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:12,color:"rgba(255,255,255,.7)"}}>Viewing:</span>
+            <span style={{fontSize:13,fontWeight:700,color:"#fff"}}>{student.name}</span>
+            <span style={{fontSize:11,color:"rgba(255,255,255,.6)"}}>
+              {classes.find(c=>c.id===student.classId)?.name || ""}
+            </span>
+            <span style={{fontSize:11,color:"rgba(255,255,255,.5)",marginLeft:"auto"}}>
+              {allChildren.length} children linked to your account
+            </span>
+          </div>
+        )}
         <div style={{padding:"24px 20px",maxWidth:900,margin:"0 auto"}}>
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
           <StudentProfile
