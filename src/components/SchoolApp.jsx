@@ -4113,8 +4113,8 @@ export default function App() {
   if (!auth) return null;
 
   if (auth.role === "parent") {
-    const parentPhone = auth.phone;
-    const allChildren = students.filter(s => s.phone === parentPhone);
+    const studentIds = auth.studentIds || (auth.studentId ? [auth.studentId] : []);
+    const allChildren = students.filter(s => studentIds.includes(s.id));
     const effectiveChildId = activeChildId || auth.studentId || (allChildren[0] && allChildren[0].id);
     const student = students.find(s => s.id === effectiveChildId) || allChildren[0];
     if (!student) { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; return null; }

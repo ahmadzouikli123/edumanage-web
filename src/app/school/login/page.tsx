@@ -1,20 +1,19 @@
-﻿"use client"
+"use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 function load(key: string, fb: any) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fb; } catch { return fb; } }
 function save(key: string, val: any) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 
-const SEED_STUDENTS = [
-  {id:1,name:"Liam Anderson",   sid:"S001",phone:"555-0101"},
-  {id:2,name:"Olivia Martinez", sid:"S002",phone:"555-0102"},
-  {id:3,name:"Noah Thompson",   sid:"S003",phone:"555-0103"},
-  {id:4,name:"Emma Wilson",     sid:"S004",phone:"555-0104"},
-  {id:5,name:"Aiden Brown",     sid:"S005",phone:"555-0105"},
-  {id:6,name:"Sophia Davis",    sid:"S006",phone:"555-0106"},
-  {id:7,name:"Lucas Garcia",    sid:"S007",phone:"555-0107"},
-  {id:8,name:"Isabella White",  sid:"S008",phone:"555-0108"},
-]
+const SUPABASE_URL = "https://mhrtzppoiinpnbnximuf.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ocnR6cHBvaWlucG5ibnhpbXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzNTk0MzYsImV4cCI6MjA1ODkzNTQzNn0.zv8Z8lKPpNGDT2FDlOOtT3GpFMi_YHjWBNLRnNhPBOI"
+
+async function supabaseGet(table: string, filters: string) {
+  const res = await fetch(SUPABASE_URL + "/rest/v1/" + table + "?" + filters, {
+    headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
+  })
+  return res.json()
+}
 
 const SEED_TEACHERS = [
   {username:"sarah.johnson", password:"teacher", name:"Ms. Sarah Johnson", class_ids:[1]},
@@ -33,19 +32,20 @@ export default function Login() {
 
   useEffect(() => { if (load("edu_auth", null)) router.replace("/school") }, [])
 
-  const go = () => {
+  const go = async () => {
     setErr(""); setBusy(true)
-    setTimeout(() => {
-      setBusy(false)
+    try {
       if (role === "admin") {
-        if (user === "admin" && pass === "admin123") {
+        const storedPass = localStorage.getItem("edu_admin_password") || "admin123"
+        if (user === "admin" && pass === storedPass) {
           save("edu_auth", {role:"admin", name:"Admin User"})
           router.replace("/school")
         } else {
           setErr("Invalid credentials")
         }
+
       } else if (role === "teacher") {
-        const storedTeachers = (() => { try { return JSON.parse(localStorage.getItem('edu_teachers') || '[]'); } catch { return []; } })()
+        const storedTeachers = (() => { try { return JSON.parse(localStorage.getItem("edu_teachers") || "[]"); } catch { return []; } })()
         const allTeachers = [...SEED_TEACHERS, ...storedTeachers.filter((t: any) => t.username && !SEED_TEACHERS.find((s: any) => s.username === t.username))]
         const t = allTeachers.find((x: any) => x.username === user.toLowerCase().trim() && x.password === pass)
         if (t) {
@@ -54,18 +54,46 @@ export default function Login() {
         } else {
           setErr("Invalid credentials")
         }
+
       } else {
-        const stored = load("edu_students", SEED_STUDENTS)
-        const all = stored.length > 0 ? stored : SEED_STUDENTS
-        const s = all.find((x: any) => x.sid.toLowerCase() === user.toLowerCase().trim() && x.phone.replace(/\D/g,"") === pass.replace(/\D/g,""))
-        if (s) {
-          save("edu_auth", {role:"parent", name:s.name, studentId:s.id})
+        // Parent login - username + password من Supabase
+        const accounts = await supabaseGet("parent_accounts", "username=eq." + encodeURIComponent(user.trim()) + "&password=eq." + encodeURIComponent(pass) + "&select=id,name,username")
+        
+        if (accounts && accounts.length > 0) {
+          const account = accounts[0]
+          // جلب الطلاب المرتبطين
+          const links = await supabaseGet("parent_students", "parent_id=eq." + account.id + "&select=student_id")
+          const studentIds = (links || []).map((l: any) => l.student_id)
+          
+          // جلب بيانات الطلاب
+          const allStudents = load("edu_students", [])
+          const children = allStudents.filter((s: any) => studentIds.includes(s.id))
+          
+          save("edu_auth", {
+            role: "parent",
+            name: account.name,
+            username: account.username,
+            phone: children[0]?.phone || "",
+            studentId: children[0]?.id || null,
+            studentIds: studentIds,
+          })
           router.replace("/school")
         } else {
-          setErr("Invalid Student ID or phone!")
+          // Fallback: الطريقة القديمة (Student ID + Phone)
+          const stored = load("edu_students", [])
+          const s = stored.find((x: any) => x.sid.toLowerCase() === user.toLowerCase().trim() && x.phone.replace(/\D/g,"") === pass.replace(/\D/g,""))
+          if (s) {
+            save("edu_auth", {role:"parent", name:s.name, phone:s.phone, studentId:s.id, studentIds:[s.id]})
+            router.replace("/school")
+          } else {
+            setErr("Invalid username or password")
+          }
         }
       }
-    }, 500)
+    } catch(e) {
+      setErr("Connection error. Please try again.")
+    }
+    setBusy(false)
   }
 
   const inp: any = {width:"100%",padding:"11px 14px",borderRadius:10,border:"1px solid rgba(255,255,255,.15)",background:"rgba(255,255,255,.07)",color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}
@@ -87,12 +115,12 @@ export default function Login() {
             ))}
           </div>
           <div style={{marginBottom:14}}>
-            <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>{role==="parent"?"Student ID":"Username"}</label>
-            <input style={inp} value={user} onChange={e=>setUser(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="admin"?"admin":role==="teacher"?"sarah.johnson":"S001"} />
+            <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>{role==="parent"?"Username":"Username"}</label>
+            <input style={inp} value={user} onChange={e=>setUser(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="admin"?"admin":role==="teacher"?"sarah.johnson":"parent1"} />
           </div>
           <div style={{marginBottom:20}}>
-            <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>{role==="parent"?"Phone Number":"Password"}</label>
-            <input type="password" style={inp} value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="parent"?"555-0101":"••••••••"} />
+            <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Password</label>
+            <input type="password" style={inp} value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="••••••••" />
           </div>
           {err && <div style={{background:"rgba(220,38,38,.15)",border:"1px solid rgba(220,38,38,.3)",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:13,color:"#fca5a5"}}>{err}</div>}
           <button onClick={go} disabled={busy} style={{width:"100%",padding:"13px 0",borderRadius:10,border:"none",background:"#0d9488",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
@@ -102,14 +130,13 @@ export default function Login() {
             <div style={{fontWeight:600,color:"#5eead4",marginBottom:6}}>Demo credentials</div>
             {role==="admin"   && <div>Username: admin / Password: admin123</div>}
             {role==="teacher" && <div>Username: sarah.johnson / Password: teacher</div>}
-            {role==="parent"  && <div>Student ID: S001 / Phone: 555-0101</div>}
+            {role==="parent"  && <div>Username: parent1 / Password: parent123</div>}
           </div>
         </div>
-              <div style={{textAlign:"center",marginTop:24,fontSize:12,color:"rgba(255,255,255,.6)"}}>
+        <div style={{textAlign:"center",marginTop:24,fontSize:12,color:"rgba(255,255,255,.6)"}}>
           © 2025 Al-Huffath Academy · Developed by <span style={{color:"#5eead4",fontWeight:600}}>Eng. Ahmad Zouikli</span>
         </div>
       </div>
     </div>
   )
 }
-
