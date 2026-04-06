@@ -1319,7 +1319,7 @@ function ParentNotifications({ student, attendance, grades, subjects, exams, mes
   );
 }
 
-function StudentProfile({ student, classes, attendance, grades, subjects, exams, examResults, messages, onClose }) {
+function StudentProfile({ student, classes, attendance, grades, subjects, exams, examResults, messages, timetable, onClose }) {
   const [tab, setTab] = useState("Overview");
 
   const cls       = classes.find(c => c.id === student.classId);
