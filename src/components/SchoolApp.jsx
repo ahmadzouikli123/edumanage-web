@@ -1332,6 +1332,61 @@ function ParentCompose({ student, messages }) {
   );
 }
 
+function ParentCompose({ student, messages }) {
+  const [open, setOpen] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const send = () => {
+    if (!subject.trim() || !body.trim()) return;
+    const msg = {
+      id: Date.now(), studentId: student.id,
+      tag: "general", subject, body,
+      fromSchool: false, timestamp: Date.now(), read: false, replies: [],
+    };
+    try {
+      const stored = JSON.parse(localStorage.getItem("edu_messages") || "[]");
+      localStorage.setItem("edu_messages", JSON.stringify([msg, ...stored]));
+    } catch {}
+    setSubject(""); setBody(""); setOpen(false); setSent(true);
+    setTimeout(() => setSent(false), 3000);
+  };
+
+  return (
+    <div style={{ marginBottom: 18 }}>
+      {sent && (
+        <div style={{ background: "#d1fae5", color: "#065f46", padding: "10px 16px", borderRadius: 10, marginBottom: 12, fontSize: 13, fontWeight: 500 }}>
+          ✅ Message sent to school successfully!
+        </div>
+      )}
+      {!open ? (
+        <button onClick={() => setOpen(true)} style={{ width: "100%", padding: "12px", borderRadius: 10, border: "2px dashed #0d9488", background: "#f0fdf9", color: "#0d9488", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+          ✏️ Send a Message to School
+        </button>
+      ) : (
+        <div style={{ background: "#fff", border: "1px solid #e8ecf2", borderRadius: 14, padding: "18px", marginBottom: 14, boxShadow: "0 2px 8px rgba(0,0,0,.06)" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "#1e1e3a", marginBottom: 14 }}>✉️ New Message to School</div>
+          <input
+            value={subject} onChange={e => setSubject(e.target.value)}
+            placeholder="Subject (e.g. Question about grades)"
+            style={{ width: "100%", padding: "9px 12px", border: "1px solid #e8ecf2", borderRadius: 8, fontSize: 13, fontFamily: "inherit", outline: "none", marginBottom: 10, boxSizing: "border-box" }}
+          />
+          <textarea
+            value={body} onChange={e => setBody(e.target.value)}
+            placeholder="Write your message here..."
+            rows={4}
+            style={{ width: "100%", padding: "9px 12px", border: "1px solid #e8ecf2", borderRadius: 8, fontSize: 13, fontFamily: "inherit", outline: "none", resize: "vertical", boxSizing: "border-box" }}
+          />
+          <div style={{ display: "flex", gap: 10, marginTop: 10, justifyContent: "flex-end" }}>
+            <button onClick={() => setOpen(false)} style={{ padding: "8px 18px", borderRadius: 8, border: "1px solid #e8ecf2", background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+            <button onClick={send} disabled={!subject.trim() || !body.trim()} style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: "#0d9488", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: (!subject.trim() || !body.trim()) ? .5 : 1 }}>Send →</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 function StudentProfile({ student, classes, attendance, grades, subjects, exams, examResults, messages, timetable, onClose }) {
   const [tab, setTab] = useState("Overview");
 
@@ -1724,6 +1779,72 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                 </ProfileCard>
               </div>
             )}
+            {/* ── SCHEDULE ── */}
+            {tab === "Schedule" && (
+              <div>
+                <div style={{ marginBottom: 16, fontSize: 13, color: T.textMuted }}>
+                  Weekly timetable for <strong style={{ color: T.textMain }}>{cls?.name}</strong>
+                </div>
+                <div style={{ background: "#fff", border: "1px solid #e8ecf2", borderRadius: 14, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
+                      <thead>
+                        <tr>
+                          <th style={{ padding: "12px 16px", background: "#1e1e3a", color: "rgba(255,255,255,.5)", fontSize: 11, fontWeight: 600, textAlign: "left", width: 120, borderRight: "1px solid rgba(255,255,255,.08)" }}>Period</th>
+                          {DAYS.map((day, di) => {
+                            const todayDi = (new Date().getDay() + 6) % 7;
+                            const isToday = di === todayDi;
+                            return (
+                              <th key={day} style={{ padding: "12px 10px", textAlign: "center", background: isToday ? T.primary : "#1e1e3a", color: isToday ? "#fff" : "rgba(255,255,255,.7)", fontSize: 12, fontWeight: 600, borderRight: di < 4 ? "1px solid rgba(255,255,255,.08)" : "none" }}>
+                                {day.slice(0,3)}
+                              </th>
+                            );
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {PERIODS.map(period => {
+                          if (period.isBreak) return (
+                            <tr key={period.id}>
+                              <td colSpan={6} style={{ padding: "6px 16px", background: "#f8fafc", borderTop: "1px solid #e8ecf2", borderBottom: "1px solid #e8ecf2", fontSize: 11, color: T.textMuted, textAlign: "center", fontWeight: 600 }}>
+                                ☕ {period.label} · {period.time}
+                              </td>
+                            </tr>
+                          );
+                          const todayDi = (new Date().getDay() + 6) % 7;
+                          return (
+                            <tr key={period.id} style={{ borderTop: "1px solid #f1f5f9" }}>
+                              <td style={{ padding: "10px 16px", background: "#f8fafc", borderRight: "1px solid #e8ecf2" }}>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: "#334155" }}>{period.label}</div>
+                                <div style={{ fontSize: 10, color: T.textMuted }}>{period.time}</div>
+                              </td>
+                              {DAYS.map((day, di) => {
+                                const isToday = di === todayDi;
+                                const slot = student?.classId ? (timetable?.[student.classId]?.[di]?.[period.id] || null) : null;
+                                const subj = slot ? (stdSubjs.find(s => s.id === slot.subjectId) || subjects?.find(s => s.id === slot.subjectId)) : null;
+                                const clr = subj ? subjectColor(subj.name) : null;
+                                return (
+                                  <td key={day} style={{ padding: "6px 8px", textAlign: "center", borderRight: di < 4 ? "1px solid #f1f5f9" : "none", background: isToday ? "#f0fdf9" : "transparent", verticalAlign: "top" }}>
+                                    {subj ? (
+                                      <div style={{ background: clr.bg, border: `1px solid ${clr.border}`, borderRadius: 7, padding: "5px 8px" }}>
+                                        <div style={{ fontSize: 12, fontWeight: 600, color: clr.text }}>{subj.icon} {subj.name}</div>
+                                      </div>
+                                    ) : (
+                                      <div style={{ height: 36, display: "flex", alignItems: "center", justifyContent: "center", color: "#e2e8f0", fontSize: 12 }}>—</div>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
 
             {/* ── MESSAGES ── */}
 
@@ -4254,6 +4375,10 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
 
 
 
