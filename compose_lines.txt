@@ -1,8 +1,0 @@
-﻿      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
-        {compose ? (
-          /* Compose Panel */
-          <div style={{ flex: 1, padding: 28, overflowY: "auto" }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: T.textMain, marginBottom: 20 }}>✉️ New Message to Parent</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
-              <Field label="Student" error={formErrors.studentId}>
-                <select style={formErrors.studentId ? { ...selectStyle, border: "1px solid #ef4444" } : selectStyle}

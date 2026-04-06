@@ -1,2 +1,0 @@
-﻿          {page === "students"   && <Students   students={students} setStudents={setStudents} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} />}
-          {page === "classes"    && <Classes    classes={classes}   setClasses={setClasses}   students={students} />}
