@@ -1743,9 +1743,9 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                               </td>
                               {DAYS.map((day, di) => {
                                 const isToday = di === todayDi;
-                                const slot = timetable?.[student.classId]?.[di]?.[period.id] || null;
-                                const subj = slot ? stdSubjs.find(s => s.id === slot.subjectId) : null;
-                                const clr = subj ? subjectColor(subj.name) : null;
+                                const slot = (timetable && student && student.classId && timetable[student.classId] && timetable[student.classId][di]) ? timetable[student.classId][di][period.id] || null : null;
+                                const subj = (slot && slot.subjectId) ? (stdSubjs.find(s => s.id === slot.subjectId) || subjects.find(s => s.id === slot.subjectId)) : null;
+                                const clr = subj ? subjectColor(subj.name) : { bg: "#f8fafc", border: "#e8ecf2", text: "#94a3b8" };
                                 return (
                                   <td key={day} style={{ padding: "6px 8px", textAlign: "center", borderRight: di < 4 ? "1px solid #f1f5f9" : "none", background: isToday ? "#f0fdf9" : "transparent", verticalAlign: "top" }}>
                                     {subj ? (<div style={{ background: clr.bg, border: "1px solid " + clr.border, borderRadius: 7, padding: "5px 8px" }}><div style={{ fontSize: 12, fontWeight: 600, color: clr.text }}>{subj.icon} {subj.name}</div></div>) : (<div style={{ height: 36, display: "flex", alignItems: "center", justifyContent: "center", color: "#e2e8f0" }}>-</div>)}
