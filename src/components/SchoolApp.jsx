@@ -4112,6 +4112,141 @@ export default function App() {
 
   if (!auth) return null;
 
+function exportParentReportPDF(student, cls, attendance, grades, subjects, exams, examResults) {
+  loadJsPDF(function() {
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF();
+    var N = [30,30,58], P = [13,148,136];
+    var W = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFillColor(N[0],N[1],N[2]); doc.rect(0,0,W,36,"F");
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(18); doc.setFont("helvetica","bold");
+    doc.text("Al-Huffath Academy", W/2, 14, {align:"center"});
+    doc.setFontSize(11); doc.setFont("helvetica","normal");
+    doc.text("Student Progress Report", W/2, 24, {align:"center"});
+    doc.setFontSize(8);
+    doc.text(new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}), W/2, 31, {align:"center"});
+
+    var y = 46;
+
+    // Student Info Box
+    doc.setFillColor(240,253,250);
+    doc.roundedRect(14,y,W-28,36,3,3,"F");
+    doc.setDrawColor(P[0],P[1],P[2]); doc.setLineWidth(0.5);
+    doc.roundedRect(14,y,W-28,36,3,3,"S");
+    doc.setTextColor(N[0],N[1],N[2]); doc.setFontSize(14); doc.setFont("helvetica","bold");
+    doc.text(student.name, 20, y+10);
+    doc.setFontSize(8.5); doc.setFont("helvetica","normal"); doc.setTextColor(100,116,139);
+    doc.text("ID: " + student.sid, 20, y+18);
+    doc.text("Class: " + (cls ? cls.name : "-"), 20, y+25);
+    doc.text("Teacher: " + (cls ? cls.teacher : "-"), 20, y+32);
+    doc.text("Gender: " + student.gender, 110, y+18);
+    doc.text("Status: " + student.status, 110, y+25);
+    doc.text("Generated: " + new Date().toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"}), 110, y+32);
+    y += 44;
+
+    // Attendance Section
+    var allDates = Object.keys(attendance||{}).sort();
+    var p=0,ab=0,l=0,ex=0,tot=0;
+    allDates.forEach(function(d) {
+      var r = (attendance[d]||{})[student.id];
+      if (!r) return; tot++;
+      if (r==="present") p++; else if (r==="absent") ab++;
+      else if (r==="late") l++; else if (r==="excused") ex++;
+    });
+    var rate = tot ? Math.round((p/tot)*100) : 100;
+
+    doc.setTextColor(N[0],N[1],N[2]); doc.setFontSize(11); doc.setFont("helvetica","bold");
+    doc.text("Attendance Summary", 14, y);
+    doc.setDrawColor(P[0],P[1],P[2]); doc.setLineWidth(0.7); doc.line(14,y+2,80,y+2);
+    y += 8;
+
+    var ac = rate>=90?[5,150,105]:rate>=75?[217,119,6]:[220,38,38];
+    doc.setFillColor(ac[0],ac[1],ac[2]); doc.roundedRect(14,y,38,18,2,2,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(15); doc.setFont("helvetica","bold");
+    doc.text(rate+"%", 33, y+10, {align:"center"});
+    doc.setFontSize(7); doc.text("Attendance Rate", 33, y+16, {align:"center"});
+
+    var attItems = [[p,[5,150,105],"Present"],[ab,[220,38,38],"Absent"],[l,[217,119,6],"Late"],[ex,[124,58,237],"Excused"]];
+    attItems.forEach(function(item, i) {
+      var bx = 58+i*36;
+      doc.setFillColor(item[1][0],item[1][1],item[1][2]); doc.roundedRect(bx,y,33,18,2,2,"F");
+      doc.setTextColor(255,255,255); doc.setFontSize(14); doc.setFont("helvetica","bold");
+      doc.text(String(item[0]), bx+16, y+10, {align:"center"});
+      doc.setFontSize(7); doc.text(item[2], bx+16, y+16, {align:"center"});
+    });
+    y += 26;
+
+    // Grades Section
+    var studentSubs = (subjects||[]).filter(function(s){ return s.classId===student.classId; });
+    if (studentSubs.length > 0) {
+      doc.setTextColor(N[0],N[1],N[2]); doc.setFontSize(11); doc.setFont("helvetica","bold");
+      doc.text("Academic Performance", 14, y);
+      doc.setDrawColor(P[0],P[1],P[2]); doc.line(14,y+2,90,y+2); y+=8;
+      var gradeRows = studentSubs.map(function(sub) {
+        var g = ((grades||{})[student.id]||{})[sub.id] || {};
+        var q=g.quiz!=null?g.quiz:null,h=g.homework!=null?g.homework:null;
+        var m=g.midterm!=null?g.midterm:null,f=g.final!=null?g.final:null;
+        var total=(q!==null||h!==null||m!==null||f!==null)?Math.round((q||0)*0.15+(h||0)*0.15+(m||0)*0.30+(f||0)*0.40):null;
+        var letter=total===null?"--":total>=90?"A":total>=80?"B":total>=70?"C":total>=60?"D":"F";
+        return [sub.name, q!=null?q:"-", h!=null?h:"-", m!=null?m:"-", f!=null?f:"-", total!=null?total:"-", letter];
+      });
+      doc.autoTable({
+        startY:y, head:[["Subject","Quiz 15%","HW 15%","Mid 30%","Final 40%","Total","Grade"]],
+        body:gradeRows, theme:"grid",
+        headStyles:{fillColor:N,textColor:255,fontSize:8,fontStyle:"bold"},
+        bodyStyles:{fontSize:8,textColor:N},
+        alternateRowStyles:{fillColor:[248,250,252]},
+        columnStyles:{6:{fontStyle:"bold",halign:"center"}},
+        margin:{left:14,right:14},
+      });
+      y = doc.lastAutoTable.finalY + 10;
+    }
+
+    // Exams Section
+    var studentExams = (exams||[]).filter(function(e){ return e.classId===student.classId; });
+    if (studentExams.length > 0) {
+      if (y > 220) { doc.addPage(); y=20; }
+      doc.setTextColor(N[0],N[1],N[2]); doc.setFontSize(11); doc.setFont("helvetica","bold");
+      doc.text("Exam Results", 14, y);
+      doc.setDrawColor(P[0],P[1],P[2]); doc.line(14,y+2,65,y+2); y+=8;
+      var examRows = studentExams.map(function(e) {
+        var score = ((examResults||{})[e.id]||{})[student.id];
+        var pct = score!=null ? Math.round((score/e.maxScore)*100) : null;
+        var result = pct!=null?(pct>=90?"Excellent":pct>=75?"Good":pct>=60?"Pass":"Fail"):"Upcoming";
+        return [
+          e.title,
+          new Date(e.date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),
+          score!=null?score+"/"+e.maxScore:"-",
+          pct!=null?pct+"%":"-",
+          result
+        ];
+      });
+      doc.autoTable({
+        startY:y, head:[["Exam","Date","Score","Pct","Result"]], body:examRows, theme:"grid",
+        headStyles:{fillColor:N,textColor:255,fontSize:8,fontStyle:"bold"},
+        bodyStyles:{fontSize:8,textColor:N},
+        alternateRowStyles:{fillColor:[248,250,252]},
+        margin:{left:14,right:14},
+      });
+    }
+
+    // Footer
+    var pages = doc.internal.getNumberOfPages();
+    for (var i=1;i<=pages;i++) {
+      doc.setPage(i);
+      doc.setFillColor(N[0],N[1],N[2]); doc.rect(0,doc.internal.pageSize.getHeight()-12,W,12,"F");
+      doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont("helvetica","normal");
+      doc.text("Al-Huffath Academy | Confidential Student Report", 14, doc.internal.pageSize.getHeight()-5);
+      doc.text("Page "+i+" of "+pages, W-14, doc.internal.pageSize.getHeight()-5, {align:"right"});
+    }
+
+    doc.save(student.name.replace(/ /g,"_")+"_Report.pdf");
+  });
+}
+
   if (auth.role === "parent") {
     const studentIds = auth.studentIds || (auth.studentId ? [auth.studentId] : []);
     const allChildren = students.filter(s => studentIds.includes(s.id));
@@ -4147,6 +4282,11 @@ export default function App() {
         )}
         <div style={{padding:"24px 20px",maxWidth:900,margin:"0 auto"}}>
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
+          <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
+            <button onClick={() => exportParentReportPDF(student, classes.find(c=>c.id===student.classId), attendance, grades, subjects, exams, examResults)} style={{padding:"10px 20px",background:"#1e1e3a",color:"#fff",border:"none",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
+              Download PDF Report
+            </button>
+          </div>
           <StudentProfile
             student={student} classes={classes} attendance={attendance}
             grades={grades} subjects={subjects} exams={exams}
