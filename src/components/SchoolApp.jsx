@@ -1372,11 +1372,9 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
 
           {/* Hero */}
           <div style={{ background: "#1e1e3a", padding: "28px 28px 0", position: "relative" }}>
-            <button onClick={onClose} style={{
-              display: onClose ? "flex" : "none", position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,.12)",
-              border: "none", borderRadius: 8, width: 32, height: 32, color: "rgba(255,255,255,.8)",
-              fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-            }}>×</button>
+            {onClose && (
+              <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,.12)", border: "none", borderRadius: 8, width: 32, height: 32, color: "rgba(255,255,255,.8)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+            )}
 
             <div style={{ display: "flex", alignItems: "flex-end", gap: 20, flexWrap: "wrap" }}>
               <div style={{ position: "relative" }}>
@@ -1764,6 +1762,9 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
             {/* ── MESSAGES ── */}
             {tab === "Messages" && (
               <div>
+                {!onClose && (
+                  <ParentCompose student={student} messages={messages} />
+                )}
                 {stdMsgs.length === 0
                   ? <div style={{ textAlign: "center", padding: "60px 0", color: "#94a3b8", fontSize: 14 }}>No messages for this student</div>
                   : stdMsgs.map(msg => {
@@ -4201,6 +4202,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
