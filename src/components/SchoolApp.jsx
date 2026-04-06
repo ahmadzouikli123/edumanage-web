@@ -1217,7 +1217,7 @@ function exportToCSV(data, filename) {
 }
 
 // ─── Student Profile (Rich Tabbed) ───────────────────────────────────────────
-const PROFILE_TABS = ["Overview", "Attendance", "Grades", "Exams", "Messages"];
+const PROFILE_TABS = ["Overview", "Attendance", "Grades", "Exams", "Messages", "Schedule"];
 
 function MiniBar({ value, max, color }) {
   const pct = max ? Math.min(100, Math.round((value / max) * 100)) : 0;
