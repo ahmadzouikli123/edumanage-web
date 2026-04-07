@@ -3770,7 +3770,7 @@ function exportExamSchedulePDF(exams, classes, subjects) {
 
 
 // ─── Settings ────────────────────────────────────────────────────────────────
-function Settings({ teachers, setTeachers, students }) {
+function Settings({ teachers, setTeachers, students, classes, subjects, setSubjects }) {
   const S = { primary: "#0d9488", border: "#e2e8f0", textMain: "#1e293b", textSub: "#64748b", textMuted: "#94a3b8", danger: "#ef4444", dangerBg: "#fee2e2" };
   const [tab, setTab] = useState("school");
   const [editId, setEditId] = useState(null);
@@ -3988,6 +3988,61 @@ function Settings({ teachers, setTeachers, students }) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {tab === "subjects" && (
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid " + S.border, overflow: "hidden" }}>
+          <div style={{ padding: "16px 20px", borderBottom: "1px solid " + S.border, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: S.textMain }}>Manage Subjects</div>
+            <button onClick={() => {
+              const name = prompt("New subject name:");
+              if (!name || !name.trim()) return;
+              const icon = prompt("Subject icon (emoji):", "book") || "book";
+              const classId = parseInt(prompt("Class ID (1-4):") || "1");
+              setSubjects(prev => [...prev, { id: Date.now(), classId, name: name.trim(), icon }]);
+            }} style={{ padding: "7px 16px", borderRadius: 8, border: "none", background: S.primary, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+              + Add Subject
+            </button>
+          </div>
+          {[1,2,3,4].map(classId => {
+            const cls = classes.find(c => c.id === classId);
+            const classSubjects = subjects.filter(s => s.classId === classId);
+            return (
+              <div key={classId} style={{ borderBottom: "1px solid " + S.border }}>
+                <div style={{ padding: "10px 20px", background: "#f8fafc", fontSize: 12, fontWeight: 700, color: S.textSub }}>
+                  {cls ? cls.name : "Class " + classId}
+                </div>
+                {classSubjects.length === 0 ? (
+                  <div style={{ padding: "12px 20px", fontSize: 12, color: S.textMuted }}>No subjects</div>
+                ) : classSubjects.map(sub => (
+                  <div key={sub.id} style={{ display: "flex", alignItems: "center", padding: "10px 20px", borderBottom: "1px solid #f8fafc", gap: 12 }}>
+                    <span style={{ fontSize: 20, width: 28 }}>{sub.icon}</span>
+                    <input
+                      value={sub.name}
+                      onChange={e => setSubjects(prev => prev.map(s => s.id === sub.id ? { ...s, name: e.target.value } : s))}
+                      style={{ flex: 1, padding: "6px 10px", border: "1px solid " + S.border, borderRadius: 7, fontSize: 13, fontFamily: "inherit", outline: "none" }}
+                    />
+                    <input
+                      value={sub.icon}
+                      onChange={e => setSubjects(prev => prev.map(s => s.id === sub.id ? { ...s, icon: e.target.value } : s))}
+                      style={{ width: 50, padding: "6px 8px", border: "1px solid " + S.border, borderRadius: 7, fontSize: 13, fontFamily: "inherit", outline: "none", textAlign: "center" }}
+                    />
+                    <button onClick={() => {
+                      if (confirm("Delete " + sub.name + "?")) {
+                        setSubjects(prev => prev.filter(s => s.id !== sub.id));
+                      }
+                    }} style={{ padding: "5px 10px", borderRadius: 7, border: "none", background: S.dangerBg, color: S.danger, fontSize: 11, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>Del</button>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+          <div style={{ padding: "12px 20px", display: "flex", justifyContent: "flex-end" }}>
+            <button onClick={() => { showSaved("Subjects saved!"); }} style={{ padding: "9px 24px", borderRadius: 8, border: "none", background: S.primary, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+              Save Subjects
+            </button>
+          </div>
         </div>
       )}
 
@@ -4434,7 +4489,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           {page === "grades"     && <Grades     students={students} classes={classes} subjects={subjects} grades={grades} setGrades={setGrades} teacherClassIds={teacherClassIds} />}
           {page === "timetable"  && <Timetable  classes={classes} subjects={subjects} timetable={timetable} setTimetable={setTimetable} teacherClassIds={teacherClassIds} />}
           {page === "messages"   && <Messaging  students={students} classes={classes} messages={messages} setMessages={setMessages} />}
-          {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} />}
+          {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
         </div>
       </div>
