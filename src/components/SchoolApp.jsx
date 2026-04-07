@@ -68,9 +68,34 @@ const selectStyle = { ...inputStyle, cursor: "pointer" };
 
 
 // ─── Mobile CSS ───────────────────────────────────────────────────────────────
-const MOBILE_CSS = `
+const MOBILE_CSS = 
   @media (max-width: 768px) {
-    .edu-sidebar { position: fixed !important; left: 0; top: 0; height: 100vh; z-index: 50; transform: translateX(-100%); transition: transform .25s ease; }
+    .edu-sidebar-mobile-hidden {
+      position: fixed !important;
+      top: 0 !important;
+      right: -260px !important;
+      left: auto !important;
+      width: 260px !important;
+      height: 100vh !important;
+      z-index: 1000 !important;
+      transition: right .25s ease !important;
+      order: 2 !important;
+    }
+    .edu-sidebar-mobile-open {
+      right: 0 !important;
+    }
+    .edu-content { padding: 12px !important; }
+  }
+  @media (min-width: 769px) {
+    .edu-sidebar-mobile-hidden { position: sticky !important; right: auto !important; }
+    .edu-hamburger { display: none !important; }
+    .edu-overlay-bg { display: none !important; }
+  }
+  @media (max-width: 640px) {
+    .edu-grid-6 { grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; }
+    .edu-modal-box { width: 96vw !important; max-height: 92vh; overflow-y: auto; }
+  }
+; left: 0; top: 0; height: 100vh; z-index: 50; transform: translateX(-100%); transition: transform .25s ease; }
     .edu-sidebar.open { transform: translateX(0) !important; }
     .edu-overlay { display: block !important; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; cursor: pointer; }
     .edu-menu-btn { display: flex !important; }
@@ -4346,7 +4371,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "system-ui,-apple-system,sans-serif", direction: "rtl", position: "relative" }}>
       {/* Sidebar */}
-      <div className={"edu-sidebar" + (sidebarOpen ? " open" : "")} style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
+      <div className={"edu-sidebar-mobile-hidden" + (sidebarOpen ? " edu-sidebar-mobile-open" : "")} style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
         <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
             <div style={{ textAlign: "right" }}>
@@ -4388,7 +4413,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
         </div>
       </div>
 
-      {sidebarOpen && <div className="edu-overlay" onClick={() => setSidebarOpen(false)} style={{ display: "none" }} />}
+      {sidebarOpen && <div className="edu-overlay-bg" onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 999, cursor: "pointer" }} />}
       {/* Main */}
       <div className="edu-main" style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
         <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: "16px 28px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,.05)" }}>
