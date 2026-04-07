@@ -3865,7 +3865,7 @@ function Settings({ teachers, setTeachers, students, classes, subjects, setSubje
   return (
     <div style={{ maxWidth: 820, margin: "0 auto" }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
-        {[["school","🏫","School"],["teachers","👨‍🏫","Teachers"],["parents","👨‍👩‍👧","Parents"],["appearance","🎨","Appearance"],["data","📦","Data"]].map(([id,icon,label]) => (
+        {[["school","🏫","School"],["subjects","📚","Subjects"],["teachers","👨‍🏫","Teachers"],["parents","👨‍👩‍👧","Parents"],["appearance","🎨","Appearance"],["data","📦","Data"]].map(([id,icon,label]) => (
           <button key={id} style={tabStyle(id)} onClick={() => setTab(id)}>{icon} {label}</button>
         ))}
       </div>
