@@ -1005,7 +1005,7 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
           🖨️ Monthly Report
         </button>
       </div>
-      <div className="edu-grid-6" style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 14, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 14, marginBottom: 28 }}>
         <StatCard icon="👥" value={students.length} label="Total Students"  sub="Enrolled"        subColor={T.primary} />
         <StatCard icon="🏫" value={classes.length}  label="Total Classes"   sub="This semester"   subColor="#7c3aed" />
         <StatCard icon="✅" value={hasToday ? todayPresent : "—"} label="Present Today" sub={hasToday ? `${todayRate}% rate` : "Not taken yet"} subColor="#16a34a" />
@@ -4067,6 +4067,13 @@ function LogoutButton() {
 export default function App() {
   const [page, setPage] = useState((() => { try { const a = JSON.parse(localStorage.getItem("edu_auth")||"{}"); return a.role === "teacher" ? "attendance" : "dashboard"; } catch { return "dashboard"; } })());
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const [auth, setAuth] = useState(null);
 
   useEffect(() => {
@@ -4345,11 +4352,19 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "system-ui,-apple-system,sans-serif", direction: "rtl" }}>
-      {sidebarOpen && (
-        <div className="edu-overlay" onClick={() => setSidebarOpen(false)} style={{ display: "none" }} />
-      )}
       {/* Sidebar */}
-      <div className={"edu-sidebar" + (sidebarOpen ? " open" : "")} style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
+      {isMobile && sidebarOpen && (
+        <div onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 999 }} />
+      )}
+      <div style={{
+        width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0,
+        position: isMobile ? "fixed" : "sticky",
+        top: 0, height: "100vh", order: 2,
+        right: isMobile ? (sidebarOpen ? 0 : -260) : "auto",
+        left: isMobile ? "auto" : "auto",
+        zIndex: isMobile ? 1000 : "auto",
+        transition: "right .25s ease",
+      }}>
         <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
             <div style={{ textAlign: "right" }}>
@@ -4394,8 +4409,21 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
       {/* Main */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
         <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: "16px 28px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,.05)" }}>
-          <div style={{ fontSize: 19, fontWeight: 700, color: T.textMain }}>{PAGE_TITLES[page].title}</div>
-          <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>{PAGE_TITLES[page].sub}</div>
+          {isMobile && (
+            <button onClick={() => setSidebarOpen(true)} style={{
+              display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column",
+              width: 38, height: 38, borderRadius: 9, border: "1px solid #e8ecf2",
+              background: "#fff", cursor: "pointer", flexShrink: 0, gap: 4, padding: 9,
+            }}>
+              <span style={{ display: "block", width: 16, height: 2, background: T.textMain, borderRadius: 2 }} />
+              <span style={{ display: "block", width: 16, height: 2, background: T.textMain, borderRadius: 2 }} />
+              <span style={{ display: "block", width: 16, height: 2, background: T.textMain, borderRadius: 2 }} />
+            </button>
+          )}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 19, fontWeight: 700, color: T.textMain }}>{PAGE_TITLES[page].title}</div>
+            <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>{PAGE_TITLES[page].sub}</div>
+          </div>
         </div>
         <div className="edu-content" style={{ padding: 28, flex: 1 }}>
           {page === "dashboard"  && <Dashboard  students={students} classes={classes} attendance={attendance} grades={grades} subjects={subjects} timetable={timetable} messages={messages} exams={exams} onNavigate={setPage} />}
