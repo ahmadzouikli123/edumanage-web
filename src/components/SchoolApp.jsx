@@ -1005,7 +1005,7 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
           🖨️ Monthly Report
         </button>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 14, marginBottom: 28 }}>
+      <div className="edu-grid-6" style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 14, marginBottom: 28 }}>
         <StatCard icon="👥" value={students.length} label="Total Students"  sub="Enrolled"        subColor={T.primary} />
         <StatCard icon="🏫" value={classes.length}  label="Total Classes"   sub="This semester"   subColor="#7c3aed" />
         <StatCard icon="✅" value={hasToday ? todayPresent : "—"} label="Present Today" sub={hasToday ? `${todayRate}% rate` : "Not taken yet"} subColor="#16a34a" />
@@ -4345,8 +4345,11 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "system-ui,-apple-system,sans-serif", direction: "rtl" }}>
+      {sidebarOpen && (
+        <div className="edu-overlay" onClick={() => setSidebarOpen(false)} style={{ display: "none" }} />
+      )}
       {/* Sidebar */}
-      <div style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
+      <div className={"edu-sidebar" + (sidebarOpen ? " open" : "")} style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
         <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
             <div style={{ textAlign: "right" }}>
