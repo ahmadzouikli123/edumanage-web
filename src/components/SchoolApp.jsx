@@ -68,34 +68,9 @@ const selectStyle = { ...inputStyle, cursor: "pointer" };
 
 
 // ─── Mobile CSS ───────────────────────────────────────────────────────────────
-const MOBILE_CSS = 
+const MOBILE_CSS = `
   @media (max-width: 768px) {
-    .edu-sidebar-mobile-hidden {
-      position: fixed !important;
-      top: 0 !important;
-      right: -260px !important;
-      left: auto !important;
-      width: 260px !important;
-      height: 100vh !important;
-      z-index: 1000 !important;
-      transition: right .25s ease !important;
-      order: 2 !important;
-    }
-    .edu-sidebar-mobile-open {
-      right: 0 !important;
-    }
-    .edu-content { padding: 12px !important; }
-  }
-  @media (min-width: 769px) {
-    .edu-sidebar-mobile-hidden { position: sticky !important; right: auto !important; }
-    .edu-hamburger { display: none !important; }
-    .edu-overlay-bg { display: none !important; }
-  }
-  @media (max-width: 640px) {
-    .edu-grid-6 { grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; }
-    .edu-modal-box { width: 96vw !important; max-height: 92vh; overflow-y: auto; }
-  }
-; left: 0; top: 0; height: 100vh; z-index: 50; transform: translateX(-100%); transition: transform .25s ease; }
+    .edu-sidebar { position: fixed !important; left: 0; top: 0; height: 100vh; z-index: 50; transform: translateX(-100%); transition: transform .25s ease; }
     .edu-sidebar.open { transform: translateX(0) !important; }
     .edu-overlay { display: block !important; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; cursor: pointer; }
     .edu-menu-btn { display: flex !important; }
@@ -1030,7 +1005,7 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
           🖨️ Monthly Report
         </button>
       </div>
-      <div className="edu-grid-6" style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 14, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 14, marginBottom: 28 }}>
         <StatCard icon="👥" value={students.length} label="Total Students"  sub="Enrolled"        subColor={T.primary} />
         <StatCard icon="🏫" value={classes.length}  label="Total Classes"   sub="This semester"   subColor="#7c3aed" />
         <StatCard icon="✅" value={hasToday ? todayPresent : "—"} label="Present Today" sub={hasToday ? `${todayRate}% rate` : "Not taken yet"} subColor="#16a34a" />
@@ -4369,9 +4344,9 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "system-ui,-apple-system,sans-serif", direction: "rtl", position: "relative" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "system-ui,-apple-system,sans-serif", direction: "rtl" }}>
       {/* Sidebar */}
-      <div className={"edu-sidebar-mobile-hidden" + (sidebarOpen ? " edu-sidebar-mobile-open" : "")} style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
+      <div style={{ width: 220, background: T.navy, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100vh", order: 2 }}>
         <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
             <div style={{ textAlign: "right" }}>
@@ -4413,14 +4388,13 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
         </div>
       </div>
 
-      {sidebarOpen && <div className="edu-overlay-bg" onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 999, cursor: "pointer" }} />}
       {/* Main */}
-      <div className="edu-main" style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
         <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: "16px 28px", position: "sticky", top: 0, zIndex: 10, boxShadow: "0 1px 3px rgba(0,0,0,.05)" }}>
           <div style={{ fontSize: 19, fontWeight: 700, color: T.textMain }}>{PAGE_TITLES[page].title}</div>
           <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>{PAGE_TITLES[page].sub}</div>
         </div>
-        <div className="edu-content" style={{ padding: 28, flex: 1, minWidth: 0 }}>
+        <div className="edu-content" style={{ padding: 28, flex: 1 }}>
           {page === "dashboard"  && <Dashboard  students={students} classes={classes} attendance={attendance} grades={grades} subjects={subjects} timetable={timetable} messages={messages} exams={exams} onNavigate={setPage} />}
           {effectivePage === "teachers"  && userRole === "admin" && <Teachers userRole={userRole} teachers={teachers} setTeachers={setTeachers} classes={classes} subjects={subjects} />}
           {page === "students"   && <Students   students={students} setStudents={setStudents} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} teacherClassIds={teacherClassIds} userRole={userRole} />}
