@@ -1421,20 +1421,20 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                   { label: "Exams",      value: examStats.list.length, color: "#7c3aed" },
                   { label: "Messages",   value: stdMsgs.length, color: "#2563eb" },
                 ].map(k => (
-                  <div key={k.label} style={{ padding: "10px 18px", textAlign: "center" }}>
-                    <div style={{ fontSize: 20, fontWeight: 700, color: k.color }}>{k.value}</div>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,.38)", marginTop: 3, fontWeight: 600, letterSpacing: ".05em" }}>{k.label.toUpperCase()}</div>
+                  <div key={k.label} style={{ padding: "8px 12px", textAlign: "center", flexShrink: 0 }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: k.color }}>{k.value}</div>
+                    <div style={{ fontSize: 8, color: "rgba(255,255,255,.38)", marginTop: 2, fontWeight: 600, letterSpacing: ".04em" }}>{k.label.toUpperCase()}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Tabs */}
-            <div style={{ display: "flex", marginTop: 18 }}>
+            <div style={{ display: "flex", marginTop: 18, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
               {PROFILE_TABS.map(t => (
                 <button key={t} onClick={() => setTab(t)} style={{
-                  padding: "10px 18px", border: "none", cursor: "pointer", fontFamily: "inherit",
-                  fontSize: 13, fontWeight: 500, background: "transparent",
+                  padding: "10px 14px", border: "none", cursor: "pointer", fontFamily: "inherit",
+                  fontSize: 12, fontWeight: 500, background: "transparent", whiteSpace: "nowrap", flexShrink: 0,
                   color: tab === t ? "#fff" : "rgba(255,255,255,.42)",
                   borderBottom: tab === t ? "2px solid #0d9488" : "2px solid transparent",
                   transition: "all .15s",
@@ -4306,12 +4306,12 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
     if (!student) { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; return null; }
     return (
       <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"system-ui,sans-serif"}}>
-        <div style={{background:"#1e1e3a",padding:"0 24px",display:"flex",alignItems:"center",gap:14,height:56,flexWrap:"wrap"}}>
-          <div style={{fontSize:14,fontWeight:700,color:"#5eead4",flex:1}}>EduManage</div>
-          <span style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Parent Portal</span>
+        <div style={{background:"#1e1e3a",padding:"0 12px",display:"flex",alignItems:"center",gap:8,height:52,flexWrap:"nowrap"}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#5eead4",flexShrink:0}}>EduManage</div>
+          <div style={{flex:1}} />
           {allChildren.length > 1 && allChildren.map(child => (
             <button key={child.id} onClick={() => setActiveChildId(child.id)} style={{
-              padding:"5px 12px", borderRadius:7,
+              padding:"4px 10px", borderRadius:7, flexShrink:0,
               border:"1px solid rgba(255,255,255,.2)",
               background: child.id === effectiveChildId ? "#0d9488" : "rgba(255,255,255,.08)",
               color: child.id === activeChildId ? "#fff" : "rgba(255,255,255,.6)",
@@ -4319,9 +4319,9 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
             }}>{child.name.split(" ")[0]}</button>
           ))}
           {allChildren.length === 1 && (
-            <><Avatar name={student.name} size={28} /><span style={{fontSize:12,color:"rgba(255,255,255,.7)",fontWeight:500}}>{student.name}</span></>
+            <span style={{fontSize:11,color:"rgba(255,255,255,.7)",fontWeight:500,flexShrink:0}}>{student.name.split(" ")[0]}</span>
           )}
-          <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"6px 14px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:12,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>Sign Out</button>
+          <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"4px 10px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:11,cursor:"pointer",fontFamily:"inherit",fontWeight:600,flexShrink:0}}>Out</button>
         </div>
         {allChildren.length > 1 && (
           <div style={{background:"#0d9488",padding:"8px 24px",display:"flex",alignItems:"center",gap:8}}>
@@ -4331,7 +4331,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
             <span style={{fontSize:11,color:"rgba(255,255,255,.5)",marginLeft:"auto"}}>{allChildren.length} children linked</span>
           </div>
         )}
-        <div style={{padding:"24px 20px",maxWidth:900,margin:"0 auto"}}>
+        <div style={{padding:"16px 12px",maxWidth:900,margin:"0 auto"}}>
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
             <button onClick={() => exportParentReportPDF(student, classes.find(c=>c.id===student.classId), attendance, grades, subjects, exams, examResults)} style={{padding:"10px 20px",background:"#1e1e3a",color:"#fff",border:"none",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
