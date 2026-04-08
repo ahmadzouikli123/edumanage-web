@@ -12,7 +12,6 @@
     };
   }
 };import { useState, useMemo, useEffect, useCallback } from "react";
-import * as DB from "../lib/db";
 import { syncStudents, loadStudents, syncTeachers, loadTeachers, syncClasses, loadClasses, syncAttendance, loadAttendance, syncMessages, loadMessages, syncGrades, loadGrades, syncExams, loadExams, syncTimetable, loadTimetable, syncSubjects, loadSubjects } from "../lib/db";
 
 import { useRouter as useNextRouter } from "next/navigation";
@@ -2123,14 +2122,9 @@ function Classes({ classes, setClasses, students }) {
   const save = () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    if (modal.mode === "add") {
-      DB.saveClass(form).then(saved => {
-        setClasses(prev => [...prev, { ...form, ...(saved || {}) }]);
-      }).catch(() => setClasses(prev => [...prev, { ...form, id: uid() }]));
-    } else {
-      DB.saveClass(form).catch(() => {});
-      setClasses(prev => prev.map(c => c.id === form.id ? form : c));
-    }
+    modal.mode === "add"
+      ? setClasses(prev => [...prev, { ...form, id: uid() }])
+      : setClasses(prev => prev.map(c => c.id === form.id ? form : c));
     setModal(null);
   };
 
@@ -2217,7 +2211,7 @@ function Classes({ classes, setClasses, students }) {
           <p style={{ fontSize: 14, color: T.textSub, marginBottom: 24 }}>This class will be permanently deleted.</p>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
             <button onClick={() => setDeleteId(null)} style={{ padding: "9px 18px", borderRadius: 8, border: `1px solid ${T.border}`, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-            <button onClick={() => { DB.deleteClass(deleteId).catch(()=>{}); setClasses(prev => prev.filter(c => c.id !== deleteId)); setDeleteId(null); }}
+            <button onClick={() => { setClasses(prev => prev.filter(c => c.id !== deleteId)); setDeleteId(null); }}
               style={{ padding: "9px 22px", borderRadius: 8, border: "none", background: T.danger, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
           </div>
         </Modal>
@@ -4169,28 +4163,24 @@ export default function App() {
   const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
   const [classes,  setClasses]      = useState(() => load("edu_classes", SEED_CLASSES));
   useEffect(() => {
-    async function loadFromSupabase() {
+    async function loadFromDb() {
       try {
-        const [dbClasses, dbStudents, dbSubjects, dbAttendance, dbGrades, dbMessages, dbExams, dbExamResults] = await Promise.all([
-          DB.getClasses(), DB.getStudents(), DB.getSubjects(),
-          DB.getAttendance(), DB.getGrades(), DB.getMessages(),
-          DB.getExams(), DB.getExamResults()
+        const [dbStudents, dbTeachers, dbClasses, dbAttendance, dbMessages, dbGrades, dbExams, dbTimetable, dbSubjects] = await Promise.all([
+          loadStudents(), loadTeachers(), loadClasses(), loadAttendance(), loadMessages(), loadGrades(), loadExams(), loadTimetable(), loadSubjects()
         ]);
-        if (dbClasses.length)                      setClasses(dbClasses);
-        if (dbStudents.length)                     setStudents(dbStudents.map(s => ({ ...s, classId: s.class_id || s.classId })));
-        if (dbSubjects.length)                     setSubjects(dbSubjects.map(s => ({ ...s, classId: s.class_id || s.classId })));
-        if (Object.keys(dbAttendance).length)      setAttendance(dbAttendance);
-        if (Object.keys(dbGrades).length)          setGrades(dbGrades);
-        if (dbMessages.length)                     setMessages(dbMessages);
-        if (dbExams.length)                        setExams(dbExams);
-        if (Object.keys(dbExamResults).length)     setExamResults(dbExamResults);
-        if (!dbClasses.length)  { for (const c of SEED_CLASSES)   await DB.saveClass(c); }
-        if (!dbStudents.length) { for (const s of SEED_STUDENTS)  await DB.saveStudent(s); }
-        if (!dbSubjects.length) { for (const s of SEED_SUBJECTS)  await DB.saveSubject(s); }
-      } catch(e) { console.error('Supabase load error:', e); }
-      setDbReady(true);
+        if (dbStudents && dbStudents.length > 0) { setStudents(dbStudents); save('edu_students', dbStudents); }
+        if (dbTeachers && dbTeachers.length > 0) { setTeachers(dbTeachers); save('edu_teachers', dbTeachers); }
+        if (dbClasses && dbClasses.length > 0) { setClasses(dbClasses); save('edu_classes', dbClasses); }
+        if (dbAttendance && Object.keys(dbAttendance).length > 0) { setAttendance(dbAttendance); save('edu_attendance', dbAttendance); }
+        if (dbMessages && dbMessages.length > 0) { setMessages(dbMessages); save('edu_messages', dbMessages); }
+        if (dbGrades && Object.keys(dbGrades).length > 0) { setGrades(dbGrades); save('edu_grades', dbGrades); }
+        if (dbExams && dbExams.length > 0) { setExams(dbExams); save('edu_exams', dbExams); }
+        if (dbTimetable && Object.keys(dbTimetable).length > 0) { setTimetable(dbTimetable); save('edu_timetable', dbTimetable); }
+        if (dbSubjects && dbSubjects.length > 0) { setSubjects(dbSubjects); save('edu_subjects', dbSubjects); }
+        setDbReady(true);
+      } catch(e) { console.error('Supabase load error:', e); setDbReady(true); }
     }
-    loadFromSupabase();
+    loadFromDb();
   }, []);
   const [attendance, setAttendance] = useState(() => load("edu_attendance", seedAttendance(SEED_STUDENTS)));
   const [subjects, setSubjects]     = useState(() => load("edu_subjects",   SEED_SUBJECTS));
