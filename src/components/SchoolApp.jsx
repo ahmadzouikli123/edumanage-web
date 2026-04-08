@@ -12,7 +12,6 @@
     };
   }
 };import { useState, useMemo, useEffect, useCallback } from "react";
-import { syncStudents, loadStudents, syncTeachers, loadTeachers, syncClasses, loadClasses, syncAttendance, loadAttendance, syncMessages, loadMessages, syncGrades, loadGrades, syncExams, loadExams, syncTimetable, loadTimetable, syncSubjects, loadSubjects } from "../lib/db";
 
 import { useRouter as useNextRouter } from "next/navigation";
 
@@ -1905,36 +1904,15 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
     if (modal.mode === "add") {
-      supabase.from("students").insert([{
-        name: form.name, sid: form.sid, class_id: form.classId,
-        gender: form.gender, phone: form.phone, status: form.status,
-      }]).select().then(({ data, error }) => {
-        if (data && data.length > 0) {
-          const s = data[0];
-          setStudents(prev => [...prev, { id: s.id, name: s.name, sid: s.sid, classId: s.class_id, gender: s.gender, phone: s.phone, status: s.status }]);
-        } else {
-          setStudents(prev => [...prev, { ...form, id: uid() }]);
-        }
-      });
+      setStudents(prev => [...prev, { ...form, id: uid() }]);
     } else {
-      supabase.from("students").update({
-        name: form.name, sid: form.sid, class_id: form.classId,
-        gender: form.gender, phone: form.phone, status: form.status,
-      }).eq("id", form.id).then(() => {
-        setStudents(prev => prev.map(s => s.id === form.id ? form : s));
-      });
+      setStudents(prev => prev.map(s => s.id === form.id ? form : s));
     }
     setModal(null);
     showToast(modal.mode === "add" ? "Student added" : "Student updated");
   };
 
-  const doDelete = (id) => {
-    supabase.from("students").delete().eq("id", id).then(() => {
-      setStudents(prev => prev.filter(s => s.id !== id));
-      setDeleteId(null);
-      showToast("Student deleted");
-    });
-  };
+  const doDelete = (id) => { setStudents(prev => prev.filter(s => s.id !== id)); setDeleteId(null); showToast("Student deleted"); };
   const cls = id => classes.find(c => String(c.id) === String(id))?.name || "—";
 
   const allDates = Object.keys(attendance || {}).sort();
@@ -4159,29 +4137,8 @@ export default function App() {
 
   // localStorage persistence — load on mount, save on change
   const [students, setStudents]     = useState(() => load("edu_students", SEED_STUDENTS));
-  const [dbReady, setDbReady] = useState(false);
   const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
   const [classes,  setClasses]      = useState(() => load("edu_classes", SEED_CLASSES));
-  useEffect(() => {
-    async function loadFromDb() {
-      try {
-        const [dbStudents, dbTeachers, dbClasses, dbAttendance, dbMessages, dbGrades, dbExams, dbTimetable, dbSubjects] = await Promise.all([
-          loadStudents(), loadTeachers(), loadClasses(), loadAttendance(), loadMessages(), loadGrades(), loadExams(), loadTimetable(), loadSubjects()
-        ]);
-        if (dbStudents && dbStudents.length > 0) { setStudents(dbStudents); save('edu_students', dbStudents); }
-        if (dbTeachers && dbTeachers.length > 0) { setTeachers(dbTeachers); save('edu_teachers', dbTeachers); }
-        if (dbClasses && dbClasses.length > 0) { setClasses(dbClasses); save('edu_classes', dbClasses); }
-        if (dbAttendance && Object.keys(dbAttendance).length > 0) { setAttendance(dbAttendance); save('edu_attendance', dbAttendance); }
-        if (dbMessages && dbMessages.length > 0) { setMessages(dbMessages); save('edu_messages', dbMessages); }
-        if (dbGrades && Object.keys(dbGrades).length > 0) { setGrades(dbGrades); save('edu_grades', dbGrades); }
-        if (dbExams && dbExams.length > 0) { setExams(dbExams); save('edu_exams', dbExams); }
-        if (dbTimetable && Object.keys(dbTimetable).length > 0) { setTimetable(dbTimetable); save('edu_timetable', dbTimetable); }
-        if (dbSubjects && dbSubjects.length > 0) { setSubjects(dbSubjects); save('edu_subjects', dbSubjects); }
-        setDbReady(true);
-      } catch(e) { console.error('Supabase load error:', e); setDbReady(true); }
-    }
-    loadFromDb();
-  }, []);
   const [attendance, setAttendance] = useState(() => load("edu_attendance", seedAttendance(SEED_STUDENTS)));
   const [subjects, setSubjects]     = useState(() => load("edu_subjects",   SEED_SUBJECTS));
   const [grades,   setGrades]       = useState(() => load("edu_grades",     seedGrades(SEED_STUDENTS, SEED_SUBJECTS)));
@@ -4190,15 +4147,15 @@ export default function App() {
   const [exams,     setExams]       = useState(() => load("edu_exams",        seedExams(SEED_CLASSES, SEED_SUBJECTS)));
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
 
-  useEffect(() => { save("edu_students", students); if (dbReady) syncStudents(students); }, [students]);
-  useEffect(() => { save("edu_teachers", teachers); if (dbReady) syncTeachers(teachers); }, [teachers]);
-  useEffect(() => { save("edu_classes", classes); if (dbReady) syncClasses(classes); }, [classes]);
-  useEffect(() => { save("edu_attendance", attendance); if (dbReady) syncAttendance(attendance); }, [attendance]);
-  useEffect(() => { save("edu_subjects", subjects); if (dbReady) syncSubjects(subjects); }, [subjects]);
-  useEffect(() => { save("edu_grades", grades); if (dbReady) syncGrades(grades); }, [grades]);
-  useEffect(() => { save("edu_timetable", timetable); if (dbReady) syncTimetable(timetable); }, [timetable]);
-  useEffect(() => { save("edu_messages", messages); if (dbReady) syncMessages(messages); }, [messages]);
-  useEffect(() => { save("edu_exams", exams); if (dbReady) syncExams(exams); }, [exams]);
+  useEffect(() => { save("edu_students", students); }, [students]);
+  useEffect(() => { save("edu_teachers", teachers); }, [teachers]);
+  useEffect(() => { save("edu_classes", classes); }, [classes]);
+  useEffect(() => { save("edu_attendance", attendance); }, [attendance]);
+  useEffect(() => { save("edu_subjects", subjects); }, [subjects]);
+  useEffect(() => { save("edu_grades", grades); }, [grades]);
+  useEffect(() => { save("edu_timetable", timetable); }, [timetable]);
+  useEffect(() => { save("edu_messages", messages); }, [messages]);
+  useEffect(() => { save("edu_exams", exams); }, [exams]);
   useEffect(() => { save("edu_exam_results",examResults); }, [examResults]);
 
   const PAGE_TITLES = {
