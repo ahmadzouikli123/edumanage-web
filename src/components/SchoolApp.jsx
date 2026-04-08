@@ -2123,9 +2123,14 @@ function Classes({ classes, setClasses, students }) {
   const save = () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    modal.mode === "add"
-      ? setClasses(prev => [...prev, { ...form, id: uid() }])
-      : setClasses(prev => prev.map(c => c.id === form.id ? form : c));
+    if (modal.mode === "add") {
+      DB.saveClass(form).then(saved => {
+        setClasses(prev => [...prev, { ...form, ...(saved || {}) }]);
+      }).catch(() => setClasses(prev => [...prev, { ...form, id: uid() }]));
+    } else {
+      DB.saveClass(form).catch(() => {});
+      setClasses(prev => prev.map(c => c.id === form.id ? form : c));
+    }
     setModal(null);
   };
 
@@ -2212,7 +2217,7 @@ function Classes({ classes, setClasses, students }) {
           <p style={{ fontSize: 14, color: T.textSub, marginBottom: 24 }}>This class will be permanently deleted.</p>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
             <button onClick={() => setDeleteId(null)} style={{ padding: "9px 18px", borderRadius: 8, border: `1px solid ${T.border}`, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-            <button onClick={() => { setClasses(prev => prev.filter(c => c.id !== deleteId)); setDeleteId(null); }}
+            <button onClick={() => { DB.deleteClass(deleteId).catch(()=>{}); setClasses(prev => prev.filter(c => c.id !== deleteId)); setDeleteId(null); }}
               style={{ padding: "9px 22px", borderRadius: 8, border: "none", background: T.danger, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
           </div>
         </Modal>
