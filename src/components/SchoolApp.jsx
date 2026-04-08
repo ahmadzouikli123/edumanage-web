@@ -12,6 +12,7 @@
     };
   }
 };import { useState, useMemo, useEffect, useCallback } from "react";
+import * as DB from "../lib/db";
 import { syncStudents, loadStudents, syncTeachers, loadTeachers, syncClasses, loadClasses, syncAttendance, loadAttendance, syncMessages, loadMessages, syncGrades, loadGrades, syncExams, loadExams, syncTimetable, loadTimetable, syncSubjects, loadSubjects } from "../lib/db";
 
 import { useRouter as useNextRouter } from "next/navigation";
