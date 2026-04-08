@@ -4159,6 +4159,7 @@ export default function App() {
 
   // localStorage persistence — load on mount, save on change
   const [students, setStudents]     = useState(() => load("edu_students", SEED_STUDENTS));
+  const [dbReady, setDbReady] = useState(false);
   const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
   const [classes,  setClasses]      = useState(() => load("edu_classes", SEED_CLASSES));
   useEffect(() => {
