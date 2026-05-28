@@ -368,6 +368,7 @@ const NAV = [
   { id: "timetable",  icon: "▦", label: "Timetable"   },
   { id: "messages",   icon: "💬", label: "Messages"   },
   { id: "exams",      icon: "📋", label: "Exams"      },
+  { id: "quizzes",    icon: "📝", label: "Quizzes"    },
   { id: "settings",   icon: "⚙️", label: "Settings"   },
 ];
 
@@ -3747,6 +3748,365 @@ function exportExamSchedulePDF(exams, classes, subjects) {
 }
 
 
+
+// ─── Quizzes ──────────────────────────────────────────────────────────────────
+function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults, setQuizResults, teacherClassIds, userRole }) {
+  const [view, setView] = useState("list"); // list | create | results
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState({ title: "", classId: "", subjectId: "", duration: "", questions: [] });
+  const [qForm, setQForm] = useState({ type: "mcq", text: "", options: ["","","",""], answer: "", blank: "" });
+  const visibleClasses = userRole === "admin" ? classes : classes.filter(c => (teacherClassIds||[]).includes(c.id));
+
+  const addQuestion = () => {
+    if (!qForm.text.trim()) return;
+    const q = { id: uid(), type: qForm.type, text: qForm.text,
+      options: qForm.type === "mcq" ? qForm.options.filter(o => o.trim()) : [],
+      answer: qForm.type === "tf" ? qForm.answer : qForm.type === "mcq" ? qForm.answer : qForm.blank
+    };
+    setForm(f => ({ ...f, questions: [...f.questions, q] }));
+    setQForm({ type: "mcq", text: "", options: ["","","",""], answer: "", blank: "" });
+  };
+
+  const saveQuiz = () => {
+    if (!form.title.trim() || !form.classId || form.questions.length === 0) return alert("Fill title, class and add at least 1 question");
+    const quiz = { ...form, id: uid(), createdAt: new Date().toISOString(), active: true };
+    const updated = [...(quizzes||[]), quiz];
+    setQuizzes(updated);
+    localStorage.setItem("edu_quizzes", JSON.stringify(updated));
+    setView("list"); setForm({ title: "", classId: "", subjectId: "", duration: "", questions: [] });
+  };
+
+  const toggleActive = (id) => {
+    const updated = (quizzes||[]).map(q => q.id === id ? {...q, active: !q.active} : q);
+    setQuizzes(updated); localStorage.setItem("edu_quizzes", JSON.stringify(updated));
+  };
+
+  const deleteQuiz = (id) => {
+    const updated = (quizzes||[]).filter(q => q.id !== id);
+    setQuizzes(updated); localStorage.setItem("edu_quizzes", JSON.stringify(updated));
+  };
+
+  const getResults = (quizId) => (quizResults||[]).filter(r => r.quizId === quizId);
+
+  const S2 = { border: "#e2e8f0", bg: "#f8fafc", primary: "#0d9488", text: "#1e293b", sub: "#64748b" };
+  const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+
+  if (view === "results" && selected) {
+    const quiz = (quizzes||[]).find(q => q.id === selected);
+    const results = getResults(selected);
+    return (
+      <div>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+          <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+          <div style={{ fontSize:16, fontWeight:700, color:S2.text }}>Results: {quiz?.title}</div>
+        </div>
+        {results.length === 0 ? (
+          <div style={{ textAlign:"center", padding:40, color:S2.sub }}>No submissions yet</div>
+        ) : (
+          <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse" }}>
+              <thead>
+                <tr style={{ background:"#f8fafc" }}>
+                  {["Student","Score","Submitted"].map(h => (
+                    <th key={h} style={{ padding:"10px 16px", textAlign:"left", fontSize:12, fontWeight:600, color:S2.sub, borderBottom:"1px solid #e2e8f0" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {results.map(r => {
+                  const student = students.find(s => s.id === r.studentId);
+                  const total = quiz?.questions?.length || 1;
+                  const pct = Math.round((r.score / total) * 100);
+                  return (
+                    <tr key={r.id} style={{ borderBottom:"1px solid #f1f5f9" }}>
+                      <td style={{ padding:"12px 16px", fontSize:13, fontWeight:500 }}>{student?.name || "Unknown"}</td>
+                      <td style={{ padding:"12px 16px" }}>
+                        <span style={{ background: pct >= 60 ? "#d1fae5" : "#fee2e2", color: pct >= 60 ? "#065f46" : "#dc2626", padding:"3px 10px", borderRadius:20, fontSize:12, fontWeight:600 }}>
+                          {r.score}/{total} ({pct}%)
+                        </span>
+                      </td>
+                      <td style={{ padding:"12px 16px", fontSize:12, color:S2.sub }}>{new Date(r.submittedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (view === "create") return (
+    <div style={{ maxWidth:720, margin:"0 auto" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+        <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:700, color:S2.text }}>Create New Quiz</div>
+      </div>
+      <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
+        <div style={{ fontSize:14, fontWeight:600, marginBottom:16, color:S2.text }}>Quiz Info</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S2.sub, display:"block", marginBottom:4 }}>Title *</label>
+            <input style={inp} value={form.title} onChange={e => setForm({...form, title:e.target.value})} placeholder="e.g. Math Quiz - Chapter 3" />
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S2.sub, display:"block", marginBottom:4 }}>Class *</label>
+            <select style={inp} value={form.classId} onChange={e => setForm({...form, classId:Number(e.target.value)})}>
+              <option value="">Select class...</option>
+              {visibleClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S2.sub, display:"block", marginBottom:4 }}>Subject</label>
+            <select style={inp} value={form.subjectId} onChange={e => setForm({...form, subjectId:Number(e.target.value)})}>
+              <option value="">Select subject...</option>
+              {(subjects||[]).filter(s => !form.classId || s.classId === form.classId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S2.sub, display:"block", marginBottom:4 }}>Timer (minutes, optional)</label>
+            <input style={inp} type="number" value={form.duration} onChange={e => setForm({...form, duration:e.target.value})} placeholder="e.g. 30" />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
+        <div style={{ fontSize:14, fontWeight:600, marginBottom:16, color:S2.text }}>Add Question</div>
+        <div style={{ marginBottom:12 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:S2.sub, display:"block", marginBottom:4 }}>Type</label>
+          <div style={{ display:"flex", gap:8 }}>
+            {[["mcq","Multiple Choice"],["tf","True / False"],["fill","Fill in the Blank"]].map(([val,lbl]) => (
+              <button key={val} onClick={() => setQForm({...qForm, type:val, answer:""})} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background: qForm.type===val ? "#0d9488" : "#fff", color: qForm.type===val ? "#fff" : S2.text, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{lbl}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{ marginBottom:12 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:S2.sub, display:"block", marginBottom:4 }}>Question Text *</label>
+          <input style={inp} value={qForm.text} onChange={e => setQForm({...qForm, text:e.target.value})} placeholder="Enter question..." />
+        </div>
+        {qForm.type === "mcq" && (
+          <div style={{ marginBottom:12 }}>
+            <label style={{ fontSize:12, fontWeight:600, color:S2.sub, display:"block", marginBottom:4 }}>Options</label>
+            {qForm.options.map((opt,i) => (
+              <div key={i} style={{ display:"flex", gap:8, marginBottom:6, alignItems:"center" }}>
+                <input type="radio" name="correct" checked={qForm.answer === opt} onChange={() => qForm.options[i].trim() && setQForm({...qForm, answer:qForm.options[i]})} />
+                <input style={{...inp, flex:1}} value={opt} onChange={e => { const o=[...qForm.options]; o[i]=e.target.value; setQForm({...qForm, options:o}); }} placeholder={"Option " + (i+1)} />
+              </div>
+            ))}
+            <div style={{ fontSize:11, color:S2.sub, marginTop:4 }}>Select the radio button next to the correct answer</div>
+          </div>
+        )}
+        {qForm.type === "tf" && (
+          <div style={{ marginBottom:12 }}>
+            <label style={{ fontSize:12, fontWeight:600, color:S2.sub, display:"block", marginBottom:4 }}>Correct Answer</label>
+            <div style={{ display:"flex", gap:8 }}>
+              {["True","False"].map(v => (
+                <button key={v} onClick={() => setQForm({...qForm, answer:v})} style={{ padding:"7px 20px", borderRadius:8, border:"1px solid #e2e8f0", background: qForm.answer===v ? "#0d9488" : "#fff", color: qForm.answer===v ? "#fff" : S2.text, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{v}</button>
+              ))}
+            </div>
+          </div>
+        )}
+        {qForm.type === "fill" && (
+          <div style={{ marginBottom:12 }}>
+            <label style={{ fontSize:12, fontWeight:600, color:S2.sub, display:"block", marginBottom:4 }}>Correct Answer</label>
+            <input style={inp} value={qForm.blank} onChange={e => setQForm({...qForm, blank:e.target.value})} placeholder="Enter the correct answer..." />
+          </div>
+        )}
+        <button onClick={addQuestion} style={{ padding:"8px 20px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ Add Question</button>
+      </div>
+
+      {form.questions.length > 0 && (
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
+          <div style={{ fontSize:14, fontWeight:600, marginBottom:12, color:S2.text }}>Questions ({form.questions.length})</div>
+          {form.questions.map((q,i) => (
+            <div key={q.id} style={{ padding:"10px 14px", background:"#f8fafc", borderRadius:8, marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+              <div>
+                <div style={{ fontSize:13, fontWeight:500 }}>Q{i+1}: {q.text}</div>
+                <div style={{ fontSize:11, color:S2.sub, marginTop:2 }}>
+                  {q.type === "mcq" ? "MCQ · Correct: " + q.answer : q.type === "tf" ? "True/False · Answer: " + q.answer : "Fill · Answer: " + q.answer}
+                </div>
+              </div>
+              <button onClick={() => setForm(f => ({...f, questions:f.questions.filter((_,j)=>j!==i)}))} style={{ padding:"3px 10px", borderRadius:6, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>Remove</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button onClick={saveQuiz} style={{ width:"100%", padding:"13px 0", borderRadius:10, border:"none", background:"#0d9488", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+        💾 Save Quiz
+      </button>
+    </div>
+  );
+
+  return (
+    <div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <div>
+          <div style={{ fontSize:18, fontWeight:700, color:S2.text }}>📝 Quizzes</div>
+          <div style={{ fontSize:13, color:S2.sub }}>Create and manage quizzes for students</div>
+        </div>
+        <button onClick={() => setView("create")} style={{ padding:"9px 18px", borderRadius:9, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ New Quiz</button>
+      </div>
+      {(!quizzes || quizzes.length === 0) ? (
+        <div style={{ textAlign:"center", padding:60, color:S2.sub, background:"#fff", borderRadius:12, border:"1px solid #e2e8f0" }}>
+          <div style={{ fontSize:40, marginBottom:12 }}>📝</div>
+          <div style={{ fontSize:15, fontWeight:600 }}>No quizzes yet</div>
+          <div style={{ fontSize:13, marginTop:4 }}>Click "New Quiz" to create your first quiz</div>
+        </div>
+      ) : (
+        <div style={{ display:"grid", gap:12 }}>
+          {(quizzes||[]).map(quiz => {
+            const cls = classes.find(c => c.id === quiz.classId);
+            const sub = (subjects||[]).find(s => s.id === quiz.subjectId);
+            const results = getResults(quiz.id);
+            return (
+              <div key={quiz.id} style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20, display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:S2.text, marginBottom:4 }}>{quiz.title}</div>
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                    <span style={{ fontSize:11, background:"#f0fdf4", color:"#065f46", padding:"2px 8px", borderRadius:20, fontWeight:600 }}>{cls?.name || "—"}</span>
+                    {sub && <span style={{ fontSize:11, background:"#eff6ff", color:"#1d4ed8", padding:"2px 8px", borderRadius:20, fontWeight:600 }}>{sub.name}</span>}
+                    {quiz.duration && <span style={{ fontSize:11, background:"#fefce8", color:"#854d0e", padding:"2px 8px", borderRadius:20, fontWeight:600 }}>⏱ {quiz.duration} min</span>}
+                    <span style={{ fontSize:11, background:"#f8fafc", color:S2.sub, padding:"2px 8px", borderRadius:20 }}>{quiz.questions.length} questions</span>
+                    <span style={{ fontSize:11, background:"#f8fafc", color:S2.sub, padding:"2px 8px", borderRadius:20 }}>{results.length} submissions</span>
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                  <button onClick={() => toggleActive(quiz.id)} style={{ padding:"5px 12px", borderRadius:7, border:"1px solid #e2e8f0", background: quiz.active ? "#d1fae5" : "#fee2e2", color: quiz.active ? "#065f46" : "#dc2626", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+                    {quiz.active ? "✅ Active" : "⏸ Inactive"}
+                  </button>
+                  <button onClick={() => { setSelected(quiz.id); setView("results"); }} style={{ padding:"5px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>📊 Results</button>
+                  <button onClick={() => deleteQuiz(quiz.id)} style={{ padding:"5px 12px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>🗑️</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── ParentQuiz ────────────────────────────────────────────────────────────────
+function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
+  const [activeQuiz, setActiveQuiz] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(null);
+
+  const available = (quizzes||[]).filter(q => q.active && q.classId === student.classId);
+  const done = (quizResults||[]).filter(r => r.studentId === student.id).map(r => r.quizId);
+  const pending = available.filter(q => !done.includes(q.id));
+
+  React.useEffect(() => {
+    if (!activeQuiz || !activeQuiz.duration) return;
+    setTimeLeft(Number(activeQuiz.duration) * 60);
+    const t = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) { clearInterval(t); handleSubmit(); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [activeQuiz]);
+
+  const handleSubmit = () => {
+    if (!activeQuiz) return;
+    let correct = 0;
+    activeQuiz.questions.forEach(q => {
+      const ans = (answers[q.id]||"").trim().toLowerCase();
+      const correct_ans = (q.answer||"").trim().toLowerCase();
+      if (ans === correct_ans) correct++;
+    });
+    setScore(correct);
+    const result = { id: uid(), quizId: activeQuiz.id, studentId: student.id, answers, score: correct, submittedAt: new Date().toISOString() };
+    const updated = [...(quizResults||[]), result];
+    setQuizResults(updated);
+    localStorage.setItem("edu_quiz_results", JSON.stringify(updated));
+    setSubmitted(true);
+  };
+
+  if (activeQuiz && !submitted) return (
+    <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <div style={{ fontSize:16, fontWeight:700, color:"#1e293b" }}>{activeQuiz.title}</div>
+        {timeLeft !== null && (
+          <div style={{ background: timeLeft < 60 ? "#fee2e2" : "#f0fdf4", color: timeLeft < 60 ? "#dc2626" : "#065f46", padding:"6px 14px", borderRadius:20, fontSize:13, fontWeight:700 }}>
+            ⏱ {Math.floor(timeLeft/60)}:{String(timeLeft%60).padStart(2,"0")}
+          </div>
+        )}
+      </div>
+      {activeQuiz.questions.map((q,i) => (
+        <div key={q.id} style={{ marginBottom:20, padding:16, background:"#f8fafc", borderRadius:10 }}>
+          <div style={{ fontSize:14, fontWeight:600, marginBottom:12, color:"#1e293b" }}>Q{i+1}: {q.text}</div>
+          {q.type === "mcq" && q.options.map(opt => (
+            <label key={opt} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8, cursor:"pointer" }}>
+              <input type="radio" name={"q"+q.id} checked={answers[q.id]===opt} onChange={() => setAnswers({...answers, [q.id]:opt})} />
+              <span style={{ fontSize:13 }}>{opt}</span>
+            </label>
+          ))}
+          {q.type === "tf" && ["True","False"].map(v => (
+            <label key={v} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8, cursor:"pointer" }}>
+              <input type="radio" name={"q"+q.id} checked={answers[q.id]===v} onChange={() => setAnswers({...answers, [q.id]:v})} />
+              <span style={{ fontSize:13 }}>{v}</span>
+            </label>
+          ))}
+          {q.type === "fill" && (
+            <input value={answers[q.id]||""} onChange={e => setAnswers({...answers, [q.id]:e.target.value})} placeholder="Your answer..." style={{ width:"100%", padding:"8px 12px", border:"1px solid #e2e8f0", borderRadius:7, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
+          )}
+        </div>
+      ))}
+      <div style={{ display:"flex", gap:10 }}>
+        <button onClick={handleSubmit} style={{ flex:1, padding:"12px 0", borderRadius:9, border:"none", background:"#0d9488", color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Submit Quiz</button>
+        <button onClick={() => { setActiveQuiz(null); setAnswers({}); }} style={{ padding:"12px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+      </div>
+    </div>
+  );
+
+  if (submitted) return (
+    <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:32, marginBottom:16, textAlign:"center" }}>
+      <div style={{ fontSize:48, marginBottom:12 }}>{score / activeQuiz.questions.length >= 0.6 ? "🎉" : "📚"}</div>
+      <div style={{ fontSize:20, fontWeight:800, color:"#1e293b", marginBottom:8 }}>Quiz Completed!</div>
+      <div style={{ fontSize:32, fontWeight:700, color: score/activeQuiz.questions.length >= 0.6 ? "#0d9488" : "#dc2626", marginBottom:8 }}>
+        {score} / {activeQuiz.questions.length}
+      </div>
+      <div style={{ fontSize:14, color:"#64748b", marginBottom:20 }}>
+        {Math.round(score/activeQuiz.questions.length*100)}% — {score/activeQuiz.questions.length >= 0.8 ? "Excellent!" : score/activeQuiz.questions.length >= 0.6 ? "Good job!" : "Keep practicing!"}
+      </div>
+      <button onClick={() => { setActiveQuiz(null); setAnswers({}); setSubmitted(false); }} style={{ padding:"10px 24px", borderRadius:9, border:"none", background:"#0d9488", color:"#fff", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Back to Quizzes</button>
+    </div>
+  );
+
+  return (
+    <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:16 }}>
+      <div style={{ padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>📝 Available Quizzes</div>
+      {pending.length === 0 ? (
+        <div style={{ padding:32, textAlign:"center", color:"#64748b" }}>
+          <div style={{ fontSize:32, marginBottom:8 }}>✅</div>
+          <div>All quizzes completed!</div>
+        </div>
+      ) : pending.map(quiz => (
+        <div key={quiz.id} style={{ padding:"16px 20px", borderBottom:"1px solid #f1f5f9", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <div style={{ fontSize:14, fontWeight:600, color:"#1e293b" }}>{quiz.title}</div>
+            <div style={{ fontSize:12, color:"#64748b", marginTop:2 }}>
+              {quiz.questions.length} questions {quiz.duration ? "· " + quiz.duration + " min" : ""}
+            </div>
+          </div>
+          <button onClick={() => { setActiveQuiz(quiz); setAnswers({}); setSubmitted(false); }} style={{ padding:"8px 18px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Start →</button>
+        </div>
+      ))}
+      {done.length > 0 && (
+        <div style={{ padding:"10px 20px", background:"#f8fafc" }}>
+          <div style={{ fontSize:12, color:"#64748b" }}>✅ {done.length} quiz{done.length > 1 ? "zes" : ""} completed</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Settings ────────────────────────────────────────────────────────────────
 function Settings({ teachers, setTeachers, students, classes, subjects, setSubjects }) {
   const [parentEditId, setParentEditId] = useState(null);
@@ -4154,7 +4514,7 @@ export default function App() {
   const teacherName    = auth?.name    || "";
 
   // ─── Teacher: pages allowed ───────────────────────────────────────────────
-  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages"];
+  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes"];
   const PARENT_PAGES  = ["dashboard"];
 
   const allowedPages = userRole === "teacher" ? TEACHER_PAGES
@@ -4176,6 +4536,8 @@ export default function App() {
   const [timetable, setTimetable]   = useState(() => load("edu_timetable",  seedTimetable(SEED_CLASSES, SEED_SUBJECTS)));
   const [messages,  setMessages]    = useState(() => load("edu_messages",     seedMessages(SEED_STUDENTS)));
   const [exams,     setExams]       = useState(() => load("edu_exams",        seedExams(SEED_CLASSES, SEED_SUBJECTS)));
+  const [quizzes,     setQuizzes]     = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quizzes")||"[]"); } catch{return[];} });
+  const [quizResults, setQuizResults] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quiz_results")||"[]"); } catch{return[];} });
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
 
   useEffect(() => { save("edu_students", students); }, [students]);
@@ -4197,6 +4559,7 @@ export default function App() {
     grades:     { title: "Grades",     sub: "Enter grades & view report cards" },
     timetable:  { title: "Timetable",  sub: "Weekly schedule for each class" },
     messages:   { title: "Messages",    sub: "Communicate with parents & guardians" },
+    quizzes:    { title: "Quizzes",     sub: "Create and manage quizzes" },
     exams:      { title: "Exams",       sub: "Schedule exams & record results" },
     teachers:   { title: "Teachers",    sub: "Manage teaching staff & assignments" },
     settings:   { title: "Settings",    sub: "Manage accounts & access" },
@@ -4376,6 +4739,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
         )}
         <div style={{padding:"16px 12px",maxWidth:900,margin:"0 auto"}}>
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
+          <ParentQuiz student={student} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} />
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
             <button onClick={() => exportParentReportPDF(student, classes.find(c=>c.id===student.classId), attendance, grades, subjects, exams, examResults)} style={{padding:"10px 20px",background:"#1e1e3a",color:"#fff",border:"none",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
               Download PDF Report
@@ -4479,6 +4843,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           {page === "messages"   && <Messaging  students={students} classes={classes} messages={messages} setMessages={setMessages} />}
           {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
+          {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
         </div>
       </div>
     </div>
