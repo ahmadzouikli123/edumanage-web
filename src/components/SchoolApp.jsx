@@ -4000,7 +4000,7 @@ function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
   const done = (quizResults||[]).filter(r => r.studentId === student.id).map(r => r.quizId);
   const pending = available.filter(q => !done.includes(q.id));
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!activeQuiz || !activeQuiz.duration) return;
     setTimeLeft(Number(activeQuiz.duration) * 60);
     const t = setInterval(() => {
