@@ -3749,6 +3749,8 @@ function exportExamSchedulePDF(exams, classes, subjects) {
 
 // ─── Settings ────────────────────────────────────────────────────────────────
 function Settings({ teachers, setTeachers, students, classes, subjects, setSubjects }) {
+  const [parentEditId, setParentEditId] = useState(null);
+  const [parentForm, setParentForm] = useState({ username: "", password: "" });
   const S = { primary: "#0d9488", border: "#e2e8f0", textMain: "#1e293b", textSub: "#64748b", textMuted: "#94a3b8", danger: "#ef4444", dangerBg: "#fee2e2" };
   const [tab, setTab] = useState("school");
   const [editId, setEditId] = useState(null);
@@ -3940,35 +3942,64 @@ function Settings({ teachers, setTeachers, students, classes, subjects, setSubje
         <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>👨‍👩‍👧 Parent Access</div>
           <div style={{ padding: "12px 20px", background: "#f0fdf4", borderBottom: `1px solid ${S.border}`, fontSize: 13, color: "#065f46" }}>
-            ℹ️ Parents log in using their child's <b>Student ID</b> + <b>Phone Number</b>.
+            ℹ️ Parents log in using <b>Username</b> + <b>Password</b>. Default: Student ID + Phone Number.
           </div>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#f8fafc" }}>
-                {["Student Name","Student ID","Phone","Access"].map(h => (
+                {["Student Name","Username","Password","Access","Action"].map(h => (
                   <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: S.textSub, borderBottom: `1px solid ${S.border}` }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {students.map(s => (
-                <tr key={s.id} style={{ borderBottom: `1px solid ${S.border}` }}>
-                  <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{s.name}</td>
-                  <td style={{ padding: "12px 16px", fontSize: 13, fontFamily: "monospace" }}>{s.sid}</td>
-                  <td style={{ padding: "12px 16px", fontSize: 13 }}>{s.phone || <span style={{ color: S.danger }}>Not set</span>}</td>
-                  <td style={{ padding: "12px 16px" }}>
-                    {s.phone
-                      ? <span style={{ background: "#d1fae5", color: "#065f46", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>✅ Active</span>
-                      : <span style={{ background: S.dangerBg, color: S.danger, padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>❌ No Access</span>
-                    }
-                  </td>
-                </tr>
-              ))}
+              {students.map(s => {
+                const savedAccounts = (() => { try { return JSON.parse(localStorage.getItem("edu_parent_accounts") || "{}"); } catch { return {}; } })();
+                const acc = savedAccounts[s.id] || { username: s.sid, password: s.phone || "" };
+                const isEditing = parentEditId === s.id;
+                return (
+                  <tr key={s.id} style={{ borderBottom: `1px solid ${S.border}`, background: isEditing ? "#f0fdf9" : "transparent" }}>
+                    <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{s.name}</td>
+                    <td style={{ padding: "12px 16px", fontSize: 13 }}>
+                      {isEditing
+                        ? <input value={parentForm.username} onChange={e => setParentForm({...parentForm, username: e.target.value})} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "inherit", width: 120 }} />
+                        : <span style={{ fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4, fontSize: 12 }}>{acc.username}</span>
+                      }
+                    </td>
+                    <td style={{ padding: "12px 16px", fontSize: 13 }}>
+                      {isEditing
+                        ? <input value={parentForm.password} onChange={e => setParentForm({...parentForm, password: e.target.value})} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "inherit", width: 120 }} />
+                        : <span style={{ fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4, fontSize: 12 }}>••••••••</span>
+                      }
+                    </td>
+                    <td style={{ padding: "12px 16px" }}>
+                      {acc.password
+                        ? <span style={{ background: "#d1fae5", color: "#065f46", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>✅ Active</span>
+                        : <span style={{ background: S.dangerBg, color: S.danger, padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>❌ No Access</span>
+                      }
+                    </td>
+                    <td style={{ padding: "12px 16px" }}>
+                      {isEditing ? (
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={() => {
+                            const all = (() => { try { return JSON.parse(localStorage.getItem("edu_parent_accounts") || "{}"); } catch { return {}; } })();
+                            all[s.id] = { username: parentForm.username, password: parentForm.password };
+                            localStorage.setItem("edu_parent_accounts", JSON.stringify(all));
+                            setParentEditId(null);
+                          }} style={{ padding: "5px 12px", borderRadius: 6, border: "none", background: S.primary, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Save</button>
+                          <button onClick={() => setParentEditId(null)} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => { setParentEditId(s.id); setParentForm({ username: acc.username, password: acc.password }); }} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>✏️ Edit</button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
-
       {tab === "subjects" && (
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid " + S.border, overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid " + S.border, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -4453,6 +4484,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
     </div>
   );
 }
+
 
 
 

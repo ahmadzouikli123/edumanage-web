@@ -56,8 +56,25 @@ export default function Login() {
 
       } else {
         // Parent login - محلي بدون Supabase
+        // تحقق من الحسابات المخصصة أولاً
+        const customAccounts = load("edu_parent_accounts", {})
         const stored = load("edu_students", [])
         const allStudents = stored.length > 0 ? stored : SEED_STUDENTS
+
+        // ابحث في الحسابات المخصصة
+        const customEntry = Object.entries(customAccounts).find(([id, acc]: any) =>
+          acc.username.toLowerCase() === user.toLowerCase().trim() && acc.password === pass
+        )
+        if (customEntry) {
+          const s = allStudents.find((x: any) => x.id === parseInt(customEntry[0]))
+          if (s) {
+            save("edu_auth", { role:"parent", name:s.name, phone:s.phone, studentId:s.id, studentIds:[s.id] })
+            router.replace("/school")
+            return
+          }
+        }
+
+        // Fallback: Student ID + Phone
         const s = allStudents.find((x: any) =>
           x.sid.toLowerCase() === user.toLowerCase().trim() &&
           x.phone.replace(/\D/g,"") === pass.replace(/\D/g,"")
@@ -119,3 +136,4 @@ export default function Login() {
     </div>
   )
 }
+
