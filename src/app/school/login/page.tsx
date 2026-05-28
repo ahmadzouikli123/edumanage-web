@@ -1,25 +1,24 @@
-"use client"
+﻿"use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 function load(key: string, fb: any) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fb; } catch { return fb; } }
 function save(key: string, val: any) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mhrtzppoiinpnbnximuf.supabase.co"
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-
-async function supabaseGet(table: string, filters: string) {
-  const res = await fetch(SUPABASE_URL + "/rest/v1/" + table + "?" + filters, {
-    headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
-  })
-  return res.json()
-}
-
 const SEED_TEACHERS = [
   {username:"sarah.johnson", password:"teacher", name:"Ms. Sarah Johnson", class_ids:[1]},
   {username:"david.lee",     password:"teacher", name:"Mr. David Lee",     class_ids:[2]},
   {username:"emily.carter",  password:"teacher", name:"Ms. Emily Carter",  class_ids:[3]},
   {username:"james.miller",  password:"teacher", name:"Mr. James Miller",  class_ids:[4]},
+]
+
+const SEED_STUDENTS = [
+  { id:1, sid:"S001", name:"Liam Anderson",   phone:"555-0101" },
+  { id:2, sid:"S002", name:"Olivia Martinez", phone:"555-0102" },
+  { id:3, sid:"S003", name:"Noah Thompson",   phone:"555-0103" },
+  { id:4, sid:"S004", name:"Emma Wilson",     phone:"555-0104" },
+  { id:5, sid:"S005", name:"Aiden Brown",     phone:"555-0105" },
+  { id:6, sid:"S006", name:"Sophia Davis",    phone:"555-0106" },
 ]
 
 export default function Login() {
@@ -56,38 +55,18 @@ export default function Login() {
         }
 
       } else {
-        // Parent login - username + password من Supabase
-        const accounts = await supabaseGet("parent_accounts", "username=eq." + encodeURIComponent(user.trim()) + "&password=eq." + encodeURIComponent(pass) + "&select=id,name,username")
-        
-        if (accounts && accounts.length > 0) {
-          const account = accounts[0]
-          // جلب الطلاب المرتبطين
-          const links = await supabaseGet("parent_students", "parent_id=eq." + account.id + "&select=student_id")
-          const studentIds = (links || []).map((l: any) => l.student_id)
-          
-          // جلب بيانات الطلاب
-          const allStudents = load("edu_students", [])
-          const children = allStudents.filter((s: any) => studentIds.includes(s.id))
-          
-          save("edu_auth", {
-            role: "parent",
-            name: account.name,
-            username: account.username,
-            phone: children[0]?.phone || "",
-            studentId: children[0]?.id || null,
-            studentIds: studentIds,
-          })
+        // Parent login - محلي بدون Supabase
+        const stored = load("edu_students", [])
+        const allStudents = stored.length > 0 ? stored : SEED_STUDENTS
+        const s = allStudents.find((x: any) =>
+          x.sid.toLowerCase() === user.toLowerCase().trim() &&
+          x.phone.replace(/\D/g,"") === pass.replace(/\D/g,"")
+        )
+        if (s) {
+          save("edu_auth", { role:"parent", name:s.name, phone:s.phone, studentId:s.id, studentIds:[s.id] })
           router.replace("/school")
         } else {
-          // Fallback: الطريقة القديمة (Student ID + Phone)
-          const stored = load("edu_students", [])
-          const s = stored.find((x: any) => x.sid.toLowerCase() === user.toLowerCase().trim() && x.phone.replace(/\D/g,"") === pass.replace(/\D/g,""))
-          if (s) {
-            save("edu_auth", {role:"parent", name:s.name, phone:s.phone, studentId:s.id, studentIds:[s.id]})
-            router.replace("/school")
-          } else {
-            setErr("Invalid username or password")
-          }
+          setErr("Invalid username or password")
         }
       }
     } catch(e) {
@@ -115,8 +94,8 @@ export default function Login() {
             ))}
           </div>
           <div style={{marginBottom:14}}>
-            <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>{role==="parent"?"Username":"Username"}</label>
-            <input style={inp} value={user} onChange={e=>setUser(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="admin"?"admin":role==="teacher"?"sarah.johnson":"parent1"} />
+            <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Username</label>
+            <input style={inp} value={user} onChange={e=>setUser(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="admin"?"admin":role==="teacher"?"sarah.johnson":"S001"} />
           </div>
           <div style={{marginBottom:20}}>
             <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Password</label>
@@ -130,7 +109,7 @@ export default function Login() {
             <div style={{fontWeight:600,color:"#5eead4",marginBottom:6}}>Demo credentials</div>
             {role==="admin"   && <div>Username: admin / Password: admin123</div>}
             {role==="teacher" && <div>Username: sarah.johnson / Password: teacher</div>}
-            {role==="parent"  && <div>Username: parent1 / Password: parent123</div>}
+            {role==="parent"  && <div>Username: S001 / Password: 555-0101</div>}
           </div>
         </div>
         <div style={{textAlign:"center",marginTop:24,fontSize:12,color:"rgba(255,255,255,.6)"}}>
