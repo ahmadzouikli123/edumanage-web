@@ -1278,6 +1278,197 @@ function ParentCompose({ student, messages }) {
   );
 }
 
+
+// ─── Student Dashboard ────────────────────────────────────────────────────────
+function StudentDashboard({ student, classes, attendance, grades, subjects, exams, examResults, messages, timetable, quizzes, quizResults }) {
+  const cls      = classes.find(cl => cl.id === student.classId);
+  const stdSubjs = (subjects||[]).filter(s => s.classId === student.classId);
+
+  // Attendance
+  const attStats = (() => {
+    let p=0,a=0,l=0,e=0,total=0;
+    Object.keys(attendance||{}).sort().forEach(date => {
+      const rec = attendance[date]?.[student.id];
+      if (!rec) return; total++;
+      if (rec==="present") p++; else if (rec==="absent") a++;
+      else if (rec==="late") l++; else if (rec==="excused") e++;
+    });
+    return { present:p, absent:a, late:l, excused:e, total, rate: total ? Math.round((p/total)*100) : 100 };
+  })();
+
+  // Grades
+  const gradeStats = (() => {
+    const rows = stdSubjs.map(sub => {
+      const g = (grades?.[student.id]||{})[sub.id] || {};
+      const total = Math.round((g.quiz||0)*0.15+(g.homework||0)*0.15+(g.midterm||0)*0.30+(g.final||0)*0.40);
+      return { name: sub.name, total, hasGrade: !!(g.quiz||g.homework||g.midterm||g.final) };
+    }).filter(r => r.hasGrade);
+    const avg = rows.length ? Math.round(rows.reduce((s,r)=>s+r.total,0)/rows.length) : null;
+    return { rows, avg };
+  })();
+
+  // Upcoming exams
+  const today = new Date().toISOString().split("T")[0];
+  const upcomingExams = (exams||[]).filter(e => e.classId===student.classId && e.date >= today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3);
+
+  // Quizzes
+  const doneQuizIds = (quizResults||[]).filter(r=>r.studentId===student.id).map(r=>r.quizId);
+  const pendingQuizzes = (quizzes||[]).filter(q=>q.active && q.classId===student.classId && !doneQuizIds.includes(q.id));
+
+  // Timetable today
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const todayName = days[new Date().getDay()];
+  const todayClasses = (Array.isArray(timetable) ? timetable : Object.values(timetable||{})).reduce((acc,t)=>[...acc,...(t.slots||[])],[]).filter(s=>s.classId===student.classId&&s.day===todayName).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+
+  // Unread messages
+  const unread = (messages||[]).filter(m=>m.studentId===student.id && !m.read).length;
+
+  const attColor = attStats.rate>=90 ? "#059669" : attStats.rate>=75 ? "#d97706" : "#dc2626";
+  const attBg    = attStats.rate>=90 ? "#d1fae5" : attStats.rate>=75 ? "#fef3c7" : "#fee2e2";
+  const gpaColor = gradeStats.avg!==null ? (gradeStats.avg>=80?"#059669":gradeStats.avg>=65?"#d97706":"#dc2626") : "#94a3b8";
+
+  return (
+    <div style={{ fontFamily:"system-ui,sans-serif", maxWidth:900, margin:"0 auto" }}>
+
+      {/* Header */}
+      <div style={{ background:"linear-gradient(135deg,#1e1e3a,#0d3330)", borderRadius:16, padding:24, marginBottom:20, color:"#fff", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ width:56, height:56, borderRadius:14, background:"#0d9488", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, fontWeight:800, color:"#fff" }}>
+            {student.name.split(" ").map(n=>n[0]).join("").slice(0,2)}
+          </div>
+          <div>
+            <div style={{ fontSize:20, fontWeight:800 }}>{student.name}</div>
+            <div style={{ fontSize:13, color:"rgba(255,255,255,.6)", marginTop:2 }}>{cls?.name || "—"} · ID: {student.sid}</div>
+          </div>
+        </div>
+        <div style={{ textAlign:"right" }}>
+          <div style={{ fontSize:12, color:"rgba(255,255,255,.5)" }}>Academic Year</div>
+          <div style={{ fontSize:14, fontWeight:700, color:"#5eead4" }}>{student.academicYear || "2025/2026"}</div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
+        {[
+          { icon:"📊", label:"GPA", value: gradeStats.avg !== null ? gradeStats.avg+"%" : "—", color: gpaColor, bg: gradeStats.avg!==null?(gradeStats.avg>=80?"#d1fae5":gradeStats.avg>=65?"#fef3c7":"#fee2e2"):"#f8fafc" },
+          { icon:"✅", label:"Attendance", value: attStats.rate+"%", color: attColor, bg: attBg },
+          { icon:"📝", label:"Pending Quizzes", value: pendingQuizzes.length, color:"#0d9488", bg:"#f0fdf9" },
+          { icon:"💬", label:"Messages", value: unread > 0 ? unread+" new" : "0", color: unread>0?"#7c3aed":"#64748b", bg: unread>0?"#ede9fe":"#f8fafc" },
+        ].map((s,i) => (
+          <div key={i} style={{ background:s.bg, borderRadius:12, padding:16, border:"1px solid #e2e8f0" }}>
+            <div style={{ fontSize:22, marginBottom:6 }}>{s.icon}</div>
+            <div style={{ fontSize:22, fontWeight:800, color:s.color }}>{s.value}</div>
+            <div style={{ fontSize:12, color:"#64748b", marginTop:2 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+
+        {/* Grades */}
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden" }}>
+          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>📊 Grades</div>
+          {gradeStats.rows.length === 0 ? (
+            <div style={{ padding:24, textAlign:"center", color:"#94a3b8", fontSize:13 }}>No grades yet</div>
+          ) : gradeStats.rows.map((r,i) => (
+            <div key={i} style={{ padding:"10px 18px", borderBottom:"1px solid #f1f5f9", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div style={{ fontSize:13, fontWeight:500, color:"#1e293b" }}>{r.name}</div>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <div style={{ width:80, height:6, background:"#f1f5f9", borderRadius:3, overflow:"hidden" }}>
+                  <div style={{ width:r.total+"%", height:"100%", background: r.total>=80?"#0d9488":r.total>=65?"#f59e0b":"#ef4444", borderRadius:3 }} />
+                </div>
+                <span style={{ fontSize:13, fontWeight:700, color: r.total>=80?"#059669":r.total>=65?"#d97706":"#dc2626", minWidth:36, textAlign:"right" }}>{r.total}%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Attendance */}
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden" }}>
+          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>✅ Attendance</div>
+          <div style={{ padding:18 }}>
+            <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
+              <div style={{ width:90, height:90, borderRadius:"50%", background:"conic-gradient("+attColor+" "+attStats.rate+"%, #f1f5f9 0)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ width:68, height:68, borderRadius:"50%", background:"#fff", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                  <div style={{ fontSize:18, fontWeight:800, color:attColor }}>{attStats.rate}%</div>
+                  <div style={{ fontSize:9, color:"#94a3b8" }}>Rate</div>
+                </div>
+              </div>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+              {[["Present",attStats.present,"#d1fae5","#059669"],["Absent",attStats.absent,"#fee2e2","#dc2626"],["Late",attStats.late,"#fef3c7","#d97706"],["Excused",attStats.excused,"#dbeafe","#2563eb"]].map(([l,v,bg,c])=>(
+                <div key={l} style={{ background:bg, borderRadius:8, padding:"8px 12px", textAlign:"center" }}>
+                  <div style={{ fontSize:18, fontWeight:800, color:c }}>{v}</div>
+                  <div style={{ fontSize:11, color:c }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+
+        {/* Upcoming Exams */}
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden" }}>
+          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>📋 Upcoming Exams</div>
+          {upcomingExams.length === 0 ? (
+            <div style={{ padding:24, textAlign:"center", color:"#94a3b8", fontSize:13 }}>No upcoming exams</div>
+          ) : upcomingExams.map(ex => {
+            const diff = Math.ceil((new Date(ex.date+"T00:00:00") - new Date()) / 86400000);
+            return (
+              <div key={ex.id} style={{ padding:"12px 18px", borderBottom:"1px solid #f1f5f9", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:600, color:"#1e293b" }}>{ex.title}</div>
+                  <div style={{ fontSize:11, color:"#64748b", marginTop:2 }}>{new Date(ex.date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}</div>
+                </div>
+                <span style={{ fontSize:11, fontWeight:700, background: diff<=1?"#fee2e2":diff<=3?"#fef3c7":"#f0fdf9", color: diff<=1?"#dc2626":diff<=3?"#d97706":"#059669", padding:"3px 10px", borderRadius:20 }}>
+                  {diff===0?"Today":diff===1?"Tomorrow":"in "+diff+" days"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Today Timetable */}
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden" }}>
+          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>🗓️ Today — {todayName}</div>
+          {todayClasses.length === 0 ? (
+            <div style={{ padding:24, textAlign:"center", color:"#94a3b8", fontSize:13 }}>No classes today</div>
+          ) : todayClasses.map((s,i) => (
+            <div key={i} style={{ padding:"10px 18px", borderBottom:"1px solid #f1f5f9", display:"flex", gap:12, alignItems:"center" }}>
+              <div style={{ width:44, height:44, borderRadius:10, background:"#f0fdf9", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#0d9488", flexShrink:0 }}>{s.time||"—"}</div>
+              <div>
+                <div style={{ fontSize:13, fontWeight:600, color:"#1e293b" }}>{s.subject||"—"}</div>
+                <div style={{ fontSize:11, color:"#64748b" }}>{s.teacher||""}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Pending Quizzes */}
+      {pendingQuizzes.length > 0 && (
+        <div style={{ background:"#f0fdf9", borderRadius:12, border:"1px solid #99f6e4", padding:18, marginBottom:16 }}>
+          <div style={{ fontSize:14, fontWeight:700, color:"#0d9488", marginBottom:12 }}>📝 Pending Quizzes ({pendingQuizzes.length})</div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {pendingQuizzes.map(q => (
+              <div key={q.id} style={{ background:"#fff", borderRadius:10, padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:600, color:"#1e293b" }}>{q.title}</div>
+                  <div style={{ fontSize:11, color:"#64748b" }}>{q.questions.length} questions {q.duration?"· "+q.duration+" min":""}</div>
+                </div>
+                <span style={{ fontSize:11, fontWeight:700, background:"#0d9488", color:"#fff", padding:"4px 12px", borderRadius:20 }}>Pending</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
 function ParentNotifications({ student, attendance, grades, subjects, exams, messages }) {
   const alerts = [];
   const last7 = Object.keys(attendance || {}).sort().slice(-7);
@@ -4205,7 +4396,7 @@ function Settings({ teachers, setTeachers, students, classes, subjects, setSubje
   return (
     <div style={{ maxWidth: 820, margin: "0 auto" }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
-        {[["school","🏫","School"],["subjects","📚","Subjects"],["teachers","👨‍🏫","Teachers"],["parents","👨‍👩‍👧","Parents"],["appearance","🎨","Appearance"],["data","📦","Data"]].map(([id,icon,label]) => (
+        {[["school","🏫","School"],["subjects","📚","Subjects"],["teachers","👨‍🏫","Teachers"],["parents","👨‍👩‍👧","Parents"],["students-pwd","🎓","Students"],["appearance","🎨","Appearance"],["data","📦","Data"]].map(([id,icon,label]) => (
           <button key={id} style={tabStyle(id)} onClick={() => setTab(id)}>{icon} {label}</button>
         ))}
       </div>
@@ -4298,6 +4489,57 @@ function Settings({ teachers, setTeachers, students, classes, subjects, setSubje
         </div>
       )}
 
+      {tab === "students-pwd" && (
+        <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, overflow: "hidden" }}>
+          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>🎓 Student Passwords</div>
+          <div style={{ padding: "12px 20px", background: "#f0fdf4", borderBottom: `1px solid ${S.border}`, fontSize: 13, color: "#065f46" }}>
+            ℹ️ Students log in using their <b>Student ID</b> + password below. Default: <b>student123</b>
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#f8fafc" }}>
+                {["Student Name","Student ID","Password","Action"].map(h => (
+                  <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: S.textSub, borderBottom: `1px solid ${S.border}` }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {students.map(s => {
+                const passwords = (() => { try { return JSON.parse(localStorage.getItem("edu_student_passwords") || "{}"); } catch { return {}; } })();
+                const pwd = passwords[s.id] || "student123";
+                const isEditing = parentEditId === s.id + "_spwd";
+                return (
+                  <tr key={s.id} style={{ borderBottom: `1px solid ${S.border}`, background: isEditing ? "#f0fdf9" : "transparent" }}>
+                    <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{s.name}</td>
+                    <td style={{ padding: "12px 16px", fontSize: 13, fontFamily: "monospace" }}>{s.sid}</td>
+                    <td style={{ padding: "12px 16px", fontSize: 13 }}>
+                      {isEditing
+                        ? <input value={parentForm.password} onChange={e => setParentForm({...parentForm, password: e.target.value})} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "inherit", width: 140 }} />
+                        : <span style={{ fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4, fontSize: 12 }}>••••••••</span>
+                      }
+                    </td>
+                    <td style={{ padding: "12px 16px" }}>
+                      {isEditing ? (
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={() => {
+                            const all = (() => { try { return JSON.parse(localStorage.getItem("edu_student_passwords") || "{}"); } catch { return {}; } })();
+                            all[s.id] = parentForm.password;
+                            localStorage.setItem("edu_student_passwords", JSON.stringify(all));
+                            setParentEditId(null);
+                          }} style={{ padding: "5px 12px", borderRadius: 6, border: "none", background: S.primary, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Save</button>
+                          <button onClick={() => setParentEditId(null)} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => { setParentEditId(s.id + "_spwd"); setParentForm({ username: s.sid, password: pwd }); }} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>✏️ Edit</button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
       {tab === "parents" && (
         <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>👨‍👩‍👧 Parent Access</div>
@@ -4516,8 +4758,10 @@ export default function App() {
   // ─── Teacher: pages allowed ───────────────────────────────────────────────
   const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes"];
   const PARENT_PAGES  = ["dashboard"];
+  const STUDENT_PAGES = ["dashboard"];
 
   const allowedPages = userRole === "teacher" ? TEACHER_PAGES
+                     : userRole === "student" ? STUDENT_PAGES
                      : userRole === "parent"  ? PARENT_PAGES
                      : null; // admin: all pages
 
@@ -4704,6 +4948,24 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
   });
 }
 
+  if (auth.role === "student") {
+    const student = students.find(s => s.id === auth.studentId);
+    if (!student) { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; return null; }
+    return (
+      <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"system-ui,sans-serif"}}>
+        <div style={{background:"#1e1e3a",padding:"0 16px",display:"flex",alignItems:"center",gap:8,height:52}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#5eead4",flexShrink:0}}>EduManage</div>
+          <div style={{flex:1}} />
+          <span style={{fontSize:11,color:"rgba(255,255,255,.7)",fontWeight:500}}>{student.name}</span>
+          <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"4px 10px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:11,cursor:"pointer",fontFamily:"inherit",fontWeight:600,marginLeft:8}}>Sign Out</button>
+        </div>
+        <div style={{padding:"16px 12px",maxWidth:900,margin:"0 auto"}}>
+          <StudentDashboard student={student} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} timetable={timetable} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} />
+        </div>
+      </div>
+    );
+  }
+
   if (auth.role === "parent") {
     const studentIds = auth.studentIds || (auth.studentId ? [auth.studentId] : []);
     const allChildren = students.filter(s => studentIds.includes(s.id));
@@ -4738,6 +5000,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           </div>
         )}
         <div style={{padding:"16px 12px",maxWidth:900,margin:"0 auto"}}>
+          <StudentDashboard student={student} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} timetable={timetable} quizzes={quizzes} quizResults={quizResults} />
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
           <ParentQuiz student={student} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} />
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>

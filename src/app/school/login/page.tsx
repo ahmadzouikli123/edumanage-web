@@ -54,6 +54,26 @@ export default function Login() {
           setErr("Invalid credentials")
         }
 
+      } else if (role === "student") {
+        const stored = load("edu_students", [])
+        const SEED_STUDENTS = [
+          { id:1, sid:"S001", name:"Liam Anderson",   phone:"555-0101" },
+          { id:2, sid:"S002", name:"Olivia Martinez", phone:"555-0102" },
+          { id:3, sid:"S003", name:"Noah Thompson",   phone:"555-0103" },
+          { id:4, sid:"S004", name:"Emma Wilson",     phone:"555-0104" },
+          { id:5, sid:"S005", name:"Aiden Brown",     phone:"555-0105" },
+          { id:6, sid:"S006", name:"Sophia Davis",    phone:"555-0106" },
+        ]
+        const allStudents = stored.length > 0 ? stored : SEED_STUDENTS
+        const s = allStudents.find((x: any) => x.sid.toLowerCase() === user.toLowerCase().trim())
+        if (!s) { setErr("Student not found"); setBusy(false); return; }
+        // تحقق من كلمة المرور
+        const studentPasswords = load("edu_student_passwords", {})
+        const expectedPass = studentPasswords[s.id] || "student123"
+        if (pass !== expectedPass) { setErr("Invalid password"); setBusy(false); return; }
+        save("edu_auth", { role:"student", name:s.name, studentId:s.id, sid:s.sid })
+        router.replace("/school")
+
       } else {
         // Parent login - محلي بدون Supabase
         // تحقق من الحسابات المخصصة أولاً
@@ -104,7 +124,7 @@ export default function Login() {
         </div>
         <div style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:20,padding:32}}>
           <div style={{display:"flex",gap:4,background:"rgba(0,0,0,.3)",borderRadius:10,padding:4,marginBottom:24}}>
-            {[["parent","Parent"],["teacher","Teacher"],["admin","Admin"]].map(([r,l])=>(
+            {[["parent","Parent"],["student","Student"],["teacher","Teacher"],["admin","Admin"]].map(([r,l])=>(
               <button key={r} onClick={()=>{setRole(r);setUser("");setPass("");setErr("")}} style={{flex:1,padding:"9px 0",borderRadius:7,border:"none",cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:"inherit",background:role===r?"#0d9488":"transparent",color:role===r?"#fff":"rgba(255,255,255,.45)"}}>
                 {l}
               </button>
@@ -112,7 +132,7 @@ export default function Login() {
           </div>
           <div style={{marginBottom:14}}>
             <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Username</label>
-            <input style={inp} value={user} onChange={e=>setUser(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="admin"?"admin":role==="teacher"?"sarah.johnson":"S001"} />
+            <input style={inp} value={user} onChange={e=>setUser(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="admin"?"admin":role==="teacher"?"sarah.johnson":role==="student"?"S001":"S001"} />
           </div>
           <div style={{marginBottom:20}}>
             <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Password</label>
@@ -127,6 +147,7 @@ export default function Login() {
             {role==="admin"   && <div>Username: admin / Password: admin123</div>}
             {role==="teacher" && <div>Username: sarah.johnson / Password: teacher</div>}
             {role==="parent"  && <div>Username: S001 / Password: 555-0101</div>}
+            {role==="student" && <div>Username: S001 / Password: student123</div>}
           </div>
         </div>
         <div style={{textAlign:"center",marginTop:24,fontSize:12,color:"rgba(255,255,255,.6)"}}>
