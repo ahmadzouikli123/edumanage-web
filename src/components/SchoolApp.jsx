@@ -5001,6 +5001,12 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
         )}
         <div style={{padding:"16px 12px",maxWidth:900,margin:"0 auto"}}>
           
+          <StudentProfile
+            student={student} classes={classes} attendance={attendance}
+            grades={grades} subjects={subjects} exams={exams}
+            examResults={examResults} messages={messages}
+            timetable={timetable}
+            onClose={null}
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
           <ParentQuiz student={student} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} />
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
@@ -5008,12 +5014,6 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
               Download PDF Report
             </button>
           </div>
-          <StudentProfile
-            student={student} classes={classes} attendance={attendance}
-            grades={grades} subjects={subjects} exams={exams}
-            examResults={examResults} messages={messages}
-            timetable={timetable}
-            onClose={null}
           />
         </div>
       </div>
