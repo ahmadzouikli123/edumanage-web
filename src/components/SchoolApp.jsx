@@ -3755,7 +3755,7 @@ function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({ title: "", classId: "", subjectId: "", duration: "", questions: [] });
   const [qForm, setQForm] = useState({ type: "mcq", text: "", options: ["","","",""], answer: "", blank: "" });
-  const visibleClasses = userRole === "admin" ? classes : classes.filter(c => (teacherClassIds||[]).includes(c.id));
+  const visibleClasses = (userRole === "admin" || !teacherClassIds || teacherClassIds.length === 0) ? (classes||[]) : (classes||[]).filter(c => (teacherClassIds||[]).includes(c.id));
 
   const addQuestion = () => {
     if (!qForm.text.trim()) return;
