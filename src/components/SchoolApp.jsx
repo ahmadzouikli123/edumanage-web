@@ -5000,7 +5000,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           </div>
         )}
         <div style={{padding:"16px 12px",maxWidth:900,margin:"0 auto"}}>
-          <StudentDashboard student={student} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} timetable={timetable} quizzes={quizzes} quizResults={quizResults} />
+          
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
           <ParentQuiz student={student} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} />
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
