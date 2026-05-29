@@ -5015,7 +5015,6 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
               Download PDF Report
             </button>
           </div>
-          />
         </div>
       </div>
     );
