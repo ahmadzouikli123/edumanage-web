@@ -1279,8 +1279,88 @@ function ParentCompose({ student, messages }) {
 }
 
 
+
+// ─── StudentMessages ──────────────────────────────────────────────────────────
+function StudentMessages({ student, messages, setMessages }) {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [replyText, setReplyText] = useState("");
+
+  const myMessages = (messages||[]).filter(m => m.studentId === student.id).sort((a,b) => b.timestamp - a.timestamp);
+  const unread = myMessages.filter(m => !m.read).length;
+
+  const fmtTime = (ts) => {
+    const d = new Date(ts), now = new Date(), diff = now - d;
+    if (diff < 3600000) return Math.floor(diff/60000) + "m ago";
+    if (diff < 86400000) return d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+    return d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  };
+
+  const selectedMsg = myMessages.find(m => m.id === selected);
+
+  const sendReply = () => {
+    if (!replyText.trim()) return;
+    const reply = { id: uid(), fromSchool: false, body: replyText, timestamp: Date.now(), senderName: student.name };
+    if (setMessages) setMessages(prev => prev.map(m => m.id === selected ? {...m, replies:[...(m.replies||[]),reply]} : m));
+    setReplyText("");
+  };
+
+  const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+
+  return (
+    <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:16 }}>
+      <div onClick={() => setOpen(!open)} style={{ padding:"14px 18px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", borderBottom: open?"1px solid #e2e8f0":"none" }}>
+        <div style={{ fontSize:14, fontWeight:700, color:"#1e293b", display:"flex", alignItems:"center", gap:8 }}>
+          💬 Messages
+          {unread > 0 && <span style={{ background:"#ef4444", color:"#fff", borderRadius:20, fontSize:11, padding:"2px 8px" }}>{unread} new</span>}
+        </div>
+        <span style={{ fontSize:12, color:"#94a3b8" }}>{open?"▲":"▼"}</span>
+      </div>
+
+      {open && (
+        <div style={{ padding:16 }}>
+          {selected && selectedMsg ? (
+            <div>
+              <button onClick={() => setSelected(null)} style={{ padding:"6px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:12, marginBottom:12 }}>← Back</button>
+              <div style={{ fontSize:14, fontWeight:700, color:"#1e293b", marginBottom:12 }}>{selectedMsg.subject}</div>
+              <div style={{ background:"#f0fdf9", borderRadius:10, border:"1px solid #99f6e4", padding:14, marginBottom:10 }}>
+                <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:6 }}>🏫 School · {fmtTime(selectedMsg.timestamp)}</div>
+                <div style={{ fontSize:13, color:"#334155" }}>{selectedMsg.body}</div>
+                {selectedMsg.image && <img src={selectedMsg.image} style={{ maxWidth:"100%", borderRadius:8, marginTop:8 }} />}
+              </div>
+              {(selectedMsg.replies||[]).map(r => (
+                <div key={r.id} style={{ background: r.fromSchool?"#f0fdf9":"#f8f4ff", borderRadius:10, border:"1px solid " + (r.fromSchool?"#99f6e4":"#ddd6fe"), padding:12, marginBottom:8 }}>
+                  <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:4 }}>{r.fromSchool?"🏫 School":"🎓 You"} · {fmtTime(r.timestamp)}</div>
+                  <div style={{ fontSize:13, color:"#334155" }}>{r.body}</div>
+                  {r.image && <img src={r.image} style={{ maxWidth:"100%", borderRadius:8, marginTop:6 }} />}
+                </div>
+              ))}
+              <div style={{ marginTop:12 }}>
+                <textarea value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Write a reply..." rows={3} style={{...inp, resize:"vertical", marginBottom:8}} />
+                <button onClick={sendReply} style={{ padding:"8px 18px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Send Reply</button>
+              </div>
+            </div>
+          ) : (
+            myMessages.length === 0 ? (
+              <div style={{ textAlign:"center", padding:24, color:"#94a3b8", fontSize:13 }}>No messages yet</div>
+            ) : myMessages.map(msg => (
+              <div key={msg.id} onClick={() => { setSelected(msg.id); if(!msg.read && setMessages) setMessages(prev=>prev.map(m=>m.id===msg.id?{...m,read:true}:m)); }} style={{ padding:"12px 14px", borderRadius:10, border:"1px solid " + (msg.read?"#f1f5f9":"#0d9488"), background: msg.read?"#fff":"#f0fdf9", marginBottom:8, cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13, fontWeight: msg.read?500:700, color:"#1e293b" }}>{msg.subject}</div>
+                  <div style={{ fontSize:11, color:"#94a3b8", marginTop:2 }}>🏫 School · {fmtTime(msg.timestamp)} {msg.image?"📎":""}</div>
+                </div>
+                {!msg.read && <div style={{ width:8, height:8, borderRadius:"50%", background:"#ef4444" }} />}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Student Dashboard ────────────────────────────────────────────────────────
-function StudentDashboard({ student, classes, attendance, grades, subjects, exams, examResults, messages, timetable, quizzes, quizResults }) {
+function StudentDashboard({ student, classes, attendance, grades, subjects, exams, examResults, messages, setMessages, timetable, quizzes, quizResults }) {
   const cls      = classes.find(cl => cl.id === student.classId);
   const stdSubjs = (subjects||[]).filter(s => s.classId === student.classId);
 
@@ -1321,7 +1401,8 @@ function StudentDashboard({ student, classes, attendance, grades, subjects, exam
   const todayClasses = (Array.isArray(timetable) ? timetable : Object.values(timetable||{})).reduce((acc,t)=>[...acc,...(t.slots||[])],[]).filter(s=>s.classId===student.classId&&s.day===todayName).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
 
   // Unread messages
-  const unread = (messages||[]).filter(m=>m.studentId===student.id && !m.read).length;
+  const myMessages = (messages||[]).filter(m=>m.studentId===student.id).sort((a,b)=>b.timestamp-a.timestamp);
+  const unread = myMessages.filter(m=>!m.read).length;
 
   const attColor = attStats.rate>=90 ? "#059669" : attStats.rate>=75 ? "#d97706" : "#dc2626";
   const attBg    = attStats.rate>=90 ? "#d1fae5" : attStats.rate>=75 ? "#fef3c7" : "#fee2e2";
@@ -1446,6 +1527,9 @@ function StudentDashboard({ student, classes, attendance, grades, subjects, exam
           ))}
         </div>
       </div>
+
+      {/* Messages */}
+      <StudentMessages student={student} messages={messages} setMessages={setMessages} />
 
       {/* Pending Quizzes */}
       {pendingQuizzes.length > 0 && (
@@ -2976,318 +3060,307 @@ function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds
 }
 
 // ─── Messaging Module ─────────────────────────────────────────────────────────
-function Messaging({ students, classes, messages, setMessages }) {
-  const [selected, setSelected]     = useState(null); // selected message id
-  const [compose, setCompose]       = useState(false);
-  const [broadcast, setBroadcast]   = useState(false);
-  const [bcForm, setBcForm]         = useState({ classId: "all", tag: "general", subject: "", body: "" });
-  const [replyText, setReplyText]   = useState("");
-  const [filterTag, setFilterTag]   = useState("all");
-  const [search, setSearch]         = useState("");
-  const [form, setForm]             = useState({ studentId: students[0]?.id || "", tag: "general", subject: "", body: "" });
-  const [formErrors, setFormErrors] = useState({});
 
-  const filtered = useMemo(() => messages.filter(m => {
+// ─── Enhanced Messaging System ───────────────────────────────────────────────
+function EnhancedMessaging({ students, classes, messages, setMessages, teachers, userRole, auth }) {
+  const [view, setView] = useState("inbox"); // inbox | compose | broadcast | thread
+  const [selected, setSelected] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [replyImage, setReplyImage] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filterTag, setFilterTag] = useState("all");
+  const [compose, setCompose] = useState({ studentId: "", subject: "", body: "", tag: "general", image: null });
+  const [bcForm, setBcForm] = useState({ classId: "all", subject: "", body: "", tag: "announcement", image: null });
+
+  const isAdmin = userRole === "admin";
+  const isTeacher = userRole === "teacher";
+
+  const filtered = useMemo(() => (messages||[]).filter(m => {
     const s = students.find(st => st.id === m.studentId);
-    const matchSearch = !search || (s?.name || "").toLowerCase().includes(search.toLowerCase()) || m.subject.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !search || (s?.name||"").toLowerCase().includes(search.toLowerCase()) || (m.subject||"").toLowerCase().includes(search.toLowerCase());
     const matchTag = filterTag === "all" || m.tag === filterTag;
     return matchSearch && matchTag;
-  }).sort((a, b) => b.timestamp - a.timestamp), [messages, students, search, filterTag]);
+  }).sort((a,b) => b.timestamp - a.timestamp), [messages, students, search, filterTag]);
 
-  const selectedMsg = messages.find(m => m.id === selected);
+  const selectedMsg = (messages||[]).find(m => m.id === selected);
+  const unread = (messages||[]).filter(m => !m.read).length;
 
-  const markRead = (id) => {
-    setMessages(prev => prev.map(m => m.id === id ? { ...m, read: true } : m));
+  const fmtTime = (ts) => {
+    const d = new Date(ts), now = new Date(), diff = now - d;
+    if (diff < 3600000) return Math.floor(diff/60000) + "m ago";
+    if (diff < 86400000) return d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+    return d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
   };
 
   const openMsg = (msg) => {
     setSelected(msg.id);
-    setCompose(false);
+    setView("thread");
     setReplyText("");
-    if (!msg.read) markRead(msg.id);
+    setReplyImage(null);
+    if (!msg.read) setMessages(prev => prev.map(m => m.id === msg.id ? {...m, read:true} : m));
   };
 
   const sendReply = () => {
-    if (!replyText.trim()) return;
-    const reply = { id: uid(), fromSchool: true, body: replyText.trim(), timestamp: Date.now() };
-    setMessages(prev => prev.map(m => m.id === selected
-      ? { ...m, replies: [...m.replies, reply] }
-      : m
-    ));
-    setReplyText("");
+    if (!replyText.trim() && !replyImage) return;
+    const reply = { id: uid(), fromSchool: true, body: replyText.trim(), image: replyImage, timestamp: Date.now(), senderName: isTeacher ? (auth?.name||"Teacher") : "Admin" };
+    setMessages(prev => prev.map(m => m.id === selected ? {...m, replies:[...(m.replies||[]),reply]} : m));
+    setReplyText(""); setReplyImage(null);
   };
 
-  const validateCompose = () => {
-    const e = {};
-    if (!form.studentId) e.studentId = "Required";
-    if (!form.subject.trim()) e.subject = "Required";
-    if (!form.body.trim())    e.body    = "Required";
-    return e;
+  const sendNew = () => {
+    if (!compose.studentId || !compose.subject.trim() || !compose.body.trim()) return;
+    console.log("IMAGE:", compose.image ? "EXISTS" : "NULL");
+    const img = compose.image;
+    const msg = { id: uid(), studentId: parseInt(compose.studentId), tag: compose.tag, subject: compose.subject, body: compose.body, image: img, fromSchool: true, timestamp: Date.now(), read: true, replies: [], senderName: auth?.name||"School" };
+    setMessages(prev => [msg, ...prev]);
+    setView("inbox"); setCompose({ studentId:"", subject:"", body:"", tag:"general", image:null });
   };
 
   const sendBroadcast = () => {
     if (!bcForm.subject.trim() || !bcForm.body.trim()) return;
-    const targets = bcForm.classId === "all"
-      ? students
-      : students.filter(s => s.classId === parseInt(bcForm.classId));
-    const newMsgs = targets.map(s => ({
-      id: uid(), studentId: s.id,
-      tag: bcForm.tag, subject: bcForm.body.trim(),
-      body: bcForm.body.trim(), fromSchool: true,
-      timestamp: Date.now(), read: true, replies: [],
-    }));
+    const targets = bcForm.classId === "all" ? students : students.filter(s => s.classId === parseInt(bcForm.classId));
+    const newMsgs = targets.map(s => ({ id: uid(), studentId: s.id, tag: bcForm.tag, subject: bcForm.subject, body: bcForm.body, image: bcForm.image, fromSchool: true, timestamp: Date.now(), read: true, replies: [], broadcast: true, senderName: auth?.name||"School" }));
     setMessages(prev => [...newMsgs, ...prev]);
-    setBroadcast(false);
-    setBcForm({ classId: "all", tag: "general", subject: "", body: "" });
+    setView("inbox"); setBcForm({ classId:"all", subject:"", body:"", tag:"announcement", image:null });
   };
 
-  const sendNew = () => {
-    const e = validateCompose();
-    if (Object.keys(e).length) { setFormErrors(e); return; }
-    const msg = {
-      id: uid(), studentId: parseInt(form.studentId),
-      tag: form.tag, subject: form.subject, body: form.body,
-      fromSchool: true, timestamp: Date.now(), read: true, replies: [],
-    };
-    setMessages(prev => [msg, ...prev]);
-    setCompose(false);
-    setSelected(msg.id);
-    setForm({ studentId: students[0]?.id || "", tag: "general", subject: "", body: "" });
-    setFormErrors({});
+  const handleImageUpload = (e, setter) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => setter(reader.result);
+    reader.readAsDataURL(f);
   };
 
-  const unread = messages.filter(m => !m.read).length;
+  const tagColors = { general:"#e0f2fe:#0369a1", announcement:"#fef9c3:#854d0e", urgent:"#fee2e2:#dc2626", homework:"#f0fdf4:#166534", exam:"#ede9fe:#6d28d9" };
+  const getTagStyle = (tag) => { const [bg,color] = (tagColors[tag]||"#f1f5f9:#475569").split(":"); return { background:bg, color }; };
 
-  const fmtTime = (ts) => {
-    const d = new Date(ts);
-    const now = new Date();
-    const diff = now - d;
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  };
+  const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
 
-  return (
-    <div style={{ display: "flex", gap: 0, background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius, overflow: "hidden", boxShadow: T.cardShadow, height: "calc(100vh - 160px)", minHeight: 520 }}>
-
-      {/* ── Left Panel: message list ── */}
-      <div style={{ width: 320, borderRight: `1px solid ${T.border}`, display: "flex", flexDirection: "column", flexShrink: 0 }}>
-        {/* Toolbar */}
-        <div style={{ padding: "14px 14px 10px", borderBottom: `1px solid ${T.border}` }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: T.textMain }}>
-              Inbox
-              {unread > 0 && (
-                <span style={{ marginRight: 8, background: T.primary, color: "#fff", borderRadius: 20, fontSize: 11, fontWeight: 700, padding: "2px 8px" }}>{unread}</span>
-              )}
-            </div>
-            <button onClick={() => { setCompose(true); setSelected(null); }} style={{
-              display: "flex", alignItems: "center", gap: 5, padding: "7px 14px",
-              background: T.primary, color: "#fff", border: "none", borderRadius: 8,
-              fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
-            }}>✏️ Compose</button>
-            <button onClick={() => { setBroadcast(true); setCompose(false); setSelected(null); }} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 14px", background: "#7c3aed", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>📢 Broadcast</button>
+  // ── Compose View ──────────────────────────────────────────────────────────
+  if (view === "compose") return (
+    <div style={{ maxWidth:640, margin:"0 auto" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+        <button onClick={() => setView("inbox")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:700, color:"#1e293b" }}>✉️ New Message</div>
+      </div>
+      <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:24 }}>
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>To (Student) *</label>
+          <select style={inp} value={compose.studentId} onChange={e => setCompose({...compose, studentId:e.target.value})}>
+            <option value="">Select student...</option>
+            {students.map(s => <option key={s.id} value={s.id}>{s.name} — {(classes.find(c=>c.id===s.classId)||{}).name||""}</option>)}
+          </select>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>Tag</label>
+            <select style={inp} value={compose.tag} onChange={e => setCompose({...compose, tag:e.target.value})}>
+              {["general","announcement","urgent","homework","exam"].map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+            </select>
           </div>
-          <div style={{ position: "relative", marginBottom: 8 }}>
-            <span style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: T.textMuted }}>🔍</span>
-            <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search messages…" style={{ ...inputStyle, paddingRight: 28, fontSize: 12, padding: "7px 10px 7px 28px" }} />
-          </div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {["all", ...Object.keys(MSG_TAGS)].map(k => (
-              <button key={k} onClick={() => setFilterTag(k)} style={{
-                padding: "3px 9px", borderRadius: 20, fontSize: 11, fontWeight: 500,
-                border: "none", cursor: "pointer", fontFamily: "inherit",
-                background: filterTag === k ? T.navy : "#f1f5f9",
-                color: filterTag === k ? "#fff" : T.textSub,
-              }}>{k === "all" ? "All" : MSG_TAGS[k].label}</button>
-            ))}
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>Subject *</label>
+            <input style={inp} value={compose.subject} onChange={e => setCompose({...compose, subject:e.target.value})} placeholder="Message subject..." />
           </div>
         </div>
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>Message *</label>
+          <textarea style={{...inp, resize:"vertical"}} rows={5} value={compose.body} onChange={e => setCompose({...compose, body:e.target.value})} placeholder="Write your message..." />
+        </div>
+        <div style={{ marginBottom:16 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>📎 Attach Image (optional)</label>
+          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, img => setCompose(prev => ({...prev, image:img})))} style={{ fontSize:12 }} />
+          {compose.image && <img src={compose.image} style={{ maxWidth:"100%", maxHeight:120, borderRadius:8, marginTop:8 }} />}
+        </div>
+        <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+          <button onClick={() => setView("inbox")} style={{ padding:"9px 18px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+          <button onClick={sendNew} style={{ padding:"9px 20px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Send Message</button>
+        </div>
+      </div>
+    </div>
+  );
 
-        {/* List */}
-        <div style={{ flex: 1, overflowY: "auto" }}>
-          {filtered.length === 0 ? (
-            <div style={{ padding: 32, textAlign: "center", color: T.textMuted, fontSize: 13 }}>No messages found</div>
-          ) : filtered.map(msg => {
+  // ── Broadcast View ────────────────────────────────────────────────────────
+  if (view === "broadcast") return (
+    <div style={{ maxWidth:640, margin:"0 auto" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+        <button onClick={() => setView("inbox")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:700, color:"#1e293b" }}>📢 Broadcast to Class</div>
+      </div>
+      <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:24 }}>
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>Target Class</label>
+          <select style={inp} value={bcForm.classId} onChange={e => setBcForm({...bcForm, classId:e.target.value})}>
+            <option value="all">All Classes</option>
+            {classes.map(cl => <option key={cl.id} value={cl.id}>{cl.name}</option>)}
+          </select>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>Tag</label>
+            <select style={inp} value={bcForm.tag} onChange={e => setBcForm({...bcForm, tag:e.target.value})}>
+              {["announcement","urgent","homework","exam","general"].map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>Subject *</label>
+            <input style={inp} value={bcForm.subject} onChange={e => setBcForm({...bcForm, subject:e.target.value})} placeholder="Announcement subject..." />
+          </div>
+        </div>
+        <div style={{ marginBottom:14 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>Message *</label>
+          <textarea style={{...inp, resize:"vertical"}} rows={5} value={bcForm.body} onChange={e => setBcForm({...bcForm, body:e.target.value})} placeholder="Write your announcement..." />
+        </div>
+        <div style={{ marginBottom:16 }}>
+          <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>📎 Attach Image (optional)</label>
+          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, img => setBcForm(prev => ({...prev, image:img})))} style={{ fontSize:12 }} />
+          {bcForm.image && <img src={bcForm.image} style={{ maxWidth:"100%", maxHeight:120, borderRadius:8, marginTop:8 }} />}
+        </div>
+        <div style={{ background:"#fef9c3", border:"1px solid #fcd34d", borderRadius:8, padding:"10px 14px", marginBottom:16, fontSize:12, color:"#854d0e" }}>
+          📢 This will send to {bcForm.classId === "all" ? students.length : students.filter(s=>s.classId===parseInt(bcForm.classId)).length} students
+        </div>
+        <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+          <button onClick={() => setView("inbox")} style={{ padding:"9px 18px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+          <button onClick={sendBroadcast} style={{ padding:"9px 20px", borderRadius:8, border:"none", background:"#d97706", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>📢 Send Broadcast</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Thread View ───────────────────────────────────────────────────────────
+  if (view === "thread" && selectedMsg) {
+    const student = students.find(s => s.id === selectedMsg.studentId);
+    return (
+      <div style={{ maxWidth:700, margin:"0 auto" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+          <button onClick={() => setView("inbox")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:15, fontWeight:700, color:"#1e293b" }}>{selectedMsg.subject}</div>
+            <div style={{ fontSize:12, color:"#64748b" }}>{student?.name} · {fmtTime(selectedMsg.timestamp)}</div>
+          </div>
+          <span style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:20, ...getTagStyle(selectedMsg.tag) }}>{selectedMsg.tag}</span>
+        </div>
+
+        {/* Original Message */}
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20, marginBottom:12 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+            <div style={{ width:36, height:36, borderRadius:10, background: selectedMsg.fromSchool ? "#0d9488" : "#7c3aed", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:13, fontWeight:700 }}>
+              {selectedMsg.fromSchool ? "S" : (student?.name||"P")[0]}
+            </div>
+            <div>
+              <div style={{ fontSize:13, fontWeight:600, color:"#1e293b" }}>{selectedMsg.fromSchool ? (selectedMsg.senderName||"School") : student?.name+"'s Parent"}</div>
+              <div style={{ fontSize:11, color:"#94a3b8" }}>{fmtTime(selectedMsg.timestamp)}</div>
+            </div>
+          </div>
+          <div style={{ fontSize:14, color:"#334155", lineHeight:1.6 }}>{selectedMsg.body}</div>
+          {selectedMsg.image && <img src={selectedMsg.image} style={{ maxWidth:"100%", borderRadius:8, marginTop:12 }} />}
+        </div>
+
+        {/* Replies */}
+        {(selectedMsg.replies||[]).map(r => (
+          <div key={r.id} style={{ background: r.fromSchool ? "#f0fdf9" : "#f8f4ff", borderRadius:12, border:"1px solid " + (r.fromSchool ? "#99f6e4" : "#ddd6fe"), padding:16, marginBottom:10, marginLeft: r.fromSchool ? 0 : 24 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+              <div style={{ width:28, height:28, borderRadius:8, background: r.fromSchool ? "#0d9488" : "#7c3aed", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:11, fontWeight:700 }}>
+                {r.fromSchool ? "S" : "P"}
+              </div>
+              <div>
+                <div style={{ fontSize:12, fontWeight:600, color:"#1e293b" }}>{r.fromSchool ? (r.senderName||"School") : "Parent"}</div>
+                <div style={{ fontSize:10, color:"#94a3b8" }}>{fmtTime(r.timestamp)}</div>
+              </div>
+            </div>
+            <div style={{ fontSize:13, color:"#334155" }}>{r.body}</div>
+            {r.image && <img src={r.image} style={{ maxWidth:"100%", borderRadius:8, marginTop:8 }} />}
+          </div>
+        ))}
+
+        {/* Reply Box */}
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:16, marginTop:12 }}>
+          <textarea value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Write a reply..." rows={3} style={{...inp, resize:"vertical", marginBottom:10}} />
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <label style={{ fontSize:12, color:"#64748b", cursor:"pointer", display:"flex", alignItems:"center", gap:4 }}>
+                📎 <input type="file" accept="image/*" onChange={e => handleImageUpload(e, setReplyImage)} style={{ display:"none" }} />
+                {replyImage ? "Image attached ✅" : "Attach image"}
+              </label>
+            </div>
+            <button onClick={sendReply} style={{ padding:"8px 20px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Send Reply</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Inbox View ────────────────────────────────────────────────────────────
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <div>
+          <div style={{ fontSize:18, fontWeight:700, color:"#1e293b" }}>💬 Messages {unread > 0 && <span style={{ background:"#ef4444", color:"#fff", borderRadius:20, fontSize:11, padding:"2px 8px", marginLeft:6 }}>{unread}</span>}</div>
+          <div style={{ fontSize:13, color:"#64748b" }}>Communicate with parents & students</div>
+        </div>
+        <div style={{ display:"flex", gap:8 }}>
+          {(isAdmin || isTeacher) && <button onClick={() => setView("broadcast")} style={{ padding:"9px 16px", borderRadius:9, border:"none", background:"#d97706", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>📢 Broadcast</button>}
+          <button onClick={() => setView("compose")} style={{ padding:"9px 16px", borderRadius:9, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>✉️ New Message</button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search messages..." style={{ padding:"8px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", flex:1, minWidth:200 }} />
+        <div style={{ display:"flex", gap:6 }}>
+          {["all","general","announcement","urgent","homework","exam"].map(t => (
+            <button key={t} onClick={() => setFilterTag(t)} style={{ padding:"7px 12px", borderRadius:7, border:"1px solid #e2e8f0", background: filterTag===t ? "#0d9488" : "#fff", color: filterTag===t ? "#fff" : "#64748b", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+              {t.charAt(0).toUpperCase()+t.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Message List */}
+      {filtered.length === 0 ? (
+        <div style={{ textAlign:"center", padding:60, color:"#94a3b8", background:"#fff", borderRadius:12, border:"1px solid #e2e8f0" }}>
+          <div style={{ fontSize:40, marginBottom:12 }}>💬</div>
+          <div style={{ fontSize:15, fontWeight:600 }}>No messages</div>
+        </div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {filtered.map(msg => {
             const student = students.find(s => s.id === msg.studentId);
-            const tag = MSG_TAGS[msg.tag];
-            const isActive = selected === msg.id;
+            const cls = classes.find(c => c.id === student?.classId);
+            const tagStyle = getTagStyle(msg.tag);
             return (
-              <div key={msg.id} onClick={() => openMsg(msg)} style={{
-                padding: "13px 14px", borderBottom: `1px solid ${T.border}`, cursor: "pointer",
-                background: isActive ? "#f0fdf9" : msg.read ? "#fff" : "#f8faff",
-                borderLeft: isActive ? `3px solid ${T.primary}` : "3px solid transparent",
-                transition: "background .12s",
-              }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                  {student && <Avatar name={student.name} size={34} />}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
-                      <span style={{ fontSize: 13, fontWeight: msg.read ? 500 : 700, color: T.textMain, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {student?.name || "Unknown"}
-                      </span>
-                      <span style={{ fontSize: 10, color: T.textMuted, flexShrink: 0, marginRight: 6 }}>{fmtTime(msg.timestamp)}</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: msg.read ? T.textSub : T.textMain, fontWeight: msg.read ? 400 : 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 4 }}>
-                      {msg.subject}
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 10, fontWeight: 500, padding: "2px 7px", borderRadius: 10, background: tag.bg, color: tag.color }}>{tag.label}</span>
-                      <span style={{ fontSize: 10, color: T.textMuted }}>{msg.fromSchool ? "Sent by school" : "From parent"}{msg.replies.length > 0 ? ` · ${msg.replies.length} replies` : ""}</span>
-                    </div>
-                  </div>
-                  {!msg.read && <div style={{ width: 8, height: 8, borderRadius: "50%", background: T.primary, marginTop: 4, flexShrink: 0 }} />}
+              <div key={msg.id} onClick={() => openMsg(msg)} style={{ background:"#fff", borderRadius:12, border:"1px solid " + (msg.read ? "#e2e8f0" : "#0d9488"), padding:"14px 18px", cursor:"pointer", display:"flex", gap:14, alignItems:"center", transition:"box-shadow .15s" }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow="0 2px 8px rgba(0,0,0,.08)"}
+                onMouseLeave={e => e.currentTarget.style.boxShadow="none"}>
+                <div style={{ width:40, height:40, borderRadius:10, background: msg.fromSchool ? "#0d9488" : "#7c3aed", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:14, fontWeight:700, flexShrink:0 }}>
+                  {msg.fromSchool ? "S" : (student?.name||"P")[0]}
                 </div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:3 }}>
+                    <div style={{ fontSize:13, fontWeight: msg.read ? 500 : 700, color:"#1e293b", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{msg.subject}</div>
+                    <div style={{ fontSize:11, color:"#94a3b8", flexShrink:0, marginLeft:8 }}>{fmtTime(msg.timestamp)}</div>
+                  </div>
+                  <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                    <span style={{ fontSize:11, color:"#64748b" }}>{student?.name} · {cls?.name||""}</span>
+                    {msg.broadcast && <span style={{ fontSize:10, background:"#fef3c7", color:"#854d0e", padding:"1px 6px", borderRadius:10, fontWeight:600 }}>Broadcast</span>}
+                    {msg.image && <span style={{ fontSize:10, color:"#94a3b8" }}>📎</span>}
+                    {(msg.replies||[]).length > 0 && <span style={{ fontSize:10, color:"#94a3b8" }}>↩ {msg.replies.length}</span>}
+                  </div>
+                </div>
+                <span style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:20, flexShrink:0, background:tagStyle.background, color:tagStyle.color }}>{msg.tag}</span>
+                {!msg.read && <div style={{ width:8, height:8, borderRadius:"50%", background:"#0d9488", flexShrink:0 }} />}
               </div>
             );
           })}
         </div>
-      </div>
-
-      {/* ── Right Panel: detail or compose ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, order: 1 }}>
-        {broadcast ? (
-          /* Broadcast Panel */
-          <div style={{ flex: 1, padding: 28, overflowY: "auto" }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#7c3aed", marginBottom: 20 }}>📢 Broadcast Message</div>
-            <Field label="Send To">
-              <select value={bcForm.classId} onChange={e => setBcForm({...bcForm, classId: e.target.value})} style={selectStyle}>
-                <option value="all">📚 All Students</option>
-                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </Field>
-            <Field label="Subject">
-              <input value={bcForm.subject} onChange={e => setBcForm({...bcForm, subject: e.target.value})} placeholder="Message subject..." style={inputStyle} />
-            </Field>
-            <Field label="Message">
-              <textarea value={bcForm.body} onChange={e => setBcForm({...bcForm, body: e.target.value})} placeholder="Write your message..." rows={6} style={{...inputStyle, resize: "vertical"}} />
-            </Field>
-            <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-              <button onClick={sendBroadcast} style={{ flex: 1, padding: "11px", borderRadius: 9, border: "none", background: "#7c3aed", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-                📢 Send to {bcForm.classId === "all" ? "All Students" : classes.find(c=>c.id===parseInt(bcForm.classId))?.name || "Class"}
-              </button>
-              <button onClick={() => setBroadcast(false)} style={{ padding: "11px 20px", borderRadius: 9, border: `1px solid ${T.border}`, background: "#fff", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-            </div>
-          </div>
-        ) : compose ? (
-          /* Compose Panel */
-          <div style={{ flex: 1, padding: 28, overflowY: "auto" }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: T.textMain, marginBottom: 20 }}>✉️ New Message to Parent</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
-              <Field label="Student" error={formErrors.studentId}>
-                <select style={formErrors.studentId ? { ...selectStyle, border: "1px solid #ef4444" } : selectStyle}
-                  value={form.studentId} onChange={e => { setForm(f => ({ ...f, studentId: e.target.value })); setFormErrors(p => ({ ...p, studentId: "" })); }}>
-                  <option value="">— Select student —</option>
-                  {students.map(s => <option key={s.id} value={s.id}>{s.name} ({classes.find(c => c.id === s.classId)?.name || ""})</option>)}
-                </select>
-              </Field>
-              <Field label="Tag / Category">
-                <select style={selectStyle} value={form.tag} onChange={e => setForm(f => ({ ...f, tag: e.target.value }))}>
-                  {Object.entries(MSG_TAGS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                </select>
-              </Field>
-              <div style={{ gridColumn: "1/-1" }}>
-                <Field label="Subject" error={formErrors.subject}>
-                  <input style={formErrors.subject ? inputErrorStyle : inputStyle} value={form.subject}
-                    placeholder="e.g. Absence Notice"
-                    onChange={e => { setForm(f => ({ ...f, subject: e.target.value })); setFormErrors(p => ({ ...p, subject: "" })); }} />
-                </Field>
-              </div>
-              <div style={{ gridColumn: "1/-1" }}>
-                <Field label="Message" error={formErrors.body}>
-                  <textarea rows={7} style={{ ...(formErrors.body ? inputErrorStyle : inputStyle), resize: "vertical" }}
-                    value={form.body} placeholder="Type your message here…"
-                    onChange={e => { setForm(f => ({ ...f, body: e.target.value })); setFormErrors(p => ({ ...p, body: "" })); }} />
-                </Field>
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
-              <button onClick={() => setCompose(false)} style={{
-                padding: "9px 20px", borderRadius: 8, border: `1px solid ${T.border}`,
-                background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit",
-              }}>Cancel</button>
-              <button onClick={sendNew} style={{
-                padding: "9px 24px", borderRadius: 8, border: "none",
-                background: T.primary, color: "#fff", fontSize: 13,
-                fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-              }}>Send Message</button>
-            </div>
-          </div>
-        ) : selectedMsg ? (
-          /* Message Detail Panel */
-          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            {/* Header */}
-            <div style={{ padding: "18px 24px", borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                    <span style={{
-                      fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20,
-                      background: MSG_TAGS[selectedMsg.tag].bg, color: MSG_TAGS[selectedMsg.tag].color,
-                    }}>{MSG_TAGS[selectedMsg.tag].label}</span>
-                    <span style={{ fontSize: 12, color: T.textMuted }}>{fmtTime(selectedMsg.timestamp)}</span>
-                  </div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: T.textMain }}>{selectedMsg.subject}</div>
-                  <div style={{ fontSize: 12, color: T.textMuted, marginTop: 4 }}>
-                    {selectedMsg.fromSchool ? "From: School Administration" : `From: ${students.find(s => s.id === selectedMsg.studentId)?.name}'s Parent`}
-                    {" · To: "}{students.find(s => s.id === selectedMsg.studentId)?.name}
-                    {" · "}{classes.find(c => c.id === students.find(s => s.id === selectedMsg.studentId)?.classId)?.name}
-                  </div>
-                </div>
-                <button onClick={() => setMessages(prev => prev.filter(m => m.id !== selectedMsg.id))}
-                  style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${T.border}`, background: "#fff", fontSize: 12, cursor: "pointer", color: T.danger }}>
-                  🗑 Delete
-                </button>
-              </div>
-            </div>
-
-            {/* Conversation thread */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
-              {/* Original message */}
-              <MessageBubble fromSchool={selectedMsg.fromSchool} body={selectedMsg.body} time={fmtTime(selectedMsg.timestamp)}
-                student={students.find(s => s.id === selectedMsg.studentId)} />
-              {/* Replies */}
-              {selectedMsg.replies.map(r => (
-                <MessageBubble key={r.id} fromSchool={r.fromSchool} body={r.body} time={fmtTime(r.timestamp)}
-                  student={students.find(s => s.id === selectedMsg.studentId)} />
-              ))}
-            </div>
-
-            {/* Reply box */}
-            <div style={{ borderTop: `1px solid ${T.border}`, padding: "14px 24px", flexShrink: 0 }}>
-              <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
-                <textarea rows={2} value={replyText} onChange={e => setReplyText(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendReply(); } }}
-                  placeholder="Type a reply… (Enter to send)"
-                  style={{ ...inputStyle, flex: 1, resize: "none", fontSize: 13 }} />
-                <button onClick={sendReply} disabled={!replyText.trim()} style={{
-                  padding: "10px 20px", borderRadius: 8, border: "none",
-                  background: replyText.trim() ? T.primary : "#e2e8f0",
-                  color: replyText.trim() ? "#fff" : T.textMuted,
-                  fontSize: 13, fontWeight: 600, cursor: replyText.trim() ? "pointer" : "default",
-                  fontFamily: "inherit", transition: "all .15s",
-                }}>Send ↑</button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Empty state */
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, color: T.textMuted }}>
-            <div style={{ fontSize: 52 }}>💬</div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: T.textMain }}>Parent Messaging</div>
-            <div style={{ fontSize: 13, textAlign: "center", maxWidth: 300 }}>Select a message to read it, or compose a new message to a parent.</div>
-            <button onClick={() => { setCompose(true); setSelected(null); }} style={{
-              padding: "10px 22px", borderRadius: 8, border: "none",
-              background: T.primary, color: "#fff", fontSize: 13,
-              fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
-            }}>✏️ New Message</button>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
+
+
 
 function MessageBubble({ fromSchool, body, time, student }) {
   const isRight = fromSchool;
@@ -4179,6 +4252,133 @@ function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults
   );
 }
 
+
+// ─── ParentMessages ───────────────────────────────────────────────────────────
+function ParentMessages({ student, messages, setMessages }) {
+  const [open, setOpen] = useState(false);
+  const [compose, setCompose] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [image, setImage] = useState(null);
+  const [sent, setSent] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [replyText, setReplyText] = useState("");
+
+  const myMessages = (messages||[]).filter(m => m.studentId === student.id).sort((a,b) => b.timestamp - a.timestamp);
+  const unread = myMessages.filter(m => !m.read).length;
+
+  const fmtTime = (ts) => {
+    const d = new Date(ts), now = new Date(), diff = now - d;
+    if (diff < 3600000) return Math.floor(diff/60000) + "m ago";
+    if (diff < 86400000) return d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+    return d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  };
+
+  const send = () => {
+    if (!subject.trim() || !body.trim()) return;
+    const msg = { id: Date.now(), studentId: student.id, tag: "general", subject, body, image, fromSchool: false, timestamp: Date.now(), read: false, replies: [], senderName: student.name + "'s Parent" };
+    try { const stored = JSON.parse(localStorage.getItem("edu_messages")||"[]"); localStorage.setItem("edu_messages", JSON.stringify([msg,...stored])); } catch {}
+    if (setMessages) setMessages(prev => [msg,...prev]);
+    setSubject(""); setBody(""); setImage(null); setCompose(false); setSent(true);
+    setTimeout(() => setSent(false), 3000);
+  };
+
+  const sendReply = () => {
+    if (!replyText.trim()) return;
+    const reply = { id: uid(), fromSchool: false, body: replyText, timestamp: Date.now(), senderName: student.name + "'s Parent" };
+    if (setMessages) setMessages(prev => prev.map(m => m.id === selected ? {...m, replies:[...(m.replies||[]),reply]} : m));
+    setReplyText("");
+  };
+
+  const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+  const selectedMsg = myMessages.find(m => m.id === selected);
+
+  return (
+    <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:16 }}>
+      <div onClick={() => setOpen(!open)} style={{ padding:"14px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", borderBottom: open ? "1px solid #e2e8f0" : "none" }}>
+        <div style={{ fontSize:14, fontWeight:700, color:"#1e293b", display:"flex", alignItems:"center", gap:8 }}>
+          💬 Messages
+          {unread > 0 && <span style={{ background:"#ef4444", color:"#fff", borderRadius:20, fontSize:11, padding:"2px 8px", fontWeight:700 }}>{unread} new</span>}
+        </div>
+        <span style={{ fontSize:12, color:"#94a3b8" }}>{open ? "▲" : "▼"}</span>
+      </div>
+
+      {open && (
+        <div style={{ padding:16 }}>
+          {sent && <div style={{ background:"#d1fae5", color:"#065f46", padding:"10px 14px", borderRadius:8, marginBottom:12, fontSize:13 }}>✅ Message sent!</div>}
+
+          {/* Thread View */}
+          {selected && selectedMsg ? (
+            <div>
+              <button onClick={() => setSelected(null)} style={{ padding:"6px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:12, marginBottom:12 }}>← Back</button>
+              <div style={{ fontSize:14, fontWeight:700, color:"#1e293b", marginBottom:12 }}>{selectedMsg.subject}</div>
+
+              {/* Original */}
+              <div style={{ background: selectedMsg.fromSchool ? "#f0fdf9" : "#f8f4ff", borderRadius:10, border:"1px solid " + (selectedMsg.fromSchool?"#99f6e4":"#ddd6fe"), padding:14, marginBottom:10 }}>
+                <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:6 }}>{selectedMsg.fromSchool ? "🏫 School" : "👨‍👩‍👧 You"} · {fmtTime(selectedMsg.timestamp)}</div>
+                <div style={{ fontSize:13, color:"#334155" }}>{selectedMsg.body}</div>
+                {selectedMsg.image && <img src={selectedMsg.image} style={{ maxWidth:"100%", borderRadius:8, marginTop:8 }} />}
+              </div>
+
+              {/* Replies */}
+              {(selectedMsg.replies||[]).map(r => (
+                <div key={r.id} style={{ background: r.fromSchool ? "#f0fdf9" : "#f8f4ff", borderRadius:10, border:"1px solid " + (r.fromSchool?"#99f6e4":"#ddd6fe"), padding:14, marginBottom:8, marginLeft: r.fromSchool ? 0 : 20 }}>
+                  <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:4 }}>{r.fromSchool ? "🏫 School" : "👨‍👩‍👧 You"} · {fmtTime(r.timestamp)}</div>
+                  <div style={{ fontSize:13, color:"#334155" }}>{r.body}</div>
+                  {r.image && <img src={r.image} style={{ maxWidth:"100%", borderRadius:8, marginTop:6 }} />}
+                </div>
+              ))}
+
+              {/* Reply Box */}
+              <div style={{ marginTop:12 }}>
+                <textarea value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Write a reply..." rows={3} style={{...inp, resize:"vertical", marginBottom:8}} />
+                <button onClick={sendReply} style={{ padding:"8px 18px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Send Reply</button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              {/* Compose Button */}
+              {!compose ? (
+                <button onClick={() => setCompose(true)} style={{ width:"100%", padding:"10px", borderRadius:9, border:"2px dashed #0d9488", background:"#f0fdf9", color:"#0d9488", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", marginBottom:12 }}>
+                  + New Message to School
+                </button>
+              ) : (
+                <div style={{ background:"#f8fafc", borderRadius:10, border:"1px solid #e2e8f0", padding:16, marginBottom:12 }}>
+                  <input style={{...inp, marginBottom:8}} value={subject} onChange={e => setSubject(e.target.value)} placeholder="Subject..." />
+                  <textarea style={{...inp, resize:"vertical", marginBottom:8}} rows={4} value={body} onChange={e => setBody(e.target.value)} placeholder="Write your message..." />
+                  <div style={{ marginBottom:10 }}>
+                    <label style={{ fontSize:12, color:"#64748b", cursor:"pointer" }}>
+                      📎 {image ? "Image attached ✅" : "Attach image"}
+                      <input type="file" accept="image/*" style={{ display:"none" }} onChange={e => { const f=e.target.files[0]; if(f){const r=new FileReader();r.onload=()=>setImage(r.result);r.readAsDataURL(f);} }} />
+                    </label>
+                  </div>
+                  <div style={{ display:"flex", gap:8, justifyContent:"flex-end" }}>
+                    <button onClick={() => setCompose(false)} style={{ padding:"7px 14px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+                    <button onClick={send} style={{ padding:"7px 16px", borderRadius:7, border:"none", background:"#0d9488", color:"#fff", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Send</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Message List */}
+              {myMessages.length === 0 ? (
+                <div style={{ textAlign:"center", padding:24, color:"#94a3b8", fontSize:13 }}>No messages yet</div>
+              ) : myMessages.map(msg => (
+                <div key={msg.id} onClick={() => { setSelected(msg.id); if(!msg.read && setMessages) setMessages(prev=>prev.map(m=>m.id===msg.id?{...m,read:true}:m)); }} style={{ padding:"12px 14px", borderRadius:10, border:"1px solid " + (msg.read?"#f1f5f9":"#0d9488"), background: msg.read?"#fff":"#f0fdf9", marginBottom:8, cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight: msg.read?500:700, color:"#1e293b" }}>{msg.subject}</div>
+                    <div style={{ fontSize:11, color:"#94a3b8", marginTop:2 }}>{msg.fromSchool?"🏫 School":"👨‍👩‍👧 You"} · {fmtTime(msg.timestamp)} {msg.image?"📎":""} {(msg.replies||[]).length>0?"↩"+msg.replies.length:""}</div>
+                  </div>
+                  {!msg.read && <div style={{ width:8, height:8, borderRadius:"50%", background:"#0d9488" }} />}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── ParentQuiz ────────────────────────────────────────────────────────────────
 function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
   const [activeQuiz, setActiveQuiz] = useState(null);
@@ -4960,7 +5160,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"4px 10px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:11,cursor:"pointer",fontFamily:"inherit",fontWeight:600,marginLeft:8}}>Sign Out</button>
         </div>
         <div style={{padding:"16px 12px",maxWidth:900,margin:"0 auto"}}>
-          <StudentDashboard student={student} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} timetable={timetable} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} />
+          <StudentDashboard student={student} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} setMessages={setMessages} timetable={timetable} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} />
         </div>
       </div>
     );
@@ -5009,6 +5209,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
             onClose={null}
           />
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
+          <ParentMessages student={student} messages={messages} setMessages={setMessages} />
           <ParentQuiz student={student} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} />
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
             <button onClick={() => exportParentReportPDF(student, classes.find(c=>c.id===student.classId), attendance, grades, subjects, exams, examResults)} style={{padding:"10px 20px",background:"#1e1e3a",color:"#fff",border:"none",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
@@ -5103,7 +5304,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           {page === "attendance" && <Attendance students={students} classes={classes} attendance={attendance} setAttendance={setAttendance} teacherClassIds={teacherClassIds} />}
           {page === "grades"     && <Grades     students={students} classes={classes} subjects={subjects} grades={grades} setGrades={setGrades} teacherClassIds={teacherClassIds} />}
           {page === "timetable"  && <Timetable  classes={classes} subjects={subjects} timetable={timetable} setTimetable={setTimetable} teacherClassIds={teacherClassIds} />}
-          {page === "messages"   && <Messaging  students={students} classes={classes} messages={messages} setMessages={setMessages} />}
+          {page === "messages"   && <EnhancedMessaging students={students} classes={classes} messages={messages} setMessages={setMessages} teachers={teachers} userRole={userRole} auth={auth} />}
           {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
           {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
