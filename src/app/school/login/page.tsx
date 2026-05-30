@@ -114,44 +114,110 @@ export default function Login() {
 
   const inp: any = {width:"100%",padding:"11px 14px",borderRadius:10,border:"1px solid rgba(255,255,255,.15)",background:"rgba(255,255,255,.07)",color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}
 
+  const features = [
+    { icon: "✅", title: "Attendance Tracking", desc: "Real-time daily attendance with instant parent notifications" },
+    { icon: "📊", title: "Grades & Reports", desc: "Comprehensive grade management and PDF report generation" },
+    { icon: "📝", title: "Interactive Quizzes", desc: "MCQ, True/False and Fill-in-the-blank quizzes for students" },
+    { icon: "💬", title: "Smart Messaging", desc: "Direct messaging and broadcast announcements" },
+    { icon: "🗓️", title: "Timetable", desc: "Weekly class schedule for teachers and students" },
+    { icon: "📋", title: "Exam Scheduler", desc: "Schedule exams and track results with analytics" },
+  ]
+
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0f172a,#1e1e3a,#0d3330)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:20}}>
-      <div style={{width:"100%",maxWidth:420}}>
-        <div style={{textAlign:"center",marginBottom:32}}>
-          <img src="/logo.png" style={{width:130,height:130,objectFit:"contain",display:"block",margin:"0 auto 12px"}} />
-          <div style={{fontSize:22,fontWeight:800,color:"#fff"}}>Al-Huffath Academy</div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,.5)",marginTop:4}}>Ilm | Iman | Hifz</div>
-        </div>
-        <div style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:20,padding:32}}>
-          <div style={{display:"flex",gap:4,background:"rgba(0,0,0,.3)",borderRadius:10,padding:4,marginBottom:24}}>
-            {[["parent","Parent"],["student","Student"],["teacher","Teacher"],["admin","Admin"]].map(([r,l])=>(
-              <button key={r} onClick={()=>{setRole(r);setUser("");setPass("");setErr("")}} style={{flex:1,padding:"9px 0",borderRadius:7,border:"none",cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:"inherit",background:role===r?"#0d9488":"transparent",color:role===r?"#fff":"rgba(255,255,255,.45)"}}>
-                {l}
-              </button>
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0a0a1a,#0f172a,#0d3330)",fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif",display:"flex",flexDirection:"column"}}>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+
+      {/* Glow effects */}
+      <div style={{position:"fixed",top:-100,left:-100,width:500,height:500,borderRadius:"50%",background:"rgba(13,148,136,.1)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}} />
+      <div style={{position:"fixed",bottom:-100,right:-100,width:500,height:500,borderRadius:"50%",background:"rgba(124,58,237,.08)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}} />
+
+      <div style={{flex:1,display:"flex",minHeight:"100vh",position:"relative",zIndex:1}}>
+
+        {/* Left - Hero + Features */}
+        <div style={{flex:1,padding:"48px 56px",display:"flex",flexDirection:"column",justifyContent:"center",color:"#fff"}}>
+
+          {/* Logo */}
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:56}}>
+            <div style={{width:42,height:42,borderRadius:12,background:"linear-gradient(135deg,#14b8a6,#0d9488)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+              <img src="/logo.png" style={{width:"100%",height:"100%",objectFit:"contain"}} onError={(e:any)=>e.target.style.display="none"} />
+            </div>
+            <div>
+              <div style={{fontSize:16,fontWeight:800,color:"#fff"}}>EduManage</div>
+              <div style={{fontSize:11,color:"rgba(255,255,255,.4)"}}>Al-Huffath Academy</div>
+            </div>
+          </div>
+
+          {/* Hero Text */}
+          <div style={{marginBottom:48}}>
+            <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(13,148,136,.15)",border:"1px solid rgba(13,148,136,.3)",borderRadius:20,padding:"5px 14px",fontSize:11,color:"#5eead4",fontWeight:600,marginBottom:20}}>
+              ✨ School Management System
+            </div>
+            <h1 style={{fontSize:"clamp(28px,3.5vw,48px)",fontWeight:800,lineHeight:1.2,marginBottom:16,color:"#fff"}}>
+              The Smartest Way to{" "}
+              <span style={{background:"linear-gradient(135deg,#0d9488,#5eead4)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Manage</span>
+              {" "}Your{" "}
+              <span style={{background:"linear-gradient(135deg,#7c3aed,#a78bfa)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>School</span>
+            </h1>
+            <p style={{fontSize:15,color:"rgba(255,255,255,.5)",lineHeight:1.7,maxWidth:480}}>
+              One platform for <strong style={{color:"#fff"}}>teachers</strong>, <strong style={{color:"#fff"}}>parents</strong>, <strong style={{color:"#fff"}}>students</strong> and school admins — real-time attendance, grades, messaging and more.
+            </p>
+          </div>
+
+          {/* Features Grid */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            {features.map((f,i) => (
+              <div key={i} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)",borderRadius:14,padding:"16px 14px",display:"flex",gap:12,alignItems:"flex-start"}}>
+                <span style={{fontSize:20,flexShrink:0}}>{f.icon}</span>
+                <div>
+                  <div style={{fontSize:13,fontWeight:700,color:"#fff",marginBottom:3}}>{f.title}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,.4)",lineHeight:1.5}}>{f.desc}</div>
+                </div>
+              </div>
             ))}
           </div>
-          <div style={{marginBottom:14}}>
-            <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Username</label>
-            <input style={inp} value={user} onChange={e=>setUser(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="admin"?"admin":role==="teacher"?"sarah.johnson":role==="student"?"S001":"S001"} />
-          </div>
-          <div style={{marginBottom:20}}>
-            <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Password</label>
-            <input type="password" style={inp} value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="••••••••" />
-          </div>
-          {err && <div style={{background:"rgba(220,38,38,.15)",border:"1px solid rgba(220,38,38,.3)",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:13,color:"#fca5a5"}}>{err}</div>}
-          <button onClick={go} disabled={busy} style={{width:"100%",padding:"13px 0",borderRadius:10,border:"none",background:"#0d9488",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
-            {busy?"Signing in...":"Sign In"}
-          </button>
-          <div style={{marginTop:18,padding:"12px 14px",background:"rgba(13,148,136,.08)",border:"1px solid rgba(13,148,136,.2)",borderRadius:10,fontSize:11,color:"rgba(255,255,255,.45)"}}>
-            <div style={{fontWeight:600,color:"#5eead4",marginBottom:6}}>Demo credentials</div>
-            {role==="admin"   && <div>Username: admin / Password: admin123</div>}
-            {role==="teacher" && <div>Username: sarah.johnson / Password: teacher</div>}
-            {role==="parent"  && <div>Username: S001 / Password: 555-0101</div>}
-            {role==="student" && <div>Username: S001 / Password: student123</div>}
+
+          <div style={{marginTop:"auto",paddingTop:32,fontSize:12,color:"rgba(255,255,255,.25)"}}>
+            © 2025 Al-Huffath Academy · Developed by <span style={{color:"#5eead4",fontWeight:600}}>Eng. Ahmad Zouikli</span>
           </div>
         </div>
-        <div style={{textAlign:"center",marginTop:24,fontSize:12,color:"rgba(255,255,255,.6)"}}>
-          © 2025 Al-Huffath Academy · Developed by <span style={{color:"#5eead4",fontWeight:600}}>Eng. Ahmad Zouikli</span>
+
+        {/* Right - Login Form */}
+        <div style={{width:440,display:"flex",alignItems:"center",justifyContent:"center",padding:"32px 40px",borderLeft:"1px solid rgba(255,255,255,.06)"}}>
+          <div style={{width:"100%"}}>
+            <div style={{textAlign:"center",marginBottom:32}}>
+              <img src="/logo.png" style={{width:80,height:80,objectFit:"contain",display:"block",margin:"0 auto 12px"}} />
+              <div style={{fontSize:20,fontWeight:800,color:"#fff"}}>Al-Huffath Academy</div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,.4)",marginTop:4}}>Ilm | Iman | Hifz</div>
+            </div>
+            <div style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:20,padding:28}}>
+              <div style={{display:"flex",gap:4,background:"rgba(0,0,0,.3)",borderRadius:10,padding:4,marginBottom:24}}>
+                {[["parent","Parent"],["student","Student"],["teacher","Teacher"],["admin","Admin"]].map(([r,l])=>(
+                  <button key={r} onClick={()=>{setRole(r);setUser("");setPass("");setErr("")}} style={{flex:1,padding:"8px 0",borderRadius:7,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:"inherit",background:role===r?"#0d9488":"transparent",color:role===r?"#fff":"rgba(255,255,255,.45)"}}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+              <div style={{marginBottom:14}}>
+                <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Username</label>
+                <input style={inp} value={user} onChange={e=>setUser(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="admin"?"admin":role==="teacher"?"sarah.johnson":"S001"} />
+              </div>
+              <div style={{marginBottom:20}}>
+                <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Password</label>
+                <input type="password" style={inp} value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="••••••••" />
+              </div>
+              {err && <div style={{background:"rgba(220,38,38,.15)",border:"1px solid rgba(220,38,38,.3)",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:13,color:"#fca5a5"}}>{err}</div>}
+              <button onClick={go} disabled={busy} style={{width:"100%",padding:"13px 0",borderRadius:10,border:"none",background:"linear-gradient(135deg,#0d9488,#14b8a6)",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 16px rgba(13,148,136,.4)"}}>
+                {busy?"Signing in...":"Sign In →"}
+              </button>
+              <div style={{marginTop:16,padding:"12px 14px",background:"rgba(13,148,136,.08)",border:"1px solid rgba(13,148,136,.2)",borderRadius:10,fontSize:11,color:"rgba(255,255,255,.45)"}}>
+                <div style={{fontWeight:600,color:"#5eead4",marginBottom:6}}>Demo credentials</div>
+                {role==="admin"   && <div>Username: admin / Password: admin123</div>}
+                {role==="teacher" && <div>Username: sarah.johnson / Password: teacher</div>}
+                {role==="parent"  && <div>Username: S001 / Password: 555-0101</div>}
+                {role==="student" && <div>Username: S001 / Password: student123</div>}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
