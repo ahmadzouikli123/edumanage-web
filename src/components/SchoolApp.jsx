@@ -386,6 +386,7 @@ function Teachers({ userRole, classes = [] }) {
     const startDate = teacher.startDate ? new Date(teacher.startDate).toLocaleDateString("en-GB") : "N/A";
     const win = window.open("", "_blank");
     win.document.write(`<!DOCTYPE html><html><head><title>Teacher Report - ${teacher.name}</title><style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
       *{box-sizing:border-box;margin:0;padding:0}
       body{font-family:'Times New Roman',serif;color:#1a1a1a;background:#fff;padding:60px;max-width:800px;margin:0 auto}
       .header{display:flex;align-items:center;border-bottom:3px solid #0d9488;padding-bottom:16px;margin-bottom:30px}
