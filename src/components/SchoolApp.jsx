@@ -369,6 +369,7 @@ const NAV = [
   { id: "messages",   icon: "💬", label: "Messages"   },
   { id: "exams",      icon: "📋", label: "Exams"      },
   { id: "quizzes",    icon: "📝", label: "Quizzes"    },
+  { id: "lessonplans", icon: "📚", label: "Lesson Plans" },
   { id: "settings",   icon: "⚙️", label: "Settings"   },
 ];
 
@@ -4499,6 +4500,395 @@ function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
   );
 }
 
+
+// ─── LessonPlans ──────────────────────────────────────────────────────────────
+function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherClassIds, userRole, auth }) {
+  const [view, setView] = useState("list"); // list | create | detail
+  const [selected, setSelected] = useState(null);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [filterClass, setFilterClass] = useState("all");
+  const [filterSubject, setFilterSubject] = useState("all");
+  const emptyForm = { title:"", classId:"", subjectId:"", week:"", day:"Monday", objectives:[""], activities:[""], resources:[""], homework:"", assessment:"", notes:"", attachments:[] };
+  const [form, setForm] = useState(emptyForm);
+
+  const visibleClasses = (userRole === "admin" || !teacherClassIds || teacherClassIds.length === 0)
+    ? (classes||[])
+    : (classes||[]).filter(c => (teacherClassIds||[]).includes(c.id));
+
+  // حساب الأسبوع الحالي
+  const getWeekStart = (offset = 0) => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1) + (offset * 7);
+    return new Date(d.setDate(diff));
+  };
+  const weekStart = getWeekStart(weekOffset);
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+  const weekLabel = weekStart.toLocaleDateString("en-US",{month:"short",day:"numeric"}) + " – " + weekEnd.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+
+  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+  const weekKey = weekStart.toISOString().split("T")[0];
+
+  const filtered = (lessonPlans||[]).filter(p => {
+    const matchClass = filterClass === "all" || String(p.classId) === String(filterClass);
+    const matchSubject = filterSubject === "all" || String(p.subjectId) === String(filterSubject);
+    const matchWeek = p.week === weekKey;
+    return matchClass && matchSubject && matchWeek;
+  });
+
+  const save = () => {
+    if (!form.title.trim() || !form.classId || !form.subjectId) return alert("Please fill title, class and subject");
+    const plan = { ...form, id: Date.now() + Math.random(), week: weekKey, createdBy: auth?.name || "Teacher", createdAt: new Date().toISOString() };
+    const updated = [...(lessonPlans||[]), plan];
+    setLessonPlans(updated);
+    localStorage.setItem("edu_lesson_plans", JSON.stringify(updated));
+    setView("list"); setForm(emptyForm);
+  };
+
+  const deletePlan = (id) => {
+    const updated = (lessonPlans||[]).filter(p => p.id !== id);
+    setLessonPlans(updated); localStorage.setItem("edu_lesson_plans", JSON.stringify(updated));
+  };
+
+  const addItem = (field) => setForm(f => ({...f, [field]: [...f[field], ""]}));
+  const updateItem = (field, idx, val) => setForm(f => { const arr=[...f[field]]; arr[idx]=val; return {...f,[field]:arr}; });
+  const removeItem = (field, idx) => setForm(f => ({...f, [field]: f[field].filter((_,i)=>i!==idx)}));
+
+  const S = { border:"#e2e8f0", primary:"#0d9488", text:"#0f172a", sub:"#64748b" };
+  const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+
+  // ── Detail View ───────────────────────────────────────────────────────────
+  if (view === "detail" && selected) {
+    const plan = (lessonPlans||[]).find(p => p.id === selected);
+    if (!plan) { setView("list"); return null; }
+    const cls = (classes||[]).find(c => c.id === plan.classId);
+    const sub = (subjects||[]).find(s => s.id === plan.subjectId);
+    return (
+      <div style={{ maxWidth:700, margin:"0 auto" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+          <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:18, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>{plan.title}</div>
+            <div style={{ fontSize:12, color:S.sub, marginTop:2 }}>{cls?.name} · {sub?.name} · {plan.day} · {plan.week}</div>
+          </div>
+          <button onClick={() => deletePlan(plan.id)} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>🗑️ Delete</button>
+        </div>
+
+        <div style={{ display:"grid", gap:16 }}>
+          {plan.objectives?.filter(o=>o.trim()).length > 0 && (
+            <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12, display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ background:"#dbeafe", color:"#1d4ed8", borderRadius:8, padding:"3px 10px", fontSize:11 }}>🎯 Objectives</span>
+              </div>
+              <ul style={{ paddingRight:20, margin:0 }}>
+                {plan.objectives.filter(o=>o.trim()).map((o,i) => (
+                  <li key={i} style={{ fontSize:13, color:"#334155", marginBottom:6, lineHeight:1.6 }}>{o}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {plan.activities?.filter(a=>a.trim()).length > 0 && (
+            <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>
+                <span style={{ background:"#d1fae5", color:"#065f46", borderRadius:8, padding:"3px 10px", fontSize:11 }}>📋 Activities</span>
+              </div>
+              <ul style={{ paddingRight:20, margin:0 }}>
+                {plan.activities.filter(a=>a.trim()).map((a,i) => (
+                  <li key={i} style={{ fontSize:13, color:"#334155", marginBottom:6, lineHeight:1.6 }}>{a}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            {plan.resources?.filter(r=>r.trim()).length > 0 && (
+              <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:S.text, marginBottom:10 }}>
+                  <span style={{ background:"#fef3c7", color:"#854d0e", borderRadius:8, padding:"3px 10px", fontSize:11 }}>📎 Resources</span>
+                </div>
+                <ul style={{ paddingRight:16, margin:0 }}>
+                  {plan.resources.filter(r=>r.trim()).map((r,i) => <li key={i} style={{ fontSize:12, color:"#334155", marginBottom:4 }}>{r}</li>)}
+                </ul>
+              </div>
+            )}
+
+            {plan.homework?.trim() && (
+              <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:S.text, marginBottom:10 }}>
+                  <span style={{ background:"#ede9fe", color:"#6d28d9", borderRadius:8, padding:"3px 10px", fontSize:11 }}>📝 Homework</span>
+                </div>
+                <p style={{ fontSize:13, color:"#334155", lineHeight:1.6, margin:0 }}>{plan.homework}</p>
+              </div>
+            )}
+          </div>
+
+          {plan.assessment?.trim() && (
+            <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
+              <div style={{ fontSize:12, fontWeight:700, color:S.text, marginBottom:10 }}>
+                <span style={{ background:"#fee2e2", color:"#dc2626", borderRadius:8, padding:"3px 10px", fontSize:11 }}>📊 Assessment</span>
+              </div>
+              <p style={{ fontSize:13, color:"#334155", lineHeight:1.6, margin:0 }}>{plan.assessment}</p>
+            </div>
+          )}
+
+          {plan.notes?.trim() && (
+            <div style={{ background:"#fffbeb", borderRadius:12, border:"1px solid #fde68a", padding:20 }}>
+              <div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:8 }}>💡 Notes</div>
+              <p style={{ fontSize:13, color:"#78350f", lineHeight:1.6, margin:0 }}>{plan.notes}</p>
+            </div>
+          )}
+          {(plan.attachments||[]).length > 0 && (
+            <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
+              <div style={{ fontSize:12, fontWeight:700, color:"#0f172a", marginBottom:12 }}>📎 Attachments</div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
+                {plan.attachments.map((att,i) => (
+                  <div key={i} style={{ border:"1px solid #e2e8f0", borderRadius:10, overflow:"hidden", width:120 }}>
+                    {att.type.startsWith("image/") ? (
+                      <a href={att.data} target="_blank" rel="noreferrer">
+                        <img src={att.data} style={{ width:"100%", height:80, objectFit:"cover", display:"block" }} />
+                        <div style={{ padding:"6px 8px", fontSize:10, color:"#64748b", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{att.name}</div>
+                      </a>
+                    ) : (
+                      <a href={att.data} download={att.name} style={{ textDecoration:"none" }}>
+                        <div style={{ height:80, background:"#f8fafc", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>
+                          {att.name.endsWith(".pdf")?"📄":att.name.endsWith(".ppt")||att.name.endsWith(".pptx")?"📊":att.name.endsWith(".doc")||att.name.endsWith(".docx")?"📝":"📎"}
+                        </div>
+                        <div style={{ padding:"6px 8px", fontSize:10, color:"#64748b", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{att.name}</div>
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Create View ───────────────────────────────────────────────────────────
+  if (view === "create") return (
+    <div style={{ maxWidth:680, margin:"0 auto" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+        <button onClick={() => { setView("list"); setForm(emptyForm); }} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>📚 New Lesson Plan</div>
+        <div style={{ marginLeft:"auto", fontSize:12, color:S.sub, background:"#f0fdf9", border:"1px solid #99f6e4", borderRadius:8, padding:"4px 12px" }}>Week of {weekLabel}</div>
+      </div>
+
+      {/* Basic Info */}
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
+        <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:16 }}>📋 Basic Information</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Lesson Title *</label>
+            <input style={inp} value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="e.g. Introduction to Fractions" />
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Class *</label>
+            <select style={inp} value={form.classId} onChange={e=>setForm({...form,classId:Number(e.target.value),subjectId:""})}>
+              <option value="">Select class...</option>
+              {visibleClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Subject *</label>
+            <select style={inp} value={form.subjectId} onChange={e=>setForm({...form,subjectId:Number(e.target.value)})}>
+              <option value="">Select subject...</option>
+              {(subjects||[]).filter(s=>!form.classId||s.classId===form.classId).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Day</label>
+            <select style={inp} value={form.day} onChange={e=>setForm({...form,day:e.target.value})}>
+              {days.map(d=><option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Objectives */}
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:S.text }}>🎯 Learning Objectives</div>
+          <button onClick={()=>addItem("objectives")} style={{ padding:"5px 12px", borderRadius:7, border:"none", background:"#0d9488", color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
+        </div>
+        {form.objectives.map((o,i) => (
+          <div key={i} style={{ display:"flex", gap:8, marginBottom:8 }}>
+            <input style={{...inp,flex:1}} value={o} onChange={e=>updateItem("objectives",i,e.target.value)} placeholder={"Objective " + (i+1) + "..."} />
+            {form.objectives.length > 1 && <button onClick={()=>removeItem("objectives",i)} style={{ padding:"0 10px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:13, cursor:"pointer" }}>×</button>}
+          </div>
+        ))}
+      </div>
+
+      {/* Activities */}
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:S.text }}>📋 Classroom Activities</div>
+          <button onClick={()=>addItem("activities")} style={{ padding:"5px 12px", borderRadius:7, border:"none", background:"#0d9488", color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
+        </div>
+        {form.activities.map((a,i) => (
+          <div key={i} style={{ display:"flex", gap:8, marginBottom:8 }}>
+            <input style={{...inp,flex:1}} value={a} onChange={e=>updateItem("activities",i,e.target.value)} placeholder={"Activity " + (i+1) + "..."} />
+            {form.activities.length > 1 && <button onClick={()=>removeItem("activities",i)} style={{ padding:"0 10px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:13, cursor:"pointer" }}>×</button>}
+          </div>
+        ))}
+      </div>
+
+      {/* Resources */}
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:S.text }}>📎 Resources & Materials</div>
+          <button onClick={()=>addItem("resources")} style={{ padding:"5px 12px", borderRadius:7, border:"none", background:"#0d9488", color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
+        </div>
+        {form.resources.map((r,i) => (
+          <div key={i} style={{ display:"flex", gap:8, marginBottom:8 }}>
+            <input style={{...inp,flex:1}} value={r} onChange={e=>updateItem("resources",i,e.target.value)} placeholder={"Resource " + (i+1) + "..."} />
+            {form.resources.length > 1 && <button onClick={()=>removeItem("resources",i)} style={{ padding:"0 10px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:13, cursor:"pointer" }}>×</button>}
+          </div>
+        ))}
+      </div>
+
+      {/* Homework + Assessment */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
+        <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>📝 Homework</div>
+          <textarea style={{...inp,resize:"vertical"}} rows={3} value={form.homework} onChange={e=>setForm({...form,homework:e.target.value})} placeholder="Homework assignment..." />
+        </div>
+        <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>📊 Assessment Method</div>
+          <textarea style={{...inp,resize:"vertical"}} rows={3} value={form.assessment} onChange={e=>setForm({...form,assessment:e.target.value})} placeholder="How will you assess learning?" />
+        </div>
+      </div>
+
+      {/* Notes + Attachments */}
+      <div style={{ background:"#fffbeb", borderRadius:14, border:"1px solid #fde68a", padding:20, marginBottom:20 }}>
+        <div style={{ fontSize:13, fontWeight:700, color:"#854d0e", marginBottom:10 }}>💡 Additional Notes</div>
+        <textarea style={{...inp,resize:"vertical",background:"transparent",border:"1px solid #fcd34d"}} rows={2} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Any additional notes..." />
+        
+        <div style={{ marginTop:14 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:8 }}>📎 Attachments (Images or Files)</div>
+          <label style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"8px 16px", borderRadius:8, border:"2px dashed #fcd34d", background:"rgba(253,230,138,.2)", cursor:"pointer", fontSize:12, color:"#854d0e", fontWeight:600 }}>
+            📁 Choose Image or File
+            <input type="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" multiple style={{ display:"none" }} onChange={e => {
+              const files = Array.from(e.target.files);
+              files.forEach(f => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  setForm(prev => ({
+                    ...prev,
+                    attachments: [...(prev.attachments||[]), { name: f.name, type: f.type, data: reader.result, size: f.size }]
+                  }));
+                };
+                reader.readAsDataURL(f);
+              });
+            }} />
+          </label>
+          
+          {(form.attachments||[]).length > 0 && (
+            <div style={{ marginTop:12, display:"flex", flexWrap:"wrap", gap:8 }}>
+              {form.attachments.map((att,i) => (
+                <div key={i} style={{ background:"#fff", border:"1px solid #fde68a", borderRadius:10, padding:"8px 12px", display:"flex", alignItems:"center", gap:8, maxWidth:200 }}>
+                  {att.type.startsWith("image/") ? (
+                    <img src={att.data} style={{ width:40, height:40, borderRadius:6, objectFit:"cover", flexShrink:0 }} />
+                  ) : (
+                    <div style={{ width:40, height:40, borderRadius:6, background:"#fef3c7", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>
+                      {att.name.endsWith(".pdf") ? "📄" : att.name.endsWith(".ppt")||att.name.endsWith(".pptx") ? "📊" : att.name.endsWith(".doc")||att.name.endsWith(".docx") ? "📝" : "📎"}
+                    </div>
+                  )}
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:11, fontWeight:600, color:"#854d0e", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{att.name}</div>
+                    <div style={{ fontSize:10, color:"#a16207" }}>{(att.size/1024).toFixed(1)} KB</div>
+                  </div>
+                  <button onClick={() => setForm(prev => ({...prev, attachments: prev.attachments.filter((_,j)=>j!==i)}))} style={{ background:"none", border:"none", cursor:"pointer", color:"#dc2626", fontSize:14, flexShrink:0 }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <button onClick={save} style={{ width:"100%", padding:"14px 0", borderRadius:12, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 16px rgba(13,148,136,.3)" }}>
+        💾 Save Lesson Plan
+      </button>
+    </div>
+  );
+
+  // ── List View ─────────────────────────────────────────────────────────────
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <div>
+          <div style={{ fontSize:20, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>📚 Lesson Plans</div>
+          <div style={{ fontSize:13, color:S.sub, marginTop:2 }}>Weekly lesson planning</div>
+        </div>
+        <button onClick={() => setView("create")} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 12px rgba(13,148,136,.3)" }}>+ New Lesson Plan</button>
+      </div>
+
+      {/* Week Navigator */}
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:"14px 20px", marginBottom:16, display:"flex", alignItems:"center", gap:12 }}>
+        <button onClick={() => setWeekOffset(w=>w-1)} style={{ width:34, height:34, borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:16 }}>‹</button>
+        <div style={{ flex:1, textAlign:"center" }}>
+          <div style={{ fontSize:14, fontWeight:700, color:S.text }}>Week of {weekLabel}</div>
+          {weekOffset === 0 && <div style={{ fontSize:11, color:"#0d9488", fontWeight:600, marginTop:2 }}>Current Week</div>}
+        </div>
+        <button onClick={() => setWeekOffset(w=>w+1)} style={{ width:34, height:34, borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:16 }}>›</button>
+        {weekOffset !== 0 && <button onClick={() => setWeekOffset(0)} style={{ padding:"6px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", fontSize:12, fontFamily:"inherit" }}>Today</button>}
+      </div>
+
+      {/* Filters */}
+      <div style={{ display:"flex", gap:10, marginBottom:16, flexWrap:"wrap" }}>
+        <select style={{...inp, width:"auto", minWidth:160}} value={filterClass} onChange={e=>setFilterClass(e.target.value)}>
+          <option value="all">All Classes</option>
+          {visibleClasses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select style={{...inp, width:"auto", minWidth:160}} value={filterSubject} onChange={e=>setFilterSubject(e.target.value)}>
+          <option value="all">All Subjects</option>
+          {(subjects||[]).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+      </div>
+
+      {/* Weekly Grid */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:12, marginBottom:20 }}>
+        {days.map(day => {
+          const dayPlans = filtered.filter(p => p.day === day);
+          const isToday = new Date().toLocaleDateString("en-US",{weekday:"long"}) === day && weekOffset === 0;
+          return (
+            <div key={day} style={{ background: isToday ? "#f0fdf9" : "#fff", borderRadius:14, border: isToday ? "2px solid #0d9488" : "1px solid #e2e8f0", padding:14, minHeight:120 }}>
+              <div style={{ fontSize:12, fontWeight:700, color: isToday ? "#0d9488" : S.sub, marginBottom:10, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                {day.slice(0,3).toUpperCase()}
+                {isToday && <span style={{ fontSize:9, background:"#0d9488", color:"#fff", borderRadius:10, padding:"1px 6px" }}>TODAY</span>}
+              </div>
+              {dayPlans.length === 0 ? (
+                <div style={{ fontSize:11, color:"#cbd5e1", textAlign:"center", paddingTop:12 }}>No plans</div>
+              ) : dayPlans.map(p => {
+                const sub = (subjects||[]).find(s=>s.id===p.subjectId);
+                const cls = (classes||[]).find(c=>c.id===p.classId);
+                return (
+                  <div key={p.id} onClick={() => { setSelected(p.id); setView("detail"); }} style={{ background:"#0d9488", borderRadius:8, padding:"8px 10px", marginBottom:6, cursor:"pointer" }}>
+                    <div style={{ fontSize:11, fontWeight:700, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.title}</div>
+                    <div style={{ fontSize:10, color:"rgba(255,255,255,.7)", marginTop:2 }}>{cls?.name} · {sub?.name}</div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* List */}
+      {filtered.length === 0 && (
+        <div style={{ textAlign:"center", padding:60, background:"#fff", borderRadius:14, border:"1px solid #e2e8f0" }}>
+          <div style={{ fontSize:40, marginBottom:12 }}>📚</div>
+          <div style={{ fontSize:15, fontWeight:700, color:S.text }}>No lesson plans this week</div>
+          <div style={{ fontSize:13, color:S.sub, marginTop:4 }}>Click "New Lesson Plan" to create one</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Settings ────────────────────────────────────────────────────────────────
 function Settings({ teachers, setTeachers, students, classes, subjects, setSubjects }) {
   const [parentEditId, setParentEditId] = useState(null);
@@ -4957,7 +5347,7 @@ export default function App() {
   const teacherName    = auth?.name    || "";
 
   // ─── Teacher: pages allowed ───────────────────────────────────────────────
-  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes"];
+  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes", "lessonplans"];
   const PARENT_PAGES  = ["dashboard"];
   const STUDENT_PAGES = ["dashboard"];
 
@@ -4983,6 +5373,7 @@ export default function App() {
   const [exams,     setExams]       = useState(() => load("edu_exams",        seedExams(SEED_CLASSES, SEED_SUBJECTS)));
   const [quizzes,     setQuizzes]     = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quizzes")||"[]"); } catch{return[];} });
   const [quizResults, setQuizResults] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quiz_results")||"[]"); } catch{return[];} });
+  const [lessonPlans, setLessonPlans] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_lesson_plans")||"[]"); } catch{return[];} });
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
 
   useEffect(() => { save("edu_students", students); }, [students]);
@@ -5005,6 +5396,7 @@ export default function App() {
     timetable:  { title: "Timetable",  sub: "Weekly schedule for each class" },
     messages:   { title: "Messages",    sub: "Communicate with parents & guardians" },
     quizzes:    { title: "Quizzes",     sub: "Create and manage quizzes" },
+    lessonplans: { title: "Lesson Plans", sub: "Weekly lesson planning for teachers" },
     exams:      { title: "Exams",       sub: "Schedule exams & record results" },
     teachers:   { title: "Teachers",    sub: "Manage teaching staff & assignments" },
     settings:   { title: "Settings",    sub: "Manage accounts & access" },
@@ -5309,6 +5701,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
           {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
+          {page === "lessonplans" && <LessonPlans classes={classes} subjects={subjects} lessonPlans={lessonPlans} setLessonPlans={setLessonPlans} teacherClassIds={teacherClassIds} userRole={userRole} auth={auth} />}
         </div>
       </div>
     </div>
