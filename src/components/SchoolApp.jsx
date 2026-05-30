@@ -4255,6 +4255,132 @@ function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults
 }
 
 
+
+// ─── ParentLessonPlans ────────────────────────────────────────────────────────
+function ParentLessonPlans({ student, lessonPlans, subjects, classes }) {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const getWeekStart = (offset = 0) => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1) + (offset * 7);
+    return new Date(new Date().setDate(diff));
+  };
+  const weekStart = getWeekStart(weekOffset);
+  const weekKey = weekStart.toISOString().split("T")[0];
+  const weekLabel = weekStart.toLocaleDateString("en-US",{month:"short",day:"numeric"}) + " – " + new Date(new Date(weekStart).setDate(weekStart.getDate()+6)).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+
+  const myPlans = (lessonPlans||[]).filter(p => String(p.classId) === String(student.classId) && p.week === weekKey);
+  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+
+  const fmtTime = (ts) => new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  const selectedPlan = myPlans.find(p => p.id === selected);
+
+  return (
+    <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:16 }}>
+      <div onClick={() => setOpen(!open)} style={{ padding:"14px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", borderBottom: open?"1px solid #e2e8f0":"none" }}>
+        <div style={{ fontSize:14, fontWeight:700, color:"#0f172a", display:"flex", alignItems:"center", gap:8 }}>
+          📚 Lesson Plans
+          {myPlans.length > 0 && <span style={{ background:"#0d9488", color:"#fff", borderRadius:20, fontSize:11, padding:"2px 8px" }}>{myPlans.length}</span>}
+        </div>
+        <span style={{ fontSize:12, color:"#94a3b8" }}>{open?"▲":"▼"}</span>
+      </div>
+
+      {open && (
+        <div style={{ padding:16 }}>
+          {/* Week Navigator */}
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, background:"#f8fafc", borderRadius:10, padding:"10px 14px" }}>
+            <button onClick={() => { setWeekOffset(w=>w-1); setSelected(null); }} style={{ width:28, height:28, borderRadius:6, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer" }}>‹</button>
+            <div style={{ flex:1, textAlign:"center", fontSize:13, fontWeight:600, color:"#0f172a" }}>
+              {weekLabel}
+              {weekOffset === 0 && <span style={{ fontSize:10, color:"#0d9488", marginLeft:6 }}>• This week</span>}
+            </div>
+            <button onClick={() => { setWeekOffset(w=>w+1); setSelected(null); }} style={{ width:28, height:28, borderRadius:6, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer" }}>›</button>
+          </div>
+
+          {selected && selectedPlan ? (
+            <div>
+              <button onClick={() => setSelected(null)} style={{ padding:"6px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:12, marginBottom:12 }}>← Back</button>
+              <div style={{ fontSize:15, fontWeight:700, color:"#0f172a", marginBottom:4 }}>{selectedPlan.title}</div>
+              <div style={{ fontSize:12, color:"#64748b", marginBottom:14 }}>{selectedPlan.day} · {(subjects||[]).find(s=>s.id===selectedPlan.subjectId)?.name}</div>
+
+              {selectedPlan.objectives?.filter(o=>o.trim()).length > 0 && (
+                <div style={{ background:"#eff6ff", borderRadius:10, padding:14, marginBottom:10 }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#1d4ed8", marginBottom:8 }}>🎯 Learning Objectives</div>
+                  <ul style={{ paddingRight:16, margin:0 }}>
+                    {selectedPlan.objectives.filter(o=>o.trim()).map((o,i) => <li key={i} style={{ fontSize:13, color:"#1e40af", marginBottom:4 }}>{o}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {selectedPlan.homework?.trim() && (
+                <div style={{ background:"#ede9fe", borderRadius:10, padding:14, marginBottom:10 }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#6d28d9", marginBottom:6 }}>📝 Homework</div>
+                  <p style={{ fontSize:13, color:"#5b21b6", margin:0, lineHeight:1.6 }}>{selectedPlan.homework}</p>
+                </div>
+              )}
+
+              {selectedPlan.activities?.filter(a=>a.trim()).length > 0 && (
+                <div style={{ background:"#f0fdf4", borderRadius:10, padding:14, marginBottom:10 }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#166534", marginBottom:8 }}>📋 Activities</div>
+                  <ul style={{ paddingRight:16, margin:0 }}>
+                    {selectedPlan.activities.filter(a=>a.trim()).map((a,i) => <li key={i} style={{ fontSize:13, color:"#166534", marginBottom:4 }}>{a}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {(selectedPlan.attachments||[]).length > 0 && (
+                <div style={{ background:"#fffbeb", borderRadius:10, padding:14 }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:8 }}>📎 Attachments</div>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                    {selectedPlan.attachments.map((att,i) => (
+                      att.type.startsWith("image/") ? (
+                        <a key={i} href={att.data} target="_blank" rel="noreferrer">
+                          <img src={att.data} style={{ width:60, height:60, borderRadius:8, objectFit:"cover" }} />
+                        </a>
+                      ) : (
+                        <a key={i} href={att.data} download={att.name} style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 10px", background:"#fff", borderRadius:8, border:"1px solid #fde68a", textDecoration:"none" }}>
+                          <span style={{ fontSize:16 }}>{att.name.endsWith(".pdf")?"📄":"📎"}</span>
+                          <span style={{ fontSize:11, color:"#854d0e" }}>{att.name}</span>
+                        </a>
+                      )
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : myPlans.length === 0 ? (
+            <div style={{ textAlign:"center", padding:24, color:"#94a3b8", fontSize:13 }}>No lesson plans this week</div>
+          ) : (
+            <div style={{ display:"grid", gap:8 }}>
+              {days.map(day => {
+                const dayPlans = myPlans.filter(p => p.day === day);
+                if (dayPlans.length === 0) return null;
+                return dayPlans.map(p => {
+                  const sub = (subjects||[]).find(s=>s.id===p.subjectId);
+                  return (
+                    <div key={p.id} onClick={() => setSelected(p.id)} style={{ padding:"12px 16px", borderRadius:10, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center" }}
+                      onMouseEnter={e => e.currentTarget.style.background="#f0fdf9"}
+                      onMouseLeave={e => e.currentTarget.style.background="#fff"}>
+                      <div>
+                        <div style={{ fontSize:13, fontWeight:600, color:"#0f172a" }}>{p.title}</div>
+                        <div style={{ fontSize:11, color:"#64748b", marginTop:2 }}>{day} · {sub?.name} {p.homework?"· 📝 Has homework":""}</div>
+                      </div>
+                      <span style={{ fontSize:12, color:"#0d9488" }}>›</span>
+                    </div>
+                  );
+                });
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── ParentMessages ───────────────────────────────────────────────────────────
 function ParentMessages({ student, messages, setMessages }) {
   const [open, setOpen] = useState(false);
@@ -4502,7 +4628,7 @@ function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
 
 
 // ─── LessonPlans ──────────────────────────────────────────────────────────────
-function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherClassIds, userRole, auth }) {
+function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherClassIds, userRole, auth, teachers }) {
   const [view, setView] = useState("list"); // list | create | detail
   const [selected, setSelected] = useState(null);
   const [weekOffset, setWeekOffset] = useState(0);
@@ -4869,6 +4995,7 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
                   <div key={p.id} onClick={() => { setSelected(p.id); setView("detail"); }} style={{ background:"#0d9488", borderRadius:8, padding:"8px 10px", marginBottom:6, cursor:"pointer" }}>
                     <div style={{ fontSize:11, fontWeight:700, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.title}</div>
                     <div style={{ fontSize:10, color:"rgba(255,255,255,.7)", marginTop:2 }}>{cls?.name} · {sub?.name}</div>
+                    {userRole === "admin" && p.createdBy && <div style={{ fontSize:9, color:"rgba(255,255,255,.55)", marginTop:1 }}>👤 {p.createdBy}</div>}
                   </div>
                 );
               })}
@@ -5602,6 +5729,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
             onClose={null}
           />
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
+          <ParentLessonPlans student={student} lessonPlans={lessonPlans} subjects={subjects} classes={classes} />
           <ParentMessages student={student} messages={messages} setMessages={setMessages} />
           <ParentQuiz student={student} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} />
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
@@ -5701,7 +5829,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
           {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
-          {page === "lessonplans" && <LessonPlans classes={classes} subjects={subjects} lessonPlans={lessonPlans} setLessonPlans={setLessonPlans} teacherClassIds={teacherClassIds} userRole={userRole} auth={auth} />}
+          {page === "lessonplans" && <LessonPlans classes={classes} subjects={subjects} lessonPlans={lessonPlans} setLessonPlans={setLessonPlans} teacherClassIds={teacherClassIds} userRole={userRole} auth={auth} teachers={teachers} />}
         </div>
       </div>
     </div>
