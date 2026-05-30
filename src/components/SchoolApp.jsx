@@ -369,7 +369,8 @@ const NAV = [
   { id: "messages",   icon: "💬", label: "Messages"   },
   { id: "exams",      icon: "📋", label: "Exams"      },
   { id: "quizzes",    icon: "📝", label: "Quizzes"    },
-  { id: "lessonplans", icon: "📚", label: "Lesson Plans" },
+  { id: "lessonplans",   icon: "📚", label: "Lesson Plans" },
+  { id: "evaluations",   icon: "⭐", label: "Evaluations"  },
   { id: "settings",   icon: "⚙️", label: "Settings"   },
 ];
 
@@ -5016,6 +5017,444 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
   );
 }
 
+
+// ─── TeacherEvaluations ───────────────────────────────────────────────────────
+const EVAL_SECTIONS = [
+  {
+    id: "planning", title: "Planning and Preparation", icon: "📋", color: "#3b82f6",
+    criteria: [
+      "Clarity of educational objectives and measurability",
+      "Variety in activities and teaching strategies",
+      "Consideration of individual differences among students",
+      "Quality of preparation of educational materials and aids",
+    ]
+  },
+  {
+    id: "implementation", title: "Lesson Implementation", icon: "🎯", color: "#0d9488",
+    criteria: [
+      "Clarity of presentation and logical sequence of ideas",
+      "Effective use of technology and educational aids",
+      "Student engagement and active participation",
+      "Efficient time management",
+      "Use of active learning strategies",
+    ]
+  },
+  {
+    id: "management", title: "Classroom Management", icon: "🏫", color: "#7c3aed",
+    criteria: [
+      "Maintaining order and classroom discipline",
+      "Creating a positive and motivating learning environment",
+      "Handling behaviors with wisdom and fairness",
+    ]
+  },
+  {
+    id: "assessment", title: "Assessment and Feedback", icon: "📊", color: "#f59e0b",
+    criteria: [
+      "Variety of assessment methods (diagnostic, formative, summative)",
+      "Providing constructive and immediate feedback",
+      "Measuring achievement of educational objectives",
+    ]
+  },
+  {
+    id: "professional", title: "Personal and Professional Qualities", icon: "⭐", color: "#ec4899",
+    criteria: [
+      "Professional appearance and punctuality",
+      "Communication skills with students and colleagues",
+      "Commitment to professional development",
+    ]
+  },
+];
+
+const LEVELS = [
+  { value: 4, label: "Excellent", color: "#059669", bg: "#d1fae5" },
+  { value: 3, label: "Very Good", color: "#0284c7", bg: "#dbeafe" },
+  { value: 2, label: "Good",      color: "#d97706", bg: "#fef3c7" },
+  { value: 1, label: "Needs Improvement", color: "#dc2626", bg: "#fee2e2" },
+];
+
+function getPerformanceLevel(pct) {
+  if (pct >= 90) return { label: "Excellent", color: "#059669", bg: "#d1fae5" };
+  if (pct >= 75) return { label: "Very Good", color: "#0284c7", bg: "#dbeafe" };
+  if (pct >= 60) return { label: "Good",      color: "#d97706", bg: "#fef3c7" };
+  return { label: "Needs Improvement", color: "#dc2626", bg: "#fee2e2" };
+}
+
+function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, auth }) {
+  const [view, setView] = useState("list"); // list | create | detail
+  const [selected, setSelected] = useState(null);
+  const [filterTeacher, setFilterTeacher] = useState("all");
+  const emptyScores = {};
+  EVAL_SECTIONS.forEach(s => s.criteria.forEach((_, i) => { emptyScores[s.id + "_" + i] = null; }));
+  const [form, setForm] = useState({
+    teacherId: "", visitDate: new Date().toISOString().split("T")[0],
+    visitType: "Classroom Visit", lessonTopic: "", evaluatorName: auth?.name || "",
+    studentCount: "", scores: {...emptyScores}, observations: "", strengths: "", improvements: ""
+  });
+
+  const isAdmin = userRole === "admin";
+
+  const calcSectionScore = (scores, sectionId, count) => {
+    let total = 0, filled = 0;
+    for (let i = 0; i < count; i++) {
+      const v = scores[sectionId + "_" + i];
+      if (v !== null && v !== undefined) { total += Number(v); filled++; }
+    }
+    return filled === count ? { score: total, max: count * 4, pct: Math.round((total/(count*4))*100) } : null;
+  };
+
+  const calcTotal = (scores) => {
+    let total = 0, max = 0;
+    EVAL_SECTIONS.forEach(s => {
+      s.criteria.forEach((_, i) => {
+        const v = scores[s.id + "_" + i];
+        if (v !== null && v !== undefined) { total += Number(v); max += 4; }
+      });
+    });
+    return max > 0 ? { score: total, max, pct: Math.round((total/max)*100) } : null;
+  };
+
+  const saveEval = () => {
+    const teacher = teachers.find(t => t.id === parseInt(form.teacherId));
+    if (!teacher) return alert("Please select a teacher");
+    const totalMax = EVAL_SECTIONS.reduce((s, sec) => s + sec.criteria.length * 4, 0);
+    let totalScore = 0;
+    Object.values(form.scores).forEach(v => { if (v !== null) totalScore += Number(v); });
+    const pct = Math.round((totalScore / totalMax) * 100);
+    const eval_ = { ...form, id: Date.now(), teacherName: teacher.name, totalScore, totalMax, pct, createdAt: new Date().toISOString() };
+    const updated = [...(evaluations||[]), eval_];
+    setEvaluations(updated);
+    localStorage.setItem("edu_evaluations", JSON.stringify(updated));
+    setView("list"); setForm({ teacherId:"", visitDate: new Date().toISOString().split("T")[0], visitType:"Classroom Visit", lessonTopic:"", evaluatorName: auth?.name||"", studentCount:"", scores:{...emptyScores}, observations:"", strengths:"", improvements:"" });
+  };
+
+  const deleteEval = (id) => {
+    const updated = (evaluations||[]).filter(e => e.id !== id);
+    setEvaluations(updated); localStorage.setItem("edu_evaluations", JSON.stringify(updated));
+    setView("list");
+  };
+
+  const S = { border:"#e2e8f0", primary:"#0d9488", text:"#0f172a", sub:"#64748b" };
+  const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+
+  // ── Detail View ───────────────────────────────────────────────────────────
+  if (view === "detail" && selected) {
+    const ev = (evaluations||[]).find(e => e.id === selected);
+    if (!ev) { setView("list"); return null; }
+    const perf = getPerformanceLevel(ev.pct);
+    return (
+      <div style={{ maxWidth:780, margin:"0 auto" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+          <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:18, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>Teacher Evaluation Report</div>
+            <div style={{ fontSize:12, color:S.sub }}>{ev.teacherName} · {ev.visitDate} · {ev.visitType}</div>
+          </div>
+          {isAdmin && <button onClick={() => deleteEval(ev.id)} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:12, cursor:"pointer" }}>🗑️ Delete</button>}
+        </div>
+
+        {/* Score Banner */}
+        <div style={{ background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:16, padding:24, marginBottom:20, color:"#fff", display:"flex", alignItems:"center", gap:20 }}>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:11, color:"rgba(255,255,255,.5)", fontWeight:600, letterSpacing:1, marginBottom:4 }}>OVERALL PERFORMANCE</div>
+            <div style={{ fontSize:20, fontWeight:800, fontFamily:"'Plus Jakarta Sans',system-ui" }}>{ev.teacherName}</div>
+            <div style={{ fontSize:13, color:"rgba(255,255,255,.5)", marginTop:2 }}>{ev.visitType} · {ev.lessonTopic || "—"} · {ev.studentCount ? ev.studentCount + " students" : ""}</div>
+            <div style={{ fontSize:12, color:"rgba(255,255,255,.4)", marginTop:4 }}>Evaluated by: {ev.evaluatorName}</div>
+          </div>
+          <div style={{ textAlign:"center", background:"rgba(255,255,255,.08)", borderRadius:14, padding:"16px 24px" }}>
+            <div style={{ fontSize:42, fontWeight:800, color:"#5eead4", fontFamily:"'Plus Jakarta Sans',system-ui", lineHeight:1 }}>{ev.pct}%</div>
+            <div style={{ fontSize:11, color:"rgba(255,255,255,.5)", marginTop:4 }}>{ev.totalScore}/{ev.totalMax} pts</div>
+          </div>
+          <div style={{ background:perf.bg, color:perf.color, borderRadius:12, padding:"10px 20px", fontSize:14, fontWeight:800, textAlign:"center" }}>
+            {perf.label}
+          </div>
+        </div>
+
+        {/* Section Scores */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:10, marginBottom:20 }}>
+          {EVAL_SECTIONS.map(sec => {
+            const result = calcSectionScore(ev.scores, sec.id, sec.criteria.length);
+            const perf2 = result ? getPerformanceLevel(result.pct) : null;
+            return (
+              <div key={sec.id} style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:14, textAlign:"center" }}>
+                <div style={{ fontSize:20, marginBottom:6 }}>{sec.icon}</div>
+                <div style={{ fontSize:11, fontWeight:700, color:S.text, marginBottom:4 }}>{sec.title.split(" ").slice(0,2).join(" ")}</div>
+                {result ? (
+                  <>
+                    <div style={{ fontSize:20, fontWeight:800, color:perf2?.color }}>{result.pct}%</div>
+                    <div style={{ fontSize:10, color:S.sub }}>{result.score}/{result.max}</div>
+                  </>
+                ) : <div style={{ fontSize:12, color:"#94a3b8" }}>—</div>}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Detailed Scores */}
+        {EVAL_SECTIONS.map(sec => (
+          <div key={sec.id} style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:14 }}>
+            <div style={{ padding:"12px 18px", background:sec.color, display:"flex", alignItems:"center", gap:10 }}>
+              <span style={{ fontSize:18 }}>{sec.icon}</span>
+              <span style={{ fontSize:14, fontWeight:700, color:"#fff" }}>{sec.title}</span>
+            </div>
+            <table style={{ width:"100%", borderCollapse:"collapse" }}>
+              <thead>
+                <tr style={{ background:"#f8fafc" }}>
+                  <th style={{ padding:"10px 16px", textAlign:"left", fontSize:12, color:S.sub, fontWeight:600, borderBottom:"1px solid #e2e8f0", width:"55%" }}>Indicator</th>
+                  {LEVELS.map(l => <th key={l.value} style={{ padding:"10px 8px", fontSize:11, color:S.sub, fontWeight:600, borderBottom:"1px solid #e2e8f0", textAlign:"center" }}>{l.label}<br/>({l.value})</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {sec.criteria.map((cr, i) => {
+                  const val = ev.scores[sec.id + "_" + i];
+                  return (
+                    <tr key={i} style={{ borderBottom:"1px solid #f1f5f9" }}>
+                      <td style={{ padding:"10px 16px", fontSize:13, color:S.text }}>{cr}</td>
+                      {LEVELS.map(l => (
+                        <td key={l.value} style={{ textAlign:"center", padding:"10px 8px" }}>
+                          {Number(val) === l.value
+                            ? <div style={{ width:24, height:24, borderRadius:"50%", background:l.bg, border:"2px solid "+l.color, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                                <div style={{ width:10, height:10, borderRadius:"50%", background:l.color }} />
+                              </div>
+                            : <div style={{ width:24, height:24, borderRadius:"50%", background:"#f1f5f9", margin:"0 auto" }} />
+                          }
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ))}
+
+        {/* Observations */}
+        {(ev.observations || ev.strengths || ev.improvements) && (
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
+            {ev.strengths && (
+              <div style={{ background:"#f0fdf4", borderRadius:12, border:"1px solid #bbf7d0", padding:16 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:"#166534", marginBottom:8 }}>✨ Strengths</div>
+                <p style={{ fontSize:13, color:"#166534", margin:0, lineHeight:1.6 }}>{ev.strengths}</p>
+              </div>
+            )}
+            {ev.improvements && (
+              <div style={{ background:"#eff6ff", borderRadius:12, border:"1px solid #bfdbfe", padding:16 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:"#1d4ed8", marginBottom:8 }}>📈 Areas for Improvement</div>
+                <p style={{ fontSize:13, color:"#1d4ed8", margin:0, lineHeight:1.6 }}>{ev.improvements}</p>
+              </div>
+            )}
+            {ev.observations && (
+              <div style={{ gridColumn:"1/-1", background:"#fffbeb", borderRadius:12, border:"1px solid #fde68a", padding:16 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:"#854d0e", marginBottom:8 }}>💬 Observations & Recommendations</div>
+                <p style={{ fontSize:13, color:"#78350f", margin:0, lineHeight:1.6 }}>{ev.observations}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Create View ───────────────────────────────────────────────────────────
+  if (view === "create") return (
+    <div style={{ maxWidth:740, margin:"0 auto" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+        <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>⭐ New Teacher Evaluation</div>
+      </div>
+
+      {/* Basic Info */}
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
+        <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:16 }}>📋 Evaluation Information</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Teacher *</label>
+            <select style={inp} value={form.teacherId} onChange={e=>setForm({...form,teacherId:e.target.value})}>
+              <option value="">Select teacher...</option>
+              {(teachers||[]).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Visit Date</label>
+            <input type="date" style={inp} value={form.visitDate} onChange={e=>setForm({...form,visitDate:e.target.value})} />
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Visit Type</label>
+            <select style={inp} value={form.visitType} onChange={e=>setForm({...form,visitType:e.target.value})}>
+              {["Classroom Visit","Follow-up","Final Evaluation"].map(v=><option key={v} value={v}>{v}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Evaluator Name</label>
+            <input style={inp} value={form.evaluatorName} onChange={e=>setForm({...form,evaluatorName:e.target.value})} placeholder="Evaluator name..." />
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Number of Students</label>
+            <input style={inp} type="number" value={form.studentCount} onChange={e=>setForm({...form,studentCount:e.target.value})} placeholder="0" />
+          </div>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Lesson Topic</label>
+            <input style={inp} value={form.lessonTopic} onChange={e=>setForm({...form,lessonTopic:e.target.value})} placeholder="Enter lesson topic..." />
+          </div>
+        </div>
+      </div>
+
+      {/* Evaluation Sections */}
+      {EVAL_SECTIONS.map(sec => (
+        <div key={sec.id} style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:16 }}>
+          <div style={{ padding:"14px 20px", background:sec.color, display:"flex", alignItems:"center", gap:10 }}>
+            <span style={{ fontSize:20 }}>{sec.icon}</span>
+            <span style={{ fontSize:14, fontWeight:700, color:"#fff" }}>{sec.title}</span>
+          </div>
+          <table style={{ width:"100%", borderCollapse:"collapse" }}>
+            <thead>
+              <tr style={{ background:"#f8fafc" }}>
+                <th style={{ padding:"10px 16px", textAlign:"left", fontSize:12, color:S.sub, fontWeight:600, borderBottom:"1px solid #e2e8f0" }}>Indicator</th>
+                {LEVELS.map(l => (
+                  <th key={l.value} style={{ padding:"10px 8px", fontSize:11, color:S.sub, fontWeight:600, borderBottom:"1px solid #e2e8f0", textAlign:"center", width:90 }}>
+                    <div style={{ background:l.bg, color:l.color, borderRadius:6, padding:"3px 6px" }}>{l.label}<br/>({l.value})</div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sec.criteria.map((cr, i) => {
+                const key = sec.id + "_" + i;
+                const val = form.scores[key];
+                return (
+                  <tr key={i} style={{ borderBottom:"1px solid #f1f5f9", background: val ? "#fafffe" : "#fff" }}>
+                    <td style={{ padding:"12px 16px", fontSize:13, color:S.text }}>{cr}</td>
+                    {LEVELS.map(l => (
+                      <td key={l.value} style={{ textAlign:"center", padding:"12px 8px" }}>
+                        <button onClick={() => setForm(f => ({...f, scores:{...f.scores, [key]:l.value}}))} style={{
+                          width:32, height:32, borderRadius:"50%", border:"2px solid " + (Number(val)===l.value ? l.color : "#e2e8f0"),
+                          background: Number(val)===l.value ? l.bg : "#fff",
+                          cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto",
+                        }}>
+                          {Number(val)===l.value && <div style={{ width:12, height:12, borderRadius:"50%", background:l.color }} />}
+                        </button>
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ))}
+
+      {/* Observations */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
+        <div style={{ background:"#f0fdf4", borderRadius:14, border:"1px solid #bbf7d0", padding:20 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:"#166534", marginBottom:10 }}>✨ Strengths</div>
+          <textarea style={{...inp,resize:"vertical",background:"transparent",border:"1px solid #86efac"}} rows={3} value={form.strengths} onChange={e=>setForm({...form,strengths:e.target.value})} placeholder="Teacher's strengths..." />
+        </div>
+        <div style={{ background:"#eff6ff", borderRadius:14, border:"1px solid #bfdbfe", padding:20 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:"#1d4ed8", marginBottom:10 }}>📈 Areas for Improvement</div>
+          <textarea style={{...inp,resize:"vertical",background:"transparent",border:"1px solid #93c5fd"}} rows={3} value={form.improvements} onChange={e=>setForm({...form,improvements:e.target.value})} placeholder="Areas that need development..." />
+        </div>
+        <div style={{ gridColumn:"1/-1", background:"#fffbeb", borderRadius:14, border:"1px solid #fde68a", padding:20 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:"#854d0e", marginBottom:10 }}>💬 Observations & Recommendations</div>
+          <textarea style={{...inp,resize:"vertical",background:"transparent",border:"1px solid #fcd34d"}} rows={3} value={form.observations} onChange={e=>setForm({...form,observations:e.target.value})} placeholder="General observations and recommendations..." />
+        </div>
+      </div>
+
+      <button onClick={saveEval} style={{ width:"100%", padding:"14px 0", borderRadius:12, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 16px rgba(13,148,136,.3)" }}>
+        💾 Save Evaluation
+      </button>
+    </div>
+  );
+
+  // ── List View ─────────────────────────────────────────────────────────────
+  const filtered = filterTeacher === "all" ? (evaluations||[]) : (evaluations||[]).filter(e=>String(e.teacherId)===String(filterTeacher));
+  const sorted = [...filtered].sort((a,b)=>b.createdAt?.localeCompare(a.createdAt||"")||0);
+
+  return (
+    <div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <div>
+          <div style={{ fontSize:20, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>⭐ Teacher Evaluations</div>
+          <div style={{ fontSize:13, color:S.sub, marginTop:2 }}>Performance evaluation records</div>
+        </div>
+        {isAdmin && <button onClick={() => setView("create")} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 12px rgba(13,148,136,.3)" }}>+ New Evaluation</button>}
+      </div>
+
+      {/* Filters */}
+      <div style={{ marginBottom:16 }}>
+        <select style={{...inp, width:"auto", minWidth:200}} value={filterTeacher} onChange={e=>setFilterTeacher(e.target.value)}>
+          <option value="all">All Teachers</option>
+          {(teachers||[]).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+      </div>
+
+      {/* Summary Cards */}
+      {(teachers||[]).length > 0 && (
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
+          {(teachers||[]).slice(0,4).map(t => {
+            const tEvals = (evaluations||[]).filter(e=>String(e.teacherId)===String(t.id));
+            const avgPct = tEvals.length ? Math.round(tEvals.reduce((s,e)=>s+e.pct,0)/tEvals.length) : null;
+            const perf = avgPct !== null ? getPerformanceLevel(avgPct) : null;
+            return (
+              <div key={t.id} style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:16, cursor:"pointer" }} onClick={() => setFilterTeacher(String(t.id))}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#0d9488,#14b8a6)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:13, fontWeight:700 }}>
+                    {t.name.split(" ").map(w=>w[0]).join("").slice(0,2)}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:S.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.name}</div>
+                    <div style={{ fontSize:10, color:S.sub }}>{tEvals.length} evaluation{tEvals.length!==1?"s":""}</div>
+                  </div>
+                </div>
+                {avgPct !== null ? (
+                  <div style={{ background:perf.bg, borderRadius:8, padding:"6px 10px", textAlign:"center" }}>
+                    <div style={{ fontSize:18, fontWeight:800, color:perf.color }}>{avgPct}%</div>
+                    <div style={{ fontSize:10, color:perf.color }}>{perf.label}</div>
+                  </div>
+                ) : <div style={{ fontSize:12, color:"#94a3b8", textAlign:"center", padding:"8px" }}>No evaluations yet</div>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Evaluations List */}
+      {sorted.length === 0 ? (
+        <div style={{ textAlign:"center", padding:60, background:"#fff", borderRadius:14, border:"1px solid #e2e8f0" }}>
+          <div style={{ fontSize:40, marginBottom:12 }}>⭐</div>
+          <div style={{ fontSize:15, fontWeight:700, color:S.text }}>No evaluations yet</div>
+          {isAdmin && <div style={{ fontSize:13, color:S.sub, marginTop:4 }}>Click "New Evaluation" to start</div>}
+        </div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {sorted.map(ev => {
+            const perf = getPerformanceLevel(ev.pct);
+            return (
+              <div key={ev.id} onClick={() => { setSelected(ev.id); setView("detail"); }} style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:"16px 20px", cursor:"pointer", display:"flex", alignItems:"center", gap:16 }}
+                onMouseEnter={e=>e.currentTarget.style.background="#f8fafc"}
+                onMouseLeave={e=>e.currentTarget.style.background="#fff"}>
+                <div style={{ width:44, height:44, borderRadius:12, background:"linear-gradient(135deg,#0d9488,#14b8a6)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:16, fontWeight:700, flexShrink:0 }}>
+                  {ev.teacherName?.split(" ").map(w=>w[0]).join("").slice(0,2)}
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:S.text }}>{ev.teacherName}</div>
+                  <div style={{ fontSize:12, color:S.sub, marginTop:2 }}>{ev.visitType} · {ev.visitDate} {ev.lessonTopic?"· "+ev.lessonTopic:""}</div>
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <div style={{ textAlign:"right" }}>
+                    <div style={{ fontSize:22, fontWeight:800, color:perf.color }}>{ev.pct}%</div>
+                    <div style={{ fontSize:11, color:S.sub }}>{ev.totalScore}/{ev.totalMax} pts</div>
+                  </div>
+                  <div style={{ background:perf.bg, color:perf.color, borderRadius:8, padding:"4px 12px", fontSize:12, fontWeight:700, flexShrink:0 }}>{perf.label}</div>
+                </div>
+                <span style={{ fontSize:16, color:"#94a3b8" }}>›</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Settings ────────────────────────────────────────────────────────────────
 function Settings({ teachers, setTeachers, students, classes, subjects, setSubjects }) {
   const [parentEditId, setParentEditId] = useState(null);
@@ -5500,7 +5939,8 @@ export default function App() {
   const [exams,     setExams]       = useState(() => load("edu_exams",        seedExams(SEED_CLASSES, SEED_SUBJECTS)));
   const [quizzes,     setQuizzes]     = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quizzes")||"[]"); } catch{return[];} });
   const [quizResults, setQuizResults] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quiz_results")||"[]"); } catch{return[];} });
-  const [lessonPlans, setLessonPlans] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_lesson_plans")||"[]"); } catch{return[];} });
+  const [lessonPlans,  setLessonPlans]  = useState(() => { try { return JSON.parse(localStorage.getItem("edu_lesson_plans")||"[]");  } catch{return[];} });
+  const [evaluations,  setEvaluations]  = useState(() => { try { return JSON.parse(localStorage.getItem("edu_evaluations")||"[]");  } catch{return[];} });
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
 
   useEffect(() => { save("edu_students", students); }, [students]);
@@ -5523,7 +5963,8 @@ export default function App() {
     timetable:  { title: "Timetable",  sub: "Weekly schedule for each class" },
     messages:   { title: "Messages",    sub: "Communicate with parents & guardians" },
     quizzes:    { title: "Quizzes",     sub: "Create and manage quizzes" },
-    lessonplans: { title: "Lesson Plans", sub: "Weekly lesson planning for teachers" },
+    lessonplans:  { title: "Lesson Plans",  sub: "Weekly lesson planning for teachers" },
+    evaluations:  { title: "Evaluations",   sub: "Teacher performance evaluation" },
     exams:      { title: "Exams",       sub: "Schedule exams & record results" },
     teachers:   { title: "Teachers",    sub: "Manage teaching staff & assignments" },
     settings:   { title: "Settings",    sub: "Manage accounts & access" },
@@ -5829,7 +6270,8 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
           {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
-          {page === "lessonplans" && <LessonPlans classes={classes} subjects={subjects} lessonPlans={lessonPlans} setLessonPlans={setLessonPlans} teacherClassIds={teacherClassIds} userRole={userRole} auth={auth} teachers={teachers} />}
+          {page === "lessonplans"  && <LessonPlans classes={classes} subjects={subjects} lessonPlans={lessonPlans} setLessonPlans={setLessonPlans} teacherClassIds={teacherClassIds} userRole={userRole} auth={auth} teachers={teachers} />}
+          {page === "evaluations"  && <TeacherEvaluations teachers={teachers} evaluations={evaluations} setEvaluations={setEvaluations} userRole={userRole} auth={auth} />}
         </div>
       </div>
     </div>
