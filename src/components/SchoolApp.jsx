@@ -371,6 +371,7 @@ const NAV = [
   { id: "quizzes",    icon: "📝", label: "Quizzes"    },
   { id: "lessonplans",   icon: "📚", label: "Lesson Plans" },
   { id: "evaluations",   icon: "⭐", label: "Evaluations"  },
+  { id: "quran",          icon: "🕌", label: "Quran"         },
   { id: "settings",   icon: "⚙️", label: "Settings"   },
 ];
 
@@ -5018,6 +5019,365 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
 }
 
 
+
+// ─── Quran Data ───────────────────────────────────────────────────────────────
+const SURAHS = [
+  {id:1,name:"Al-Fatihah",arabic:"الفاتحة",verses:7,pages:1},{id:2,name:"Al-Baqarah",arabic:"البقرة",verses:286,pages:49},
+  {id:3,name:"Ali 'Imran",arabic:"آل عمران",verses:200,pages:20},{id:4,name:"An-Nisa",arabic:"النساء",verses:176,pages:24},
+  {id:5,name:"Al-Ma'idah",arabic:"المائدة",verses:120,pages:16},{id:6,name:"Al-An'am",arabic:"الأنعام",verses:165,pages:21},
+  {id:7,name:"Al-A'raf",arabic:"الأعراف",verses:206,pages:24},{id:8,name:"Al-Anfal",arabic:"الأنفال",verses:75,pages:9},
+  {id:9,name:"At-Tawbah",arabic:"التوبة",verses:129,pages:16},{id:10,name:"Yunus",arabic:"يونس",verses:109,pages:11},
+  {id:11,name:"Hud",arabic:"هود",verses:123,pages:10},{id:12,name:"Yusuf",arabic:"يوسف",verses:111,pages:12},
+  {id:13,name:"Ar-Ra'd",arabic:"الرعد",verses:43,pages:6},{id:14,name:"Ibrahim",arabic:"إبراهيم",verses:52,pages:6},
+  {id:15,name:"Al-Hijr",arabic:"الحجر",verses:99,pages:6},{id:16,name:"An-Nahl",arabic:"النحل",verses:128,pages:13},
+  {id:17,name:"Al-Isra",arabic:"الإسراء",verses:111,pages:12},{id:18,name:"Al-Kahf",arabic:"الكهف",verses:110,pages:12},
+  {id:19,name:"Maryam",arabic:"مريم",verses:98,pages:6},{id:20,name:"Ta-Ha",arabic:"طه",verses:135,pages:8},
+  {id:21,name:"Al-Anbiya",arabic:"الأنبياء",verses:112,pages:7},{id:22,name:"Al-Hajj",arabic:"الحج",verses:78,pages:10},
+  {id:23,name:"Al-Mu'minun",arabic:"المؤمنون",verses:118,pages:7},{id:24,name:"An-Nur",arabic:"النور",verses:64,pages:9},
+  {id:25,name:"Al-Furqan",arabic:"الفرقان",verses:77,pages:6},{id:26,name:"Ash-Shu'ara",arabic:"الشعراء",verses:227,pages:11},
+  {id:27,name:"An-Naml",arabic:"النمل",verses:93,pages:8},{id:28,name:"Al-Qasas",arabic:"القصص",verses:88,pages:9},
+  {id:29,name:"Al-'Ankabut",arabic:"العنكبوت",verses:69,pages:7},{id:30,name:"Ar-Rum",arabic:"الروم",verses:60,pages:6},
+  {id:31,name:"Luqman",arabic:"لقمان",verses:34,pages:4},{id:32,name:"As-Sajdah",arabic:"السجدة",verses:30,pages:3},
+  {id:33,name:"Al-Ahzab",arabic:"الأحزاب",verses:73,pages:9},{id:34,name:"Saba",arabic:"سبأ",verses:54,pages:6},
+  {id:35,name:"Fatir",arabic:"فاطر",verses:45,pages:5},{id:36,name:"Ya-Sin",arabic:"يس",verses:83,pages:4},
+  {id:37,name:"As-Saffat",arabic:"الصافات",verses:182,pages:7},{id:38,name:"Sad",arabic:"ص",verses:88,pages:5},
+  {id:39,name:"Az-Zumar",arabic:"الزمر",verses:75,pages:8},{id:40,name:"Ghafir",arabic:"غافر",verses:85,pages:9},
+  {id:41,name:"Fussilat",arabic:"فصلت",verses:54,pages:8},{id:42,name:"Ash-Shuraa",arabic:"الشورى",verses:53,pages:5},
+  {id:43,name:"Az-Zukhruf",arabic:"الزخرف",verses:89,pages:7},{id:44,name:"Ad-Dukhan",arabic:"الدخان",verses:59,pages:3},
+  {id:45,name:"Al-Jathiyah",arabic:"الجاثية",verses:37,pages:4},{id:46,name:"Al-Ahqaf",arabic:"الأحقاف",verses:35,pages:4},
+  {id:47,name:"Muhammad",arabic:"محمد",verses:38,pages:4},{id:48,name:"Al-Fath",arabic:"الفتح",verses:29,pages:4},
+  {id:49,name:"Al-Hujurat",arabic:"الحجرات",verses:18,pages:2},{id:50,name:"Qaf",arabic:"ق",verses:45,pages:3},
+  {id:51,name:"Adh-Dhariyat",arabic:"الذاريات",verses:60,pages:3},{id:52,name:"At-Tur",arabic:"الطور",verses:49,pages:3},
+  {id:53,name:"An-Najm",arabic:"النجم",verses:62,pages:3},{id:54,name:"Al-Qamar",arabic:"القمر",verses:55,pages:3},
+  {id:55,name:"Ar-Rahman",arabic:"الرحمن",verses:78,pages:3},{id:56,name:"Al-Waqi'ah",arabic:"الواقعة",verses:96,pages:3},
+  {id:57,name:"Al-Hadid",arabic:"الحديد",verses:29,pages:5},{id:58,name:"Al-Mujadila",arabic:"المجادلة",verses:22,pages:3},
+  {id:59,name:"Al-Hashr",arabic:"الحشر",verses:24,pages:3},{id:60,name:"Al-Mumtahanah",arabic:"الممتحنة",verses:13,pages:3},
+  {id:61,name:"As-Saf",arabic:"الصف",verses:14,pages:2},{id:62,name:"Al-Jumu'ah",arabic:"الجمعة",verses:11,pages:2},
+  {id:63,name:"Al-Munafiqun",arabic:"المنافقون",verses:11,pages:2},{id:64,name:"At-Taghabun",arabic:"التغابن",verses:18,pages:2},
+  {id:65,name:"At-Talaq",arabic:"الطلاق",verses:12,pages:2},{id:66,name:"At-Tahrim",arabic:"التحريم",verses:12,pages:2},
+  {id:67,name:"Al-Mulk",arabic:"الملك",verses:30,pages:2},{id:68,name:"Al-Qalam",arabic:"القلم",verses:52,pages:2},
+  {id:69,name:"Al-Haqqah",arabic:"الحاقة",verses:52,pages:2},{id:70,name:"Al-Ma'arij",arabic:"المعارج",verses:44,pages:2},
+  {id:71,name:"Nuh",arabic:"نوح",verses:28,pages:2},{id:72,name:"Al-Jinn",arabic:"الجن",verses:28,pages:2},
+  {id:73,name:"Al-Muzzammil",arabic:"المزمل",verses:20,pages:1},{id:74,name:"Al-Muddaththir",arabic:"المدثر",verses:56,pages:2},
+  {id:75,name:"Al-Qiyamah",arabic:"القيامة",verses:40,pages:1},{id:76,name:"Al-Insan",arabic:"الإنسان",verses:31,pages:2},
+  {id:77,name:"Al-Mursalat",arabic:"المرسلات",verses:50,pages:1},{id:78,name:"An-Naba",arabic:"النبأ",verses:40,pages:1},
+  {id:79,name:"An-Nazi'at",arabic:"النازعات",verses:46,pages:1},{id:80,name:"'Abasa",arabic:"عبس",verses:42,pages:1},
+  {id:81,name:"At-Takwir",arabic:"التكوير",verses:29,pages:1},{id:82,name:"Al-Infitar",arabic:"الانفطار",verses:19,pages:1},
+  {id:83,name:"Al-Mutaffifin",arabic:"المطففين",verses:36,pages:1},{id:84,name:"Al-Inshiqaq",arabic:"الانشقاق",verses:25,pages:1},
+  {id:85,name:"Al-Buruj",arabic:"البروج",verses:22,pages:1},{id:86,name:"At-Tariq",arabic:"الطارق",verses:17,pages:1},
+  {id:87,name:"Al-A'la",arabic:"الأعلى",verses:19,pages:1},{id:88,name:"Al-Ghashiyah",arabic:"الغاشية",verses:26,pages:1},
+  {id:89,name:"Al-Fajr",arabic:"الفجر",verses:30,pages:1},{id:90,name:"Al-Balad",arabic:"البلد",verses:20,pages:1},
+  {id:91,name:"Ash-Shams",arabic:"الشمس",verses:15,pages:1},{id:92,name:"Al-Layl",arabic:"الليل",verses:21,pages:1},
+  {id:93,name:"Ad-Duhaa",arabic:"الضحى",verses:11,pages:1},{id:94,name:"Ash-Sharh",arabic:"الشرح",verses:8,pages:1},
+  {id:95,name:"At-Tin",arabic:"التين",verses:8,pages:1},{id:96,name:"Al-'Alaq",arabic:"العلق",verses:19,pages:1},
+  {id:97,name:"Al-Qadr",arabic:"القدر",verses:5,pages:1},{id:98,name:"Al-Bayyinah",arabic:"البينة",verses:8,pages:1},
+  {id:99,name:"Az-Zalzalah",arabic:"الزلزلة",verses:8,pages:1},{id:100,name:"Al-'Adiyat",arabic:"العاديات",verses:11,pages:1},
+  {id:101,name:"Al-Qari'ah",arabic:"القارعة",verses:11,pages:1},{id:102,name:"At-Takathur",arabic:"التكاثر",verses:8,pages:1},
+  {id:103,name:"Al-'Asr",arabic:"العصر",verses:3,pages:1},{id:104,name:"Al-Humazah",arabic:"الهمزة",verses:9,pages:1},
+  {id:105,name:"Al-Fil",arabic:"الفيل",verses:5,pages:1},{id:106,name:"Quraysh",arabic:"قريش",verses:4,pages:1},
+  {id:107,name:"Al-Ma'un",arabic:"الماعون",verses:7,pages:1},{id:108,name:"Al-Kawthar",arabic:"الكوثر",verses:3,pages:1},
+  {id:109,name:"Al-Kafirun",arabic:"الكافرون",verses:6,pages:1},{id:110,name:"An-Nasr",arabic:"النصر",verses:3,pages:1},
+  {id:111,name:"Al-Masad",arabic:"المسد",verses:5,pages:1},{id:112,name:"Al-Ikhlas",arabic:"الإخلاص",verses:4,pages:1},
+  {id:113,name:"Al-Falaq",arabic:"الفلق",verses:5,pages:1},{id:114,name:"An-Nas",arabic:"الناس",verses:6,pages:1},
+];
+
+const RECITERS = [
+  { id: "ar.alafasy",       name: "Mishary Alafasy",    arabic: "مشاري العفاسي" },
+  { id: "ar.abdurrahmaansudais", name: "Abdurrahman As-Sudais", arabic: "عبد الرحمن السديس" },
+  { id: "ar.husary",        name: "Mahmoud Khalil Al-Husary", arabic: "محمود خليل الحصري" },
+  { id: "ar.minshawi",      name: "Mohamed Siddiq Al-Minshawi", arabic: "محمد صديق المنشاوي" },
+];
+
+const MEMORIZATION_LEVELS = [
+  { value: "excellent", label: "Excellent", arabic: "ممتاز", color: "#059669", bg: "#d1fae5", icon: "🌟" },
+  { value: "good",      label: "Good",      arabic: "جيد",   color: "#0284c7", bg: "#dbeafe", icon: "✅" },
+  { value: "average",   label: "Average",   arabic: "متوسط", color: "#d97706", bg: "#fef3c7", icon: "📖" },
+  { value: "weak",      label: "Weak",      arabic: "ضعيف",  color: "#dc2626", bg: "#fee2e2", icon: "⚠️" },
+];
+
+function QuranProgram({ students, classes, quranRecords, setQuranRecords, teacherClassIds, userRole, auth }) {
+  const [view, setView] = useState("dashboard"); // dashboard | record | player | student
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [filterClass, setFilterClass] = useState("all");
+  const [reciter, setReciter] = useState("ar.alafasy");
+  const [selectedSurah, setSelectedSurah] = useState(1);
+  const [audio, setAudio] = useState(null);
+  const [playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ studentId:"", surahId:1, fromPage:1, toPage:1, level:"good", notes:"", date: new Date().toISOString().split("T")[0] });
+
+  const visibleClasses = (userRole === "admin" || !teacherClassIds || teacherClassIds.length === 0)
+    ? (classes||[]) : (classes||[]).filter(c => (teacherClassIds||[]).includes(c.id));
+  const visibleStudents = (students||[]).filter(s => filterClass === "all" || String(s.classId) === String(filterClass));
+
+  const getStudentRecord = (studentId) => (quranRecords||[]).filter(r => r.studentId === studentId).sort((a,b)=>b.date?.localeCompare(a.date||"")||0);
+  const getLatestRecord = (studentId) => getStudentRecord(studentId)[0] || null;
+
+  const saveRecord = () => {
+    if (!form.studentId) return alert("Please select a student");
+    const surah = SURAHS.find(s => s.id === Number(form.surahId));
+    const rec = { ...form, id: Date.now(), surahName: surah?.name, surahArabic: surah?.arabic, createdAt: new Date().toISOString() };
+    const updated = [...(quranRecords||[]), rec];
+    setQuranRecords(updated);
+    localStorage.setItem("edu_quran_records", JSON.stringify(updated));
+    setView("dashboard");
+    setForm({ studentId:"", surahId:1, fromPage:1, toPage:1, level:"good", notes:"", date: new Date().toISOString().split("T")[0] });
+  };
+
+  const playAudio = async (surahId) => {
+    if (audio) { audio.pause(); setAudio(null); setPlaying(false); }
+    setLoading(true);
+    try {
+      const url = "https://cdn.islamic.network/quran/audio-surah/128/" + reciter + "/" + surahId + ".mp3";
+      const a = new Audio(url);
+      a.onended = () => setPlaying(false);
+      a.oncanplay = () => setLoading(false);
+      a.onerror = () => { setLoading(false); alert("Audio not available for this reciter/surah."); };
+      await a.play();
+      setAudio(a); setPlaying(true);
+    } catch { setLoading(false); }
+  };
+
+  const stopAudio = () => { if (audio) { audio.pause(); audio.currentTime = 0; setAudio(null); setPlaying(false); } };
+
+  const S = { border:"#e2e8f0", primary:"#0d9488", text:"#0f172a", sub:"#64748b" };
+  const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+
+  // ── Record View ───────────────────────────────────────────────────────────
+  if (view === "record") return (
+    <div style={{ maxWidth:600, margin:"0 auto" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+        <button onClick={() => setView("dashboard")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>📝 Record Memorization Session</div>
+      </div>
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Student *</label>
+            <select style={inp} value={form.studentId} onChange={e=>setForm({...form,studentId:e.target.value})}>
+              <option value="">Select student...</option>
+              {visibleStudents.map(s=><option key={s.id} value={s.id}>{s.name} — {(classes.find(c=>c.id===s.classId)||{}).name||""}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Date</label>
+            <input type="date" style={inp} value={form.date} onChange={e=>setForm({...form,date:e.target.value})} />
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Surah</label>
+            <select style={inp} value={form.surahId} onChange={e=>setForm({...form,surahId:Number(e.target.value)})}>
+              {SURAHS.map(s=><option key={s.id} value={s.id}>{s.id}. {s.name} ({s.arabic})</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>From Page</label>
+            <input type="number" style={inp} min={1} max={604} value={form.fromPage} onChange={e=>setForm({...form,fromPage:Number(e.target.value)})} />
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>To Page</label>
+            <input type="number" style={inp} min={1} max={604} value={form.toPage} onChange={e=>setForm({...form,toPage:Number(e.target.value)})} />
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Memorization Level</label>
+            <select style={inp} value={form.level} onChange={e=>setForm({...form,level:e.target.value})}>
+              {MEMORIZATION_LEVELS.map(l=><option key={l.value} value={l.value}>{l.icon} {l.label}</option>)}
+            </select>
+          </div>
+          <div style={{ gridColumn:"1/-1" }}>
+            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Notes</label>
+            <textarea style={{...inp,resize:"vertical"}} rows={3} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Teacher notes..." />
+          </div>
+        </div>
+        <button onClick={saveRecord} style={{ width:"100%", padding:"13px 0", borderRadius:12, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+          💾 Save Record
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── Player View ───────────────────────────────────────────────────────────
+  if (view === "player") return (
+    <div style={{ maxWidth:700, margin:"0 auto" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+        <button onClick={() => { stopAudio(); setView("dashboard"); }} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>🎧 Quran Player</div>
+      </div>
+
+      {/* Reciter Selector */}
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20, marginBottom:16 }}>
+        <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>🎤 Select Reciter</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+          {RECITERS.map(r => (
+            <button key={r.id} onClick={() => { setReciter(r.id); stopAudio(); }} style={{ padding:"10px 14px", borderRadius:10, border:"2px solid " + (reciter===r.id?"#0d9488":"#e2e8f0"), background: reciter===r.id?"#f0fdf9":"#fff", cursor:"pointer", textAlign:"left", fontFamily:"inherit" }}>
+              <div style={{ fontSize:13, fontWeight:700, color: reciter===r.id?"#0d9488":S.text }}>{r.name}</div>
+              <div style={{ fontSize:11, color:S.sub, marginTop:2 }}>{r.arabic}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Surah Selector */}
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20, marginBottom:16 }}>
+        <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>📖 Select Surah</div>
+        <select style={inp} value={selectedSurah} onChange={e=>{ setSelectedSurah(Number(e.target.value)); stopAudio(); }}>
+          {SURAHS.map(s=><option key={s.id} value={s.id}>{s.id}. {s.name} — {s.arabic} ({s.verses} verses)</option>)}
+        </select>
+      </div>
+
+      {/* Player */}
+      <div style={{ background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:16, padding:32, textAlign:"center", color:"#fff" }}>
+        <div style={{ fontSize:28, fontWeight:800, fontFamily:"'Scheherazade New','Traditional Arabic',serif", marginBottom:8, lineHeight:1.4 }}>
+          {SURAHS.find(s=>s.id===selectedSurah)?.arabic}
+        </div>
+        <div style={{ fontSize:16, fontWeight:600, color:"#5eead4", marginBottom:4 }}>{SURAHS.find(s=>s.id===selectedSurah)?.name}</div>
+        <div style={{ fontSize:12, color:"rgba(255,255,255,.4)", marginBottom:28 }}>{SURAHS.find(s=>s.id===selectedSurah)?.verses} verses · Recited by {RECITERS.find(r=>r.id===reciter)?.name}</div>
+        <div style={{ display:"flex", gap:16, justifyContent:"center", alignItems:"center" }}>
+          {playing ? (
+            <button onClick={stopAudio} style={{ width:64, height:64, borderRadius:"50%", border:"none", background:"#ef4444", color:"#fff", fontSize:24, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>⏹</button>
+          ) : (
+            <button onClick={() => playAudio(selectedSurah)} disabled={loading} style={{ width:64, height:64, borderRadius:"50%", border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:24, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 8px 24px rgba(13,148,136,.4)", opacity:loading?0.7:1 }}>
+              {loading?"⏳":"▶"}
+            </button>
+          )}
+        </div>
+        {playing && (
+          <div style={{ marginTop:20, display:"flex", justifyContent:"center", gap:4 }}>
+            {[1,2,3,4,5].map(i=>(
+              <div key={i} style={{ width:4, borderRadius:2, background:"#5eead4", animation:"wave 1s ease-in-out infinite", animationDelay: i*0.1+"s", height: Math.random()*20+10 }} />
+            ))}
+          </div>
+        )}
+        <style>{"@keyframes wave { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(2)} }"}</style>
+      </div>
+    </div>
+  );
+
+  // ── Student Detail View ───────────────────────────────────────────────────
+  if (view === "student" && selectedStudent) {
+    const student = students.find(s=>s.id===selectedStudent);
+    const records = getStudentRecord(selectedStudent);
+    const cls = classes.find(c=>c.id===student?.classId);
+    return (
+      <div style={{ maxWidth:700, margin:"0 auto" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+          <button onClick={() => setView("dashboard")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:18, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>{student?.name}</div>
+            <div style={{ fontSize:12, color:S.sub }}>{cls?.name} · {records.length} session{records.length!==1?"s":""}</div>
+          </div>
+          <button onClick={() => { setForm({...form, studentId:String(selectedStudent)}); setView("record"); }} style={{ padding:"9px 18px", borderRadius:9, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ Add Session</button>
+        </div>
+
+        {records.length === 0 ? (
+          <div style={{ textAlign:"center", padding:60, background:"#fff", borderRadius:14, border:"1px solid #e2e8f0" }}>
+            <div style={{ fontSize:40, marginBottom:12 }}>📖</div>
+            <div style={{ fontSize:15, color:S.sub }}>No memorization sessions recorded yet</div>
+          </div>
+        ) : records.map(r => {
+          const level = MEMORIZATION_LEVELS.find(l=>l.value===r.level) || MEMORIZATION_LEVELS[1];
+          const surah = SURAHS.find(s=>s.id===Number(r.surahId));
+          return (
+            <div key={r.id} style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:"16px 20px", marginBottom:10 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:18, fontWeight:700, color:"#1e293b", fontFamily:"'Scheherazade New','Traditional Arabic',serif" }}>{surah?.arabic || r.surahArabic}</div>
+                  <div style={{ fontSize:13, fontWeight:600, color:S.text }}>{surah?.name || r.surahName}</div>
+                  <div style={{ fontSize:12, color:S.sub, marginTop:4 }}>Pages {r.fromPage} – {r.toPage} · {r.date}</div>
+                  {r.notes && <div style={{ fontSize:12, color:S.sub, marginTop:6, fontStyle:"italic" }}>"{r.notes}"</div>}
+                </div>
+                <div style={{ background:level.bg, color:level.color, borderRadius:10, padding:"6px 14px", fontSize:13, fontWeight:700, flexShrink:0 }}>
+                  {level.icon} {level.label}
+                </div>
+              </div>
+              <div style={{ marginTop:10, background:"#f0fdf9", borderRadius:8, padding:"6px 12px", display:"inline-flex", alignItems:"center", gap:8, cursor:"pointer" }} onClick={() => { setSelectedSurah(Number(r.surahId)); setView("player"); }}>
+                <span style={{ fontSize:14 }}>🎧</span>
+                <span style={{ fontSize:12, color:"#0d9488", fontWeight:600 }}>Listen to {surah?.name}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <div>
+          <div style={{ fontSize:20, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>🕌 Quran Program</div>
+          <div style={{ fontSize:13, color:S.sub, marginTop:2 }}>Memorization tracking & recitation</div>
+        </div>
+        <div style={{ display:"flex", gap:8 }}>
+          <button onClick={() => setView("player")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:6 }}>🎧 Quran Player</button>
+          <button onClick={() => setView("record")} style={{ padding:"9px 18px", borderRadius:9, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 12px rgba(13,148,136,.3)" }}>+ Record Session</button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
+        {[
+          { icon:"👥", label:"Total Students", value: visibleStudents.length, color:"#0f172a", dark:true },
+          { icon:"📖", label:"Total Sessions", value: (quranRecords||[]).length, color:"#0d9488" },
+          { icon:"🌟", label:"Excellent", value: (quranRecords||[]).filter(r=>r.level==="excellent").length, color:"#059669" },
+          { icon:"⚠️", label:"Need Support", value: (quranRecords||[]).filter(r=>r.level==="weak").length, color:"#dc2626" },
+        ].map((s,i)=>(
+          <div key={i} style={{ background: s.dark?"linear-gradient(135deg,#0f172a,#1e293b)":"#fff", borderRadius:14, border: s.dark?"none":"1px solid #e2e8f0", padding:"18px 20px", boxShadow: s.dark?"0 4px 16px rgba(0,0,0,.15)":"none" }}>
+            <div style={{ fontSize:22, marginBottom:8 }}>{s.icon}</div>
+            <div style={{ fontSize:26, fontWeight:800, color: s.dark?"#fff":s.color, fontFamily:"'Plus Jakarta Sans',system-ui" }}>{s.value}</div>
+            <div style={{ fontSize:12, color: s.dark?"rgba(255,255,255,.5)":"#94a3b8", marginTop:4 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter */}
+      <div style={{ marginBottom:16 }}>
+        <select style={{...inp, width:"auto", minWidth:200}} value={filterClass} onChange={e=>setFilterClass(e.target.value)}>
+          <option value="all">All Classes</option>
+          {visibleClasses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+      </div>
+
+      {/* Students Grid */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
+        {visibleStudents.map(student => {
+          const latest = getLatestRecord(student.id);
+          const sessions = getStudentRecord(student.id);
+          const level = latest ? MEMORIZATION_LEVELS.find(l=>l.value===latest.level) : null;
+          const surah = latest ? SURAHS.find(s=>s.id===Number(latest.surahId)) : null;
+          return (
+            <div key={student.id} onClick={() => { setSelectedStudent(student.id); setView("student"); }} style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:16, cursor:"pointer", transition:"all .15s" }}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 4px 12px rgba(0,0,0,.08)";}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+                <div style={{ width:40, height:40, borderRadius:12, background:"linear-gradient(135deg,#0d9488,#14b8a6)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:14, fontWeight:700, flexShrink:0 }}>
+                  {student.name.split(" ").map(w=>w[0]).join("").slice(0,2)}
+                </div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:S.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{student.name}</div>
+                  <div style={{ fontSize:10, color:S.sub }}>{sessions.length} session{sessions.length!==1?"s":""}</div>
+                </div>
+              </div>
+              {latest ? (
+                <div>
+                  <div style={{ fontSize:16, fontWeight:700, color:"#1e293b", fontFamily:"'Scheherazade New','Traditional Arabic',serif", marginBottom:2 }}>{surah?.arabic}</div>
+                  <div style={{ fontSize:11, color:S.sub, marginBottom:8 }}>Pages {latest.fromPage}–{latest.toPage} · {latest.date}</div>
+                  <div style={{ background:level?.bg, color:level?.color, borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:700, display:"inline-block" }}>
+                    {level?.icon} {level?.label}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ textAlign:"center", padding:"12px 0", color:"#cbd5e1", fontSize:12 }}>No sessions yet</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── TeacherEvaluations ───────────────────────────────────────────────────────
 const EVAL_SECTIONS = [
   {
@@ -5913,7 +6273,7 @@ export default function App() {
   const teacherName    = auth?.name    || "";
 
   // ─── Teacher: pages allowed ───────────────────────────────────────────────
-  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes", "lessonplans"];
+  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes", "lessonplans", "quran"];
   const PARENT_PAGES  = ["dashboard"];
   const STUDENT_PAGES = ["dashboard"];
 
@@ -5941,6 +6301,7 @@ export default function App() {
   const [quizResults, setQuizResults] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quiz_results")||"[]"); } catch{return[];} });
   const [lessonPlans,  setLessonPlans]  = useState(() => { try { return JSON.parse(localStorage.getItem("edu_lesson_plans")||"[]");  } catch{return[];} });
   const [evaluations,  setEvaluations]  = useState(() => { try { return JSON.parse(localStorage.getItem("edu_evaluations")||"[]");  } catch{return[];} });
+  const [quranRecords, setQuranRecords] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quran_records")||"[]"); } catch{return[];} });
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
 
   useEffect(() => { save("edu_students", students); }, [students]);
@@ -5965,6 +6326,7 @@ export default function App() {
     quizzes:    { title: "Quizzes",     sub: "Create and manage quizzes" },
     lessonplans:  { title: "Lesson Plans",  sub: "Weekly lesson planning for teachers" },
     evaluations:  { title: "Evaluations",   sub: "Teacher performance evaluation" },
+    quran:        { title: "Quran Program",  sub: "Quran memorization tracking & recitation" },
     exams:      { title: "Exams",       sub: "Schedule exams & record results" },
     teachers:   { title: "Teachers",    sub: "Manage teaching staff & assignments" },
     settings:   { title: "Settings",    sub: "Manage accounts & access" },
@@ -6272,6 +6634,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
           {page === "lessonplans"  && <LessonPlans classes={classes} subjects={subjects} lessonPlans={lessonPlans} setLessonPlans={setLessonPlans} teacherClassIds={teacherClassIds} userRole={userRole} auth={auth} teachers={teachers} />}
           {page === "evaluations"  && <TeacherEvaluations teachers={teachers} evaluations={evaluations} setEvaluations={setEvaluations} userRole={userRole} auth={auth} />}
+          {page === "quran"         && <QuranProgram students={students} classes={classes} quranRecords={quranRecords} setQuranRecords={setQuranRecords} teacherClassIds={teacherClassIds} userRole={userRole} />}
         </div>
       </div>
     </div>
