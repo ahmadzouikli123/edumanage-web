@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5095,25 +5095,69 @@ const MEMORIZATION_LEVELS = [
   { value: "weak",      label: "Weak",      arabic: "ضعيف",  color: "#dc2626", bg: "#fee2e2", icon: "⚠️" },
 ];
 
-// â”€â”€ QuranPageText Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function QuranPageText({ page }) {
-  const [ayahs, setAyahs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+// â”€â”€ QuranPageText Component (synchronized player) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setExternalAudio }) {
+  const [ayahs,          setAyahs]          = useState([]);
+  const [loading,        setLoading]        = useState(true);
+  const [error,          setError]          = useState(false);
+  const [currentAyah,   setCurrentAyah]    = useState(null);
+  const [pageAudio,      setPageAudio]      = useState(null);
+  const [pageAudioIdx,   setPageAudioIdx]   = useState(0);
+  const [pageAudioPlay,  setPageAudioPlay]  = useState(false);
+  const ayahRefs = useRef({});
 
   useEffect(() => {
-    setLoading(true);
-    setError(false);
+    setLoading(true); setError(false);
+    setCurrentAyah(null); stopPageAudio();
     fetch(`https://api.alquran.cloud/v1/page/${page}/quran-uthmani`)
       .then(r => r.json())
       .then(data => {
-        if (data.code === 200) {
-          setAyahs(data.data.ayahs || []);
-        } else { setError(true); }
+        if (data.code === 200) setAyahs(data.data.ayahs || []);
+        else setError(true);
         setLoading(false);
       })
       .catch(() => { setError(true); setLoading(false); });
   }, [page]);
+
+  // scroll to highlighted ayah
+  useEffect(() => {
+    if (currentAyah !== null && ayahRefs.current[currentAyah]) {
+      ayahRefs.current[currentAyah].scrollIntoView({ behavior:"smooth", block:"center" });
+    }
+  }, [currentAyah]);
+
+  const stopPageAudio = () => {
+    if (pageAudio) { pageAudio.pause(); pageAudio.src = ""; }
+    setPageAudio(null); setPageAudioPlay(false); setCurrentAyah(null);
+  };
+
+  const playFromIndex = (idx, ayahList) => {
+    if (idx >= ayahList.length) {
+      setPageAudioPlay(false); setCurrentAyah(null); return;
+    }
+    const ayah   = ayahList[idx];
+    const num    = ayah.number;
+    const recId  = reciter || "ar.alafasy";
+    const url    = `https://cdn.islamic.network/quran/audio/128/${recId}/${num}.mp3`;
+    const a      = new Audio(url);
+    setCurrentAyah(num);
+    setPageAudioIdx(idx);
+    setPageAudio(a);
+    a.onended  = () => playFromIndex(idx + 1, ayahList);
+    a.onerror  = () => playFromIndex(idx + 1, ayahList);
+    a.play().catch(() => playFromIndex(idx + 1, ayahList));
+  };
+
+  const togglePagePlay = () => {
+    if (pageAudioPlay) {
+      stopPageAudio();
+    } else {
+      // stop any surah-level audio
+      if (externalAudio) { externalAudio.pause(); setExternalAudio(null); setPlaying(false); }
+      setPageAudioPlay(true);
+      playFromIndex(0, ayahs);
+    }
+  };
 
   if (loading) return (
     <div style={{ display:"flex", justifyContent:"center", alignItems:"center", height:400 }}>
@@ -5130,61 +5174,90 @@ function QuranPageText({ page }) {
     </div>
   );
 
-  // Group ayahs by surah for rendering
   const surahGroups = [];
-  let currentSurah = null;
+  let cur = null;
   ayahs.forEach(a => {
-    if (!currentSurah || currentSurah.number !== a.surah.number) {
-      currentSurah = { number: a.surah.number, name: a.surah.name, englishName: a.surah.englishName, ayahs: [] };
-      surahGroups.push(currentSurah);
+    if (!cur || cur.number !== a.surah.number) {
+      cur = { number: a.surah.number, name: a.surah.name, englishName: a.surah.englishName, ayahs: [] };
+      surahGroups.push(cur);
     }
-    currentSurah.ayahs.push(a);
+    cur.ayahs.push(a);
   });
 
   return (
-    <div style={{ direction:"rtl", fontFamily:"'Scheherazade New','Traditional Arabic','Amiri',serif" }}>
-      {/* Page number badge */}
+    <div>
+      {/* Page play button */}
+      <div style={{ display:"flex", justifyContent:"center", marginBottom:12 }}>
+        <button
+          onClick={togglePagePlay}
+          style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 20px", borderRadius:20, border:"none", background: pageAudioPlay?"#ef4444":"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 12px rgba(13,148,136,.3)" }}>
+          {pageAudioPlay ? "â¹ Stop" : "\u25b6 Play Page"}
+        </button>
+        {pageAudioPlay && (
+          <div style={{ display:"flex", alignItems:"center", gap:3, marginRight:12 }}>
+            {[8,14,20,14,8].map((h,i) => (
+              <div key={i} style={{ width:3, height:h, borderRadius:2, background:"#0d9488", animation:`wave 0.9s ease-in-out infinite ${(i*0.15).toFixed(2)}s` }} />
+            ))}
+          </div>
+        )}
+      </div>
+      <style>{"@keyframes wave{0%,100%{transform:scaleY(0.4)}50%{transform:scaleY(1)}}"}</style>
+
+      {/* Page badge */}
       <div style={{ textAlign:"center", marginBottom:12 }}>
         <span style={{ fontSize:11, color:"#94a3b8", background:"#f1f5f9", borderRadius:6, padding:"3px 10px" }}>
           {"\u0635\u0641\u062d\u0629"} {page}
         </span>
       </div>
 
-      {surahGroups.map((surah, si) => (
-        <div key={surah.number} style={{ marginBottom:16 }}>
-          {/* Surah header if first ayah of surah appears on this page */}
-          {surah.ayahs[0]?.numberInSurah === 1 && (
-            <div style={{ textAlign:"center", margin:"8px 0 12px", padding:"10px 20px", background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:10 }}>
-              <div style={{ fontSize:20, fontWeight:700, color:"#fff", fontFamily:"'Scheherazade New',serif" }}>
-                {surah.name}
+      {/* Ayahs */}
+      <div style={{ direction:"rtl", fontFamily:"'Scheherazade New','Traditional Arabic','Amiri',serif" }}>
+        {surahGroups.map((surah) => (
+          <div key={surah.number} style={{ marginBottom:16 }}>
+            {surah.ayahs[0]?.numberInSurah === 1 && (
+              <div style={{ textAlign:"center", margin:"8px 0 12px", padding:"10px 20px", background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:10 }}>
+                <div style={{ fontSize:20, fontWeight:700, color:"#fff", fontFamily:"'Scheherazade New',serif" }}>{surah.name}</div>
+                <div style={{ fontSize:11, color:"#5eead4", marginTop:2 }}>{surah.englishName}</div>
+                {surah.number !== 1 && surah.number !== 9 && (
+                  <div style={{ fontSize:18, color:"#fbbf24", marginTop:6 }}>{"\uFDFD"}</div>
+                )}
               </div>
-              <div style={{ fontSize:11, color:"#5eead4", marginTop:2 }}>{surah.englishName}</div>
-              {surah.number !== 1 && surah.number !== 9 && (
-                <div style={{ fontSize:18, color:"#fbbf24", marginTop:6, fontFamily:"'Scheherazade New',serif" }}>
-                  {"\uFDFD"}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Ayahs text */}
-          <div style={{ lineHeight:2.2, fontSize:22, color:"#1e293b", textAlign:"justify", padding:"0 4px" }}>
-            {surah.ayahs.map(a => (
-              <span key={a.number}>
-                {a.text}
-                <span style={{ fontSize:14, color:"#0d9488", margin:"0 4px", fontFamily:"serif" }}>
-                  &#x06DD;{a.numberInSurah}&#x06DD;
+            )}
+            <div style={{ lineHeight:2.4, fontSize:22, color:"#1e293b", textAlign:"justify", padding:"0 4px" }}>
+              {surah.ayahs.map(a => (
+                <span
+                  key={a.number}
+                  ref={el => ayahRefs.current[a.number] = el}
+                  onClick={() => {
+                    stopPageAudio();
+                    if (externalAudio) { externalAudio.pause(); setExternalAudio(null); setPlaying(false); }
+                    setPageAudioPlay(true);
+                    playFromIndex(ayahs.findIndex(x => x.number === a.number), ayahs);
+                  }}
+                  style={{
+                    display:"inline",
+                    cursor:"pointer",
+                    borderRadius:6,
+                    padding:"2px 4px",
+                    transition:"background .2s",
+                    background: currentAyah === a.number ? "#fef9c3" : "transparent",
+                    boxShadow: currentAyah === a.number ? "0 0 0 2px #fbbf24" : "none",
+                  }}>
+                  {a.text}
+                  <span style={{ fontSize:14, color: currentAyah === a.number ? "#d97706":"#0d9488", margin:"0 4px", fontFamily:"serif" }}>
+                    &#x06DD;{a.numberInSurah}&#x06DD;
+                  </span>
                 </span>
-              </span>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
 
-const SURAH_START_PAGES = {
+const SURAH_START_PAGESconst SURAH_START_PAGES = {
   1:1,2:2,3:50,4:77,5:106,6:128,7:151,8:177,9:187,10:208,
   11:221,12:235,13:249,14:255,15:262,16:267,17:282,18:293,
   19:305,20:312,21:322,22:332,23:342,24:350,25:359,26:367,
@@ -5335,7 +5408,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
           </div>
         </div>
         <div style={{ minHeight:520, background:"#fdfdf8", overflowY:"auto", padding:"16px 20px" }}>
-          <QuranPageText page={displayPage} />
+          <QuranPageText page={displayPage} reciter={reciter} playing={playing} setPlaying={setPlaying} externalAudio={audio} setExternalAudio={setAudio} />
         </div>
       </div>
 
