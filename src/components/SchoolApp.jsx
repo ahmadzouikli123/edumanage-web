@@ -1,4 +1,4 @@
-﻿﻿﻿const supabase = {
+﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5245,13 +5245,16 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
             </button>
           </div>
         </div>
-        <div style={{ display:"flex", justifyContent:"center", padding:0, minHeight:520, background:"#fafaf8" }}>
-          <iframe
+        <div style={{ display:"flex", justifyContent:"center", padding:8, minHeight:520, background:"#fafaf8" }}>
+          <img
             key={displayPage}
-            src={`https://quran.com/page/${displayPage}`}
-            style={{ width:"100%", minHeight:580, border:"none", borderRadius:4 }}
-            title={`Quran page ${displayPage}`}
-            loading="lazy"
+            src={`https://www.searchtruth.com/quran/images2/large/page-${String(displayPage).padStart(3,"0")}.jpeg`}
+            alt={`page ${displayPage}`}
+            style={{ maxWidth:"100%", borderRadius:4, boxShadow:"0 2px 12px rgba(0,0,0,.1)" }}
+            onError={e => {
+              e.target.onerror = null;
+              e.target.src = `https://quran.ksu.edu.sa/pages/PC/page${String(displayPage).padStart(3,"0")}.png`;
+            }}
           />
         </div>
       </div>
@@ -5285,7 +5288,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
             {"\u0627\u0644\u0633\u0648\u0631\u0629"}
           </div>
           <select style={inp} value={selectedSurah} onChange={e => { setSelectedSurah(Number(e.target.value)); stopAudio(); }}>
-            {SURAHS.map(s => <option key={s.id} value={s.id}>{s.id}. {s.name} â€” {s.arabic}</option>)}
+            {SURAHS.map(s => <option key={s.id} value={s.id}>{s.id}. {s.name} - {s.arabic}</option>)}
           </select>
         </div>
 
