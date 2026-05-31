@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5095,6 +5095,95 @@ const MEMORIZATION_LEVELS = [
   { value: "weak",      label: "Weak",      arabic: "ضعيف",  color: "#dc2626", bg: "#fee2e2", icon: "⚠️" },
 ];
 
+// â”€â”€ QuranPageText Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function QuranPageText({ page }) {
+  const [ayahs, setAyahs] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+
+  React.useEffect(() => {
+    setLoading(true);
+    setError(false);
+    fetch(`https://api.alquran.cloud/v1/page/${page}/quran-uthmani`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.code === 200) {
+          setAyahs(data.data.ayahs || []);
+        } else { setError(true); }
+        setLoading(false);
+      })
+      .catch(() => { setError(true); setLoading(false); });
+  }, [page]);
+
+  if (loading) return (
+    <div style={{ display:"flex", justifyContent:"center", alignItems:"center", height:400 }}>
+      <div style={{ textAlign:"center" }}>
+        <div style={{ fontSize:24, marginBottom:8 }}>â³</div>
+        <div style={{ fontSize:12, color:"#94a3b8" }}>Loading page {page}...</div>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div style={{ display:"flex", justifyContent:"center", alignItems:"center", height:400 }}>
+      <div style={{ textAlign:"center", color:"#ef4444", fontSize:13 }}>Failed to load page</div>
+    </div>
+  );
+
+  // Group ayahs by surah for rendering
+  const surahGroups = [];
+  let currentSurah = null;
+  ayahs.forEach(a => {
+    if (!currentSurah || currentSurah.number !== a.surah.number) {
+      currentSurah = { number: a.surah.number, name: a.surah.name, englishName: a.surah.englishName, ayahs: [] };
+      surahGroups.push(currentSurah);
+    }
+    currentSurah.ayahs.push(a);
+  });
+
+  return (
+    <div style={{ direction:"rtl", fontFamily:"'Scheherazade New','Traditional Arabic','Amiri',serif" }}>
+      {/* Page number badge */}
+      <div style={{ textAlign:"center", marginBottom:12 }}>
+        <span style={{ fontSize:11, color:"#94a3b8", background:"#f1f5f9", borderRadius:6, padding:"3px 10px" }}>
+          {"\u0635\u0641\u062d\u0629"} {page}
+        </span>
+      </div>
+
+      {surahGroups.map((surah, si) => (
+        <div key={surah.number} style={{ marginBottom:16 }}>
+          {/* Surah header if first ayah of surah appears on this page */}
+          {surah.ayahs[0]?.numberInSurah === 1 && (
+            <div style={{ textAlign:"center", margin:"8px 0 12px", padding:"10px 20px", background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:10 }}>
+              <div style={{ fontSize:20, fontWeight:700, color:"#fff", fontFamily:"'Scheherazade New',serif" }}>
+                {surah.name}
+              </div>
+              <div style={{ fontSize:11, color:"#5eead4", marginTop:2 }}>{surah.englishName}</div>
+              {surah.number !== 1 && surah.number !== 9 && (
+                <div style={{ fontSize:18, color:"#fbbf24", marginTop:6, fontFamily:"'Scheherazade New',serif" }}>
+                  {"\uFDFD"}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Ayahs text */}
+          <div style={{ lineHeight:2.2, fontSize:22, color:"#1e293b", textAlign:"justify", padding:"0 4px" }}>
+            {surah.ayahs.map(a => (
+              <span key={a.number}>
+                {a.text}
+                <span style={{ fontSize:14, color:"#0d9488", margin:"0 4px", fontFamily:"serif" }}>
+                  &#x06DD;{a.numberInSurah}&#x06DD;
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const SURAH_START_PAGES = {
   1:1,2:2,3:50,4:77,5:106,6:128,7:151,8:177,9:187,10:208,
   11:221,12:235,13:249,14:255,15:262,16:267,17:282,18:293,
@@ -5245,17 +5334,8 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
             </button>
           </div>
         </div>
-        <div style={{ display:"flex", justifyContent:"center", padding:8, minHeight:520, background:"#fafaf8" }}>
-          <img
-            key={displayPage}
-            src={`https://raw.githubusercontent.com/zeyadetman/quran-pages-images/master/quran-images/${String(displayPage).padStart(3,"0")}.jpg`}
-            alt={`page ${displayPage}`}
-            style={{ maxWidth:"100%", borderRadius:4, boxShadow:"0 2px 12px rgba(0,0,0,.1)" }}
-            onError={e => {
-              e.target.onerror = null;
-              e.target.src = `https://raw.githubusercontent.com/fawazahmed0/quran-api/1/images/pages/${String(displayPage).padStart(3,"0")}.jpg`;
-            }}
-          />
+        <div style={{ minHeight:520, background:"#fdfdf8", overflowY:"auto", padding:"16px 20px" }}>
+          <QuranPageText page={displayPage} />
         </div>
       </div>
 
