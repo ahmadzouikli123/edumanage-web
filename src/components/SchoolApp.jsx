@@ -1,4 +1,4 @@
-﻿﻿const supabase = {
+﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5245,13 +5245,13 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
             </button>
           </div>
         </div>
-        <div style={{ display:"flex", justifyContent:"center", padding:12, minHeight:520, background:"#fafaf8" }}>
-          <img
+        <div style={{ display:"flex", justifyContent:"center", padding:0, minHeight:520, background:"#fafaf8" }}>
+          <iframe
             key={displayPage}
-            src={`https://cdn.islamic.network/quran/images/high-resolution/${displayPage}.png`}
-            alt={`page ${displayPage}`}
-            style={{ maxWidth:"100%", borderRadius:4 }}
-            onError={e => { e.target.style.display="none"; }}
+            src={`https://quran.com/page/${displayPage}`}
+            style={{ width:"100%", minHeight:580, border:"none", borderRadius:4 }}
+            title={`Quran page ${displayPage}`}
+            loading="lazy"
           />
         </div>
       </div>
