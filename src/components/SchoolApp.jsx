@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5097,7 +5097,6 @@ const MEMORIZATION_LEVELS = [
 
 // â”€â”€ QuranPageText Component (synchronized player) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setExternalAudio }) {
-  const useRef = React.useRef.bind(React);
   const [ayahs,          setAyahs]          = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [error,          setError]          = useState(false);
@@ -5105,7 +5104,7 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
   const [pageAudio,      setPageAudio]      = useState(null);
   const [pageAudioIdx,   setPageAudioIdx]   = useState(0);
   const [pageAudioPlay,  setPageAudioPlay]  = useState(false);
-  const ayahRefs = useRef({});
+  const ayahRefs = { current: {} };
 
   useEffect(() => {
     setLoading(true); setError(false);
