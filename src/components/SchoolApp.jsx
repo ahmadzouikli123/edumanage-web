@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -1657,6 +1657,13 @@ function StudentDashboard({ student, classes, attendance, grades, subjects, exam
 
       {/* Messages */}
       <StudentMessages student={student} messages={messages} setMessages={setMessages} />
+      {/* Quran Player */}
+      <div style={{ marginTop:24, marginBottom:16 }}>
+        <div style={{ fontSize:15, fontWeight:800, color:"#0f172a", marginBottom:16, display:"flex", alignItems:"center", gap:8 }}>
+          {"\uD83D\uDD4C"} {"\u0645\u0634\u063a\u0651\u0644 \u0627\u0644\u0642\u0631\u0622\u0646"}
+        </div>
+        <StudentQuranPlayer />
+      </div>
 
       {/* Pending Quizzes */}
       {pendingQuizzes.length > 0 && (
