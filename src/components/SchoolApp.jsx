@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5312,6 +5312,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ studentId:"", surahId:1, fromPage:1, toPage:1, level:"good", notes:"", date: new Date().toISOString().split("T")[0] });
   const [displayPage, setDisplayPage] = useState(1);
+  useEffect(() => { setDisplayPage(SURAH_START_PAGES[selectedSurah] || 1); }, [selectedSurah]);
 
   const visibleClasses = (userRole === "admin" || !teacherClassIds || teacherClassIds.length === 0)
     ? (classes||[]) : (classes||[]).filter(c => (teacherClassIds||[]).includes(c.id));
