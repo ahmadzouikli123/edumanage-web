@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5096,26 +5096,41 @@ const MEMORIZATION_LEVELS = [
 ];
 
 // â”€â”€ QuranPageText Component (synchronized player) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Global audio controller - persists across re-renders
+const _QAudio = {
+  el: null,
+  playing: false,
+  stop() {
+    this.playing = false;
+    if (this.el) {
+      this.el.onended = null;
+      this.el.onerror = null;
+      try { this.el.pause(); } catch(e) {}
+      try { this.el.src = ""; } catch(e) {}
+      this.el = null;
+    }
+  },
+  play(url, onEnd, onErr) {
+    this.stop();
+    this.playing = true;
+    this.el = new Audio(url);
+    this.el.onended = onEnd;
+    this.el.onerror = onErr;
+    this.el.play().catch(onErr);
+  }
+};
+
 function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setExternalAudio }) {
   const [ayahs,         setAyahs]        = useState([]);
   const [loading,       setLoading]      = useState(true);
   const [error,         setError]        = useState(false);
   const [currentAyah,  setCurrentAyah]  = useState(null);
   const [pageAudioPlay, setPageAudioPlay] = useState(false);
-  const ayahRefs   = { current: {} };
-  const audioRef   = { current: null };   // single audio instance
-  const playingRef = { current: false };  // track play state without re-render
+  const ayahRefs = { current: {} };
 
   useEffect(() => {
     setLoading(true); setError(false);
-    playingRef.current = false;
-    if (audioRef.current) {
-      audioRef.current.onended = null;
-      audioRef.current.onerror = null;
-      audioRef.current.pause();
-      try { audioRef.current.src = ""; } catch(e) {}
-      audioRef.current = null;
-    }
+    _QAudio.stop();
     setPageAudioPlay(false);
     setCurrentAyah(null);
     fetch(`https://api.alquran.cloud/v1/page/${page}/quran-uthmani`)
@@ -5136,43 +5151,26 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
   }, [currentAyah]);
 
   const stopPageAudio = () => {
-    playingRef.current = false;
-    if (audioRef.current) {
-      audioRef.current.onended = null;
-      audioRef.current.onerror = null;
-      audioRef.current.pause();
-      try { audioRef.current.src = ""; } catch(e) {}
-      audioRef.current = null;
-    }
+    _QAudio.stop();
     setPageAudioPlay(false);
     setCurrentAyah(null);
   };
 
   const playFromIndex = (idx, ayahList) => {
-    if (!playingRef.current || idx >= ayahList.length) {
-      playingRef.current = false;
+    if (!_QAudio.playing || idx >= ayahList.length) {
+      _QAudio.playing = false;
       setPageAudioPlay(false); setCurrentAyah(null); return;
     }
     const ayah  = ayahList[idx];
     const num   = ayah.number;
     const recId = reciter || "ar.alafasy";
     const url   = `https://cdn.islamic.network/quran/audio/128/${recId}/${num}.mp3`;
-
-    // stop previous
-    if (audioRef.current) {
-      audioRef.current.onended = null;
-      audioRef.current.onerror = null;
-      audioRef.current.pause();
-      try { audioRef.current.src = ""; } catch(e) {}
-    }
-
-    const a = new Audio(url);
-    audioRef.current = a;
     setCurrentAyah(num);
-
-    a.onended = () => { if (playingRef.current) playFromIndex(idx + 1, ayahList); };
-    a.onerror = () => { if (playingRef.current) playFromIndex(idx + 1, ayahList); };
-    a.play().catch(() => { if (playingRef.current) playFromIndex(idx + 1, ayahList); });
+    _QAudio.play(
+      url,
+      () => { if (_QAudio.playing) playFromIndex(idx + 1, ayahList); },
+      () => { if (_QAudio.playing) playFromIndex(idx + 1, ayahList); }
+    );
   };
 
   const togglePagePlay = () => {
@@ -5180,7 +5178,7 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
       stopPageAudio();
     } else {
       if (externalAudio) { externalAudio.pause(); setExternalAudio(null); setPlaying(false); }
-      playingRef.current = true;
+      _QAudio.playing = true;
       setPageAudioPlay(true);
       playFromIndex(0, ayahs);
     }
@@ -5256,8 +5254,9 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
                   key={a.number}
                   ref={el => ayahRefs.current[a.number] = el}
                   onClick={() => {
-                    stopPageAudio();
+                    _QAudio.stop();
                     if (externalAudio) { externalAudio.pause(); setExternalAudio(null); setPlaying(false); }
+                    _QAudio.playing = true;
                     setPageAudioPlay(true);
                     playFromIndex(ayahs.findIndex(x => x.number === a.number), ayahs);
                   }}
