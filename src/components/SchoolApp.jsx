@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -1364,6 +1364,129 @@ function StudentMessages({ student, messages, setMessages }) {
 }
 
 // ─── Student Dashboard ────────────────────────────────────────────────────────
+// StudentQuranPlayer
+function StudentQuranPlayer() {
+  const [selectedSurah, setSelectedSurah] = useState(1);
+  const [reciter,       setReciter]       = useState("ar.alafasy");
+  const [displayPage,   setDisplayPage]   = useState(1);
+  const [pageAudioPlay, setPageAudioPlay] = useState(false);
+  const [currentAyah,   setCurrentAyah]   = useState(null);
+  const [ayahs,         setAyahs]         = useState([]);
+  const [loadingPage,   setLoadingPage]   = useState(true);
+
+  useEffect(() => { setDisplayPage(SURAH_START_PAGES[selectedSurah] || 1); }, [selectedSurah]);
+
+  useEffect(() => {
+    setLoadingPage(true);
+    _QAudio.stop(); setPageAudioPlay(false); setCurrentAyah(null);
+    fetch("https://api.alquran.cloud/v1/page/" + displayPage + "/quran-uthmani")
+      .then(r => r.json())
+      .then(data => { if (data.code === 200) setAyahs(data.data.ayahs || []); setLoadingPage(false); })
+      .catch(() => setLoadingPage(false));
+  }, [displayPage]);
+
+  const playFromIndex = (idx, list) => {
+    if (!_QAudio.playing || idx >= list.length) {
+      _QAudio.playing = false; setPageAudioPlay(false); setCurrentAyah(null); return;
+    }
+    const num = list[idx].number;
+    const url = "https://cdn.islamic.network/quran/audio/128/" + reciter + "/" + num + ".mp3";
+    setCurrentAyah(num);
+    _QAudio.play(url,
+      () => { if (_QAudio.playing) playFromIndex(idx + 1, list); },
+      () => { if (_QAudio.playing) playFromIndex(idx + 1, list); }
+    );
+  };
+
+  const togglePlay = () => {
+    if (pageAudioPlay) { _QAudio.stop(); setPageAudioPlay(false); setCurrentAyah(null); }
+    else { _QAudio.playing = true; setPageAudioPlay(true); playFromIndex(0, ayahs); }
+  };
+
+  const S = { text:"#0f172a", sub:"#64748b" };
+  const inp = { width:"100%", padding:"8px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+
+  return (
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 280px", gap:16 }}>
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden" }}>
+        <div style={{ padding:"12px 16px", borderBottom:"1px solid #e2e8f0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <div style={{ fontSize:13, fontWeight:700, color:S.text }}>
+              {"\u0635\u0641\u062d\u0629 \u0627\u0644\u0645\u0635\u062d\u0641"}
+            </div>
+            <div style={{ fontSize:11, color:S.sub }}>
+              {"\u062a\u062a\u0632\u0627\u0645\u0646 \u0645\u0639 \u0627\u0644\u0633\u0648\u0631\u0629"}
+            </div>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <button onClick={() => setDisplayPage(p => Math.max(1, p-1))} style={{ width:28, height:28, borderRadius:6, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer" }}>{"\u203a"}</button>
+            <span style={{ fontSize:12, fontWeight:600, color:S.text, minWidth:64, textAlign:"center" }}>{"\u0635\u0641\u062d\u0629 "}{displayPage}</span>
+            <button onClick={() => setDisplayPage(p => Math.min(604, p+1))} style={{ width:28, height:28, borderRadius:6, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer" }}>{"\u2039"}</button>
+          </div>
+        </div>
+        <div style={{ padding:12, minHeight:480, background:"#fafaf8", overflowY:"auto" }}>
+          <div style={{ display:"flex", justifyContent:"center", marginBottom:12 }}>
+            <button onClick={togglePlay} style={{ padding:"7px 20px", borderRadius:20, border:"none", background:pageAudioPlay?"#ef4444":"#0d9488", color:"#fff", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+              {pageAudioPlay ? "\u23f9 Stop" : "\u25b6 Play Page"}
+            </button>
+          </div>
+          {loadingPage ? (
+            <div style={{ textAlign:"center", padding:40, color:"#94a3b8", fontSize:13 }}>Loading...</div>
+          ) : (
+            <div style={{ direction:"rtl", fontFamily:"'Scheherazade New','Traditional Arabic',serif", lineHeight:2.4, fontSize:20, color:"#1e293b", textAlign:"justify" }}>
+              {ayahs.map(a => (
+                <span key={a.number}
+                  onClick={() => { _QAudio.stop(); _QAudio.playing = true; setPageAudioPlay(true); playFromIndex(ayahs.findIndex(x=>x.number===a.number), ayahs); }}
+                  style={{ cursor:"pointer", borderRadius:4, padding:"1px 3px", background:currentAyah===a.number?"#fef9c3":"transparent", boxShadow:currentAyah===a.number?"0 0 0 2px #fbbf24":"none" }}>
+                  {a.text}
+                  <span style={{ fontSize:13, color:currentAyah===a.number?"#d97706":"#0d9488", margin:"0 3px" }}>&#x06DD;{a.numberInSurah}&#x06DD;</span>
+                </span>
+              ))}
+            </div>
+          )}
+          <style>{"@keyframes wave{0%,100%{transform:scaleY(0.4)}50%{transform:scaleY(1)}}"}</style>
+        </div>
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:14 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:S.sub, marginBottom:10 }}>{"\u0627\u0644\u0642\u0627\u0631\u0626"}</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
+            {RECITERS.map(r => (
+              <button key={r.id} onClick={() => { setReciter(r.id); _QAudio.stop(); setPageAudioPlay(false); setCurrentAyah(null); }}
+                style={{ padding:"7px 8px", borderRadius:8, border:"2px solid "+(reciter===r.id?"#0d9488":"#e2e8f0"), background:reciter===r.id?"#f0fdf9":"#fff", cursor:"pointer", textAlign:"right", fontFamily:"inherit" }}>
+                <div style={{ fontSize:11, fontWeight:700, color:reciter===r.id?"#0d9488":S.text }}>{r.arabic}</div>
+                <div style={{ fontSize:10, color:S.sub }}>{r.name}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:14 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:S.sub, marginBottom:10 }}>{"\u0627\u0644\u0633\u0648\u0631\u0629"}</div>
+          <select style={inp} value={selectedSurah} onChange={e => { setSelectedSurah(Number(e.target.value)); _QAudio.stop(); setPageAudioPlay(false); }}>
+            {SURAHS.map(s => <option key={s.id} value={s.id}>{s.id}. {s.name} - {s.arabic}</option>)}
+          </select>
+        </div>
+        <div style={{ background:"#0f172a", borderRadius:12, padding:20, textAlign:"center" }}>
+          <div style={{ fontSize:24, fontWeight:800, color:"#fff", fontFamily:"'Scheherazade New',serif", marginBottom:4 }}>
+            {SURAHS.find(s=>s.id===selectedSurah)?.arabic}
+          </div>
+          <div style={{ fontSize:12, fontWeight:600, color:"#5eead4", marginBottom:2 }}>{SURAHS.find(s=>s.id===selectedSurah)?.name}</div>
+          <div style={{ fontSize:11, color:"rgba(255,255,255,.35)", marginBottom:16 }}>
+            {SURAHS.find(s=>s.id===selectedSurah)?.verses} {"\u0622\u064a\u0629"} &middot; {RECITERS.find(r=>r.id===reciter)?.arabic}
+          </div>
+          {pageAudioPlay && (
+            <div style={{ display:"flex", justifyContent:"center", gap:3, height:20, alignItems:"center" }}>
+              {[8,14,20,14,8].map((h,i) => (
+                <div key={i} style={{ width:3, height:h, borderRadius:2, background:"#5eead4", animation:"wave 0.9s ease-in-out infinite " + (i*0.15).toFixed(2) + "s" }} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StudentDashboard({ student, classes, attendance, grades, subjects, exams, examResults, messages, setMessages, timetable, quizzes, quizResults }) {
   const cls      = classes.find(cl => cl.id === student.classId);
   const stdSubjs = (subjects||[]).filter(s => s.classId === student.classId);
@@ -5351,58 +5474,6 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
   const S = { border:"#e2e8f0", primary:"#0d9488", text:"#0f172a", sub:"#64748b" };
   const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
 
-  // ── Record View ───────────────────────────────────────────────────────────
-  if (view === "record") return (
-    <div style={{ maxWidth:600, margin:"0 auto" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-        <button onClick={() => setView("dashboard")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
-        <div style={{ fontSize:16, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>📝 Record Memorization Session</div>
-      </div>
-      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24 }}>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
-          <div style={{ gridColumn:"1/-1" }}>
-            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Student *</label>
-            <select style={inp} value={form.studentId} onChange={e=>setForm({...form,studentId:e.target.value})}>
-              <option value="">Select student...</option>
-              {visibleStudents.map(s=><option key={s.id} value={s.id}>{s.name} — {(classes.find(c=>c.id===s.classId)||{}).name||""}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Date</label>
-            <input type="date" style={inp} value={form.date} onChange={e=>setForm({...form,date:e.target.value})} />
-          </div>
-          <div>
-            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Surah</label>
-            <select style={inp} value={form.surahId} onChange={e=>setForm({...form,surahId:Number(e.target.value)})}>
-              {SURAHS.map(s=><option key={s.id} value={s.id}>{s.id}. {s.name} ({s.arabic})</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>From Page</label>
-            <input type="number" style={inp} min={1} max={604} value={form.fromPage} onChange={e=>setForm({...form,fromPage:Number(e.target.value)})} />
-          </div>
-          <div>
-            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>To Page</label>
-            <input type="number" style={inp} min={1} max={604} value={form.toPage} onChange={e=>setForm({...form,toPage:Number(e.target.value)})} />
-          </div>
-          <div>
-            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Memorization Level</label>
-            <select style={inp} value={form.level} onChange={e=>setForm({...form,level:e.target.value})}>
-              {MEMORIZATION_LEVELS.map(l=><option key={l.value} value={l.value}>{l.icon} {l.label}</option>)}
-            </select>
-          </div>
-          <div style={{ gridColumn:"1/-1" }}>
-            <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Notes</label>
-            <textarea style={{...inp,resize:"vertical"}} rows={3} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Teacher notes..." />
-          </div>
-        </div>
-        <button onClick={saveRecord} style={{ width:"100%", padding:"13px 0", borderRadius:12, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
-          💾 Save Record
-        </button>
-      </div>
-    </div>
-  );
-
   // -- Player View -------------------------------------------------------------
   useEffect(() => { setDisplayPage(SURAH_START_PAGES[selectedSurah] || 1); }, [selectedSurah]);
 
@@ -5563,7 +5634,6 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
         </div>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={() => setView("player")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:6 }}>🎧 Quran Player</button>
-          <button onClick={() => setView("record")} style={{ padding:"9px 18px", borderRadius:9, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 12px rgba(13,148,136,.3)" }}>+ Record Session</button>
         </div>
       </div>
 
