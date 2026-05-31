@@ -1,4 +1,4 @@
-﻿const supabase = {
+﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5095,6 +5095,24 @@ const MEMORIZATION_LEVELS = [
   { value: "weak",      label: "Weak",      arabic: "ضعيف",  color: "#dc2626", bg: "#fee2e2", icon: "⚠️" },
 ];
 
+const SURAH_START_PAGES = {
+  1:1,2:2,3:50,4:77,5:106,6:128,7:151,8:177,9:187,10:208,
+  11:221,12:235,13:249,14:255,15:262,16:267,17:282,18:293,
+  19:305,20:312,21:322,22:332,23:342,24:350,25:359,26:367,
+  27:377,28:385,29:396,30:404,31:411,32:415,33:418,34:428,
+  35:434,36:440,37:446,38:453,39:458,40:467,41:477,42:483,
+  43:489,44:496,45:499,46:502,47:507,48:511,49:515,50:518,
+  51:520,52:523,53:526,54:528,55:531,56:534,57:537,58:542,
+  59:545,60:549,61:551,62:553,63:554,64:556,65:558,66:560,
+  67:562,68:564,69:566,70:568,71:570,72:572,73:574,74:575,
+  75:577,76:578,77:580,78:582,79:583,80:585,81:586,82:587,
+  83:587,84:589,85:590,86:591,87:591,88:592,89:593,90:594,
+  91:595,92:595,93:596,94:596,95:597,96:597,97:598,98:598,
+  99:599,100:599,101:600,102:600,103:601,104:601,105:601,
+  106:602,107:602,108:602,109:603,110:603,111:603,112:604,
+  113:604,114:604
+};
+
 function QuranProgram({ students, classes, quranRecords, setQuranRecords, teacherClassIds, userRole, auth }) {
   const [view, setView] = useState("dashboard"); // dashboard | record | player | student
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -5105,6 +5123,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ studentId:"", surahId:1, fromPage:1, toPage:1, level:"good", notes:"", date: new Date().toISOString().split("T")[0] });
+  const [displayPage, setDisplayPage] = useState(1);
 
   const visibleClasses = (userRole === "admin" || !teacherClassIds || teacherClassIds.length === 0)
     ? (classes||[]) : (classes||[]).filter(c => (teacherClassIds||[]).includes(c.id));
@@ -5195,59 +5214,109 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
     </div>
   );
 
-  // ── Player View ───────────────────────────────────────────────────────────
+  // -- Player View -------------------------------------------------------------
+  useEffect(() => { setDisplayPage(SURAH_START_PAGES[selectedSurah] || 1); }, [selectedSurah]);
+
   if (view === "player") return (
-    <div style={{ maxWidth:700, margin:"0 auto" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-        <button onClick={() => { stopAudio(); setView("dashboard"); }} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
-        <div style={{ fontSize:16, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>🎧 Quran Player</div>
-      </div>
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:16 }}>
 
-      {/* Reciter Selector */}
-      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20, marginBottom:16 }}>
-        <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>🎤 Select Reciter</div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-          {RECITERS.map(r => (
-            <button key={r.id} onClick={() => { setReciter(r.id); stopAudio(); }} style={{ padding:"10px 14px", borderRadius:10, border:"2px solid " + (reciter===r.id?"#0d9488":"#e2e8f0"), background: reciter===r.id?"#f0fdf9":"#fff", cursor:"pointer", textAlign:"left", fontFamily:"inherit" }}>
-              <div style={{ fontSize:13, fontWeight:700, color: reciter===r.id?"#0d9488":S.text }}>{r.name}</div>
-              <div style={{ fontSize:11, color:S.sub, marginTop:2 }}>{r.arabic}</div>
+      {/* Quran Page Viewer */}
+      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden" }}>
+        <div style={{ padding:"12px 16px", borderBottom:"1px solid #e2e8f0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <div style={{ fontSize:14, fontWeight:700, color:S.text }}>
+              {"\u0635\u0641\u062d\u0629 \u0627\u0644\u0645\u0635\u062d\u0641"}
+            </div>
+            <div style={{ fontSize:11, color:S.sub }}>
+              {"\u062a\u062a\u0632\u0627\u0645\u0646 \u0645\u0639 \u0627\u0644\u0633\u0648\u0631\u0629 \u0627\u0644\u0645\u062e\u062a\u0627\u0631\u0629"}
+            </div>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <button onClick={() => setDisplayPage(p => Math.max(1, p - 1))}
+              style={{ width:30, height:30, borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", fontSize:16 }}>
+              {"\u203a"}
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Surah Selector */}
-      <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20, marginBottom:16 }}>
-        <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>📖 Select Surah</div>
-        <select style={inp} value={selectedSurah} onChange={e=>{ setSelectedSurah(Number(e.target.value)); stopAudio(); }}>
-          {SURAHS.map(s=><option key={s.id} value={s.id}>{s.id}. {s.name} — {s.arabic} ({s.verses} verses)</option>)}
-        </select>
-      </div>
-
-      {/* Player */}
-      <div style={{ background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:16, padding:32, textAlign:"center", color:"#fff" }}>
-        <div style={{ fontSize:28, fontWeight:800, fontFamily:"'Scheherazade New','Traditional Arabic',serif", marginBottom:8, lineHeight:1.4 }}>
-          {SURAHS.find(s=>s.id===selectedSurah)?.arabic}
-        </div>
-        <div style={{ fontSize:16, fontWeight:600, color:"#5eead4", marginBottom:4 }}>{SURAHS.find(s=>s.id===selectedSurah)?.name}</div>
-        <div style={{ fontSize:12, color:"rgba(255,255,255,.4)", marginBottom:28 }}>{SURAHS.find(s=>s.id===selectedSurah)?.verses} verses · Recited by {RECITERS.find(r=>r.id===reciter)?.name}</div>
-        <div style={{ display:"flex", gap:16, justifyContent:"center", alignItems:"center" }}>
-          {playing ? (
-            <button onClick={stopAudio} style={{ width:64, height:64, borderRadius:"50%", border:"none", background:"#ef4444", color:"#fff", fontSize:24, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>⏹</button>
-          ) : (
-            <button onClick={() => playAudio(selectedSurah)} disabled={loading} style={{ width:64, height:64, borderRadius:"50%", border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:24, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 8px 24px rgba(13,148,136,.4)", opacity:loading?0.7:1 }}>
-              {loading?"⏳":"▶"}
+            <span style={{ fontSize:12, fontWeight:600, color:S.text, minWidth:72, textAlign:"center" }}>
+              {"\u0635\u0641\u062d\u0629 "}{displayPage}
+            </span>
+            <button onClick={() => setDisplayPage(p => Math.min(604, p + 1))}
+              style={{ width:30, height:30, borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", fontSize:16 }}>
+              {"\u2039"}
             </button>
-          )}
+          </div>
         </div>
-        {playing && (
-          <div style={{ marginTop:20, display:"flex", justifyContent:"center", gap:4 }}>
-            {[1,2,3,4,5].map(i=>(
-              <div key={i} style={{ width:4, borderRadius:2, background:"#5eead4", animation:"wave 1s ease-in-out infinite", animationDelay: i*0.1+"s", height: Math.random()*20+10 }} />
+        <div style={{ display:"flex", justifyContent:"center", padding:12, minHeight:520, background:"#fafaf8" }}>
+          <img
+            key={displayPage}
+            src={`https://cdn.islamic.network/quran/images/high-resolution/${displayPage}.png`}
+            alt={`page ${displayPage}`}
+            style={{ maxWidth:"100%", borderRadius:4 }}
+            onError={e => { e.target.style.display="none"; }}
+          />
+        </div>
+      </div>
+
+      {/* Right Panel */}
+      <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+        <button onClick={() => { stopAudio(); setView("dashboard"); }}
+          style={{ padding:"8px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13, fontFamily:"inherit" }}>
+          {"\u2190"} Back
+        </button>
+
+        {/* Reciter */}
+        <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:14 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:S.sub, marginBottom:10 }}>
+            {"\u0627\u0644\u0642\u0627\u0631\u0626"}
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
+            {RECITERS.map(r => (
+              <button key={r.id} onClick={() => { setReciter(r.id); stopAudio(); }}
+                style={{ padding:"8px 10px", borderRadius:10, border:"2px solid "+(reciter===r.id?"#0d9488":"#e2e8f0"), background:reciter===r.id?"#f0fdf9":"#fff", cursor:"pointer", textAlign:"right", fontFamily:"inherit" }}>
+                <div style={{ fontSize:11, fontWeight:700, color:reciter===r.id?"#0d9488":S.text }}>{r.arabic}</div>
+                <div style={{ fontSize:10, color:S.sub, marginTop:2 }}>{r.name}</div>
+              </button>
             ))}
           </div>
-        )}
-        <style>{"@keyframes wave { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(2)} }"}</style>
+        </div>
+
+        {/* Surah */}
+        <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:14 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:S.sub, marginBottom:10 }}>
+            {"\u0627\u0644\u0633\u0648\u0631\u0629"}
+          </div>
+          <select style={inp} value={selectedSurah} onChange={e => { setSelectedSurah(Number(e.target.value)); stopAudio(); }}>
+            {SURAHS.map(s => <option key={s.id} value={s.id}>{s.id}. {s.name} â€” {s.arabic}</option>)}
+          </select>
+        </div>
+
+        {/* Player */}
+        <div style={{ background:"#0f172a", borderRadius:14, padding:22, textAlign:"center" }}>
+          <div style={{ fontSize:26, fontWeight:800, color:"#fff", fontFamily:"'Scheherazade New','Traditional Arabic',serif", marginBottom:4, lineHeight:1.4 }}>
+            {SURAHS.find(s=>s.id===selectedSurah)?.arabic}
+          </div>
+          <div style={{ fontSize:13, fontWeight:600, color:"#5eead4", marginBottom:2 }}>
+            {SURAHS.find(s=>s.id===selectedSurah)?.name}
+          </div>
+          <div style={{ fontSize:11, color:"rgba(255,255,255,.35)", marginBottom:20 }}>
+            {SURAHS.find(s=>s.id===selectedSurah)?.verses} {"\u0622\u064a\u0629"} &middot; {RECITERS.find(r=>r.id===reciter)?.arabic}
+          </div>
+          <button
+            onClick={playing ? stopAudio : () => playAudio(selectedSurah)}
+            disabled={loading}
+            style={{ width:56, height:56, borderRadius:"50%", border:"none", background:playing?"#ef4444":"#0d9488", color:"#fff", fontSize:22, cursor:"pointer", display:"inline-flex", alignItems:"center", justifyContent:"center", opacity:loading?0.6:1 }}>
+            {loading ? "\u23f3" : playing ? "\u23f9" : "\u25b6"}
+          </button>
+          {playing && (
+            <div style={{ marginTop:14, display:"flex", justifyContent:"center", gap:3, height:20, alignItems:"center" }}>
+              {[8,14,20,14,8].map((h,i) => (
+                <div key={i} style={{ width:3, height:h, borderRadius:2, background:"#5eead4",
+                  animation:`wave 0.9s ease-in-out infinite ${(i*0.15).toFixed(2)}s` }} />
+              ))}
+            </div>
+          )}
+          <style>{"@keyframes wave{0%,100%{transform:scaleY(0.4)}50%{transform:scaleY(1)}}"}</style>
+        </div>
+
       </div>
     </div>
   );
