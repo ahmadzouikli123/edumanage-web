@@ -1,4 +1,4 @@
-﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5248,12 +5248,12 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
         <div style={{ display:"flex", justifyContent:"center", padding:8, minHeight:520, background:"#fafaf8" }}>
           <img
             key={displayPage}
-            src={`https://www.searchtruth.com/quran/images2/large/page-${String(displayPage).padStart(3,"0")}.jpeg`}
+            src={`https://raw.githubusercontent.com/zeyadetman/quran-pages-images/master/quran-images/${String(displayPage).padStart(3,"0")}.jpg`}
             alt={`page ${displayPage}`}
             style={{ maxWidth:"100%", borderRadius:4, boxShadow:"0 2px 12px rgba(0,0,0,.1)" }}
             onError={e => {
               e.target.onerror = null;
-              e.target.src = `https://quran.ksu.edu.sa/pages/PC/page${String(displayPage).padStart(3,"0")}.png`;
+              e.target.src = `https://raw.githubusercontent.com/fawazahmed0/quran-api/1/images/pages/${String(displayPage).padStart(3,"0")}.jpg`;
             }}
           />
         </div>
