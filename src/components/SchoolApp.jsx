@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5097,11 +5097,11 @@ const MEMORIZATION_LEVELS = [
 
 // â”€â”€ QuranPageText Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function QuranPageText({ page }) {
-  const [ayahs, setAyahs] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+  const [ayahs, setAyahs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     setError(false);
     fetch(`https://api.alquran.cloud/v1/page/${page}/quran-uthmani`)
