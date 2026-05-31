@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5257,7 +5257,7 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
   );
 }
 
-const SURAH_START_PAGESconst SURAH_START_PAGES = {
+const SURAH_START_PAGES = {
   1:1,2:2,3:50,4:77,5:106,6:128,7:151,8:177,9:187,10:208,
   11:221,12:235,13:249,14:255,15:262,16:267,17:282,18:293,
   19:305,20:312,21:322,22:332,23:342,24:350,25:359,26:367,
