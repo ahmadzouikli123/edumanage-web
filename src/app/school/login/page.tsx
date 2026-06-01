@@ -1,4 +1,4 @@
-﻿"use client"
+﻿﻿"use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
@@ -123,18 +123,36 @@ export default function Login() {
     { icon: "📋", title: "Exam Scheduler", desc: "Schedule exams and track results with analytics" },
   ]
 
+  const mobileStyles = `
+    @media (max-width: 768px) {
+      .login-container { flex-direction: column !important; }
+      .hero-section { display: none !important; }
+      .login-section {
+        width: 100% !important;
+        border-left: none !important;
+        padding: 24px 20px !important;
+        min-height: 100vh;
+        align-items: flex-start !important;
+      }
+      .features-grid { grid-template-columns: 1fr !important; }
+    }
+    @media (min-width: 769px) {
+      .login-container { flex-direction: row !important; }
+    }
+  `
   return (
     <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0a0a1a,#0f172a,#0d3330)",fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif",display:"flex",flexDirection:"column"}}>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+      <style dangerouslySetInnerHTML={{__html: mobileStyles}} />
 
       {/* Glow effects */}
       <div style={{position:"fixed",top:-100,left:-100,width:500,height:500,borderRadius:"50%",background:"rgba(13,148,136,.1)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}} />
       <div style={{position:"fixed",bottom:-100,right:-100,width:500,height:500,borderRadius:"50%",background:"rgba(124,58,237,.08)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}} />
 
-      <div style={{flex:1,display:"flex",minHeight:"100vh",position:"relative",zIndex:1}}>
+      <div style={{flex:1,display:"flex",minHeight:"100vh",position:"relative",zIndex:1,flexDirection:"column" as any} as any} className="login-container">
 
         {/* Left - Hero + Features */}
-        <div style={{flex:1,padding:"48px 56px",display:"flex",flexDirection:"column",justifyContent:"center",color:"#fff"}}>
+        <div className="hero-section" style={{flex:1,padding:"48px 56px",display:"flex",flexDirection:"column",justifyContent:"center",color:"#fff"}}>
 
           {/* Logo */}
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:56}}>
@@ -164,7 +182,7 @@ export default function Login() {
           </div>
 
           {/* Features Grid */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+          <div className="features-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
             {features.map((f,i) => (
               <div key={i} style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)",borderRadius:14,padding:"16px 14px",display:"flex",gap:12,alignItems:"flex-start"}}>
                 <span style={{fontSize:20,flexShrink:0}}>{f.icon}</span>
@@ -182,7 +200,7 @@ export default function Login() {
         </div>
 
         {/* Right - Login Form */}
-        <div style={{width:440,display:"flex",alignItems:"center",justifyContent:"center",padding:"32px 40px",borderLeft:"1px solid rgba(255,255,255,.06)"}}>
+        <div className="login-section" style={{width:440,display:"flex",alignItems:"center",justifyContent:"center",padding:"32px 40px",borderLeft:"1px solid rgba(255,255,255,.06)"}}>
           <div style={{width:"100%"}}>
             <div style={{textAlign:"center",marginBottom:32}}>
               <img src="/logo.png" style={{width:80,height:80,objectFit:"contain",display:"block",margin:"0 auto 12px"}} />
