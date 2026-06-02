@@ -1407,7 +1407,7 @@ function StudentQuranPlayer() {
   const inp = { width:"100%", padding:"8px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
 
   return (
-    <div style={{ display:"grid", gridTemplateColumns:"1fr 280px", gap:16 }}>
+    <div className="quran-player-grid" style={{ display:"grid", gridTemplateColumns:"1fr 280px", gap:16 }}>
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden" }}>
         <div style={{ padding:"12px 16px", borderBottom:"1px solid #e2e8f0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div>
@@ -1466,7 +1466,7 @@ function StudentQuranPlayer() {
             {SURAHS.map(s => <option key={s.id} value={s.id}>{s.id}. {s.name} - {s.arabic}</option>)}
           </select>
         </div>
-        <div style={{ background:"#0f172a", borderRadius:12, padding:20, textAlign:"center" }}>
+        <div className="quran-dark-card" style={{ background:"#0f172a", borderRadius:12, padding:20, textAlign:"center" }}>
           <div style={{ fontSize:24, fontWeight:800, color:"#fff", fontFamily:"'Scheherazade New',serif", marginBottom:4 }}>
             {SURAHS.find(s=>s.id===selectedSurah)?.arabic}
           </div>
@@ -5485,7 +5485,14 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
   useEffect(() => { setDisplayPage(SURAH_START_PAGES[selectedSurah] || 1); }, [selectedSurah]);
 
   if (view === "player") return (
-    <div style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:16 }}>
+    <div className="quran-player-grid" style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:16 }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .quran-player-grid { grid-template-columns: 1fr !important; }
+          .quran-player-right { order: -1; }
+          .quran-dark-card { display: none !important; }
+        }
+      `}</style>
 
       {/* Quran Page Viewer */}
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden" }}>
@@ -5551,7 +5558,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
         </div>
 
         {/* Player */}
-        <div style={{ background:"#0f172a", borderRadius:14, padding:22, textAlign:"center" }}>
+        <div className="quran-dark-card" style={{ background:"#0f172a", borderRadius:14, padding:22, textAlign:"center" }}>
           <div style={{ fontSize:26, fontWeight:800, color:"#fff", fontFamily:"'Scheherazade New','Traditional Arabic',serif", marginBottom:4, lineHeight:1.4 }}>
             {SURAHS.find(s=>s.id===selectedSurah)?.arabic}
           </div>
