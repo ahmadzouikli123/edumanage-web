@@ -1408,6 +1408,13 @@ function StudentQuranPlayer() {
 
   return (
     <div className="quran-player-grid" style={{ display:"grid", gridTemplateColumns:"1fr 280px", gap:16 }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .quran-player-grid { grid-template-columns: 1fr !important; }
+          .quran-player-right { order: -1; }
+          .quran-dark-card { display: none !important; }
+        }
+      `}</style>
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden" }}>
         <div style={{ padding:"12px 16px", borderBottom:"1px solid #e2e8f0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div>
