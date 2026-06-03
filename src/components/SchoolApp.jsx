@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -11,7 +11,21 @@
       upsert: (rows) => ({ then: (fn) => { fn({data:rows,error:null}); } }),
     };
   }
-};import { useState, useMemo, useEffect, useCallback } from "react";
+};
+const _SB={url:"https://mhrtzppoiinpnbnximuf.supabase.co",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ocnR6cHBvaWlucG5ibnhpbXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTE3MDEsImV4cCI6MjA5MDQ2NzcwMX0.933qWXp0vslGHmt06eKgPuihMOVh4NzGUiHXY4iDNSQ",headers:{"apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ocnR6cHBvaWlucG5ibnhpbXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTE3MDEsImV4cCI6MjA5MDQ2NzcwMX0.933qWXp0vslGHmt06eKgPuihMOVh4NzGUiHXY4iDNSQ","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ocnR6cHBvaWlucG5ibnhpbXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTE3MDEsImV4cCI6MjA5MDQ2NzcwMX0.933qWXp0vslGHmt06eKgPuihMOVh4NzGUiHXY4iDNSQ","Content-Type":"application/json","Prefer":"resolution=merge-duplicates"},async get(t,q){try{const r=await fetch(this.url+"/rest/v1/"+t+"?"+(q||"select=*"),{headers:this.headers});if(!r.ok)return null;return r.json();}catch(e){return null;}},async upsert(t,rows,c){if(!rows||!rows.length)return;try{await fetch(this.url+"/rest/v1/"+t+"?on_conflict="+c,{method:"POST",headers:this.headers,body:JSON.stringify(rows)});}catch(e){}}};
+async function sbLoadStudents(){const d=await _SB.get("students","select=*&order=id");return d?d.map(s=>({id:s.id,sid:s.sid,name:s.name,classId:s.class_id,gender:s.gender,phone:s.phone,status:s.status,academicYear:s.academic_year})):null;}
+async function sbLoadTeachers(){const d=await _SB.get("teachers","select=*&order=id");return d?d.map(t=>({id:t.id,name:t.name,subject:t.subject,email:t.email,phone:t.phone,username:t.username,password:t.password,status:t.status,startDate:t.start_date,classIds:t.class_ids||[]})):null;}
+async function sbLoadClasses(){const d=await _SB.get("classes","select=*&order=id");return d?d.map(c=>({id:c.id,name:c.name,teacher:c.teacher,room:c.room})):null;}
+async function sbLoadAttendance(){const d=await _SB.get("attendance","select=*");if(!d)return null;const r={};d.forEach(row=>{if(!r[row.date])r[row.date]={};r[row.date][row.student_id]=row.status;});return r;}
+async function sbLoadGrades(){const d=await _SB.get("grades","select=*");if(!d)return null;const r={};d.forEach(row=>{if(!r[row.student_id])r[row.student_id]={};r[row.student_id][row.subject_id]={quiz:row.quiz,homework:row.homework,midterm:row.midterm,final:row.final};});return r;}
+async function sbLoadSubjects(){const d=await _SB.get("subjects","select=*&order=id");return d?d.map(s=>({id:s.id,classId:s.class_id,name:s.name,icon:s.icon||"book"})):null;}
+async function sbSyncStudents(s){await _SB.upsert("students",s.map(x=>({id:x.id,sid:x.sid,name:x.name,class_id:x.classId,gender:x.gender||null,phone:x.phone||null,status:x.status||"active",academic_year:x.academicYear||null})),"id");}
+async function sbSyncTeachers(t){await _SB.upsert("teachers",t.map(x=>({id:x.id,name:x.name,subject:x.subject||null,email:x.email||null,phone:x.phone||null,username:x.username||null,password:x.password||null,status:x.status||"active",start_date:x.startDate||null,class_ids:x.classIds||[]})),"id");}
+async function sbSyncClasses(cl){await _SB.upsert("classes",cl.map(x=>({id:x.id,name:x.name,teacher:x.teacher||null,room:x.room||null})),"id");}
+async function sbSyncAttendance(att){const rows=[];Object.entries(att).forEach(([date,day])=>{Object.entries(day).forEach(([sid,status])=>rows.push({student_id:parseInt(sid),date,status}));});if(rows.length)await _SB.upsert("attendance",rows,"student_id,date");}
+async function sbSyncGrades(gr){const rows=[];Object.entries(gr).forEach(([sid,subs])=>{Object.entries(subs).forEach(([subId,g])=>rows.push({student_id:parseInt(sid),subject_id:parseInt(subId),quiz:g.quiz??null,homework:g.homework??null,midterm:g.midterm??null,final:g.final??null}));});if(rows.length)await _SB.upsert("grades",rows,"student_id,subject_id");}
+async function sbSyncSubjects(sub){await _SB.upsert("subjects",sub.map(s=>({id:s.id,class_id:s.classId,name:s.name,icon:s.icon||null})),"id");}
+import { useState, useMemo, useEffect, useCallback } from "react";
 // Amiri Quran font loaded via CSS
 
 import { useRouter as useNextRouter } from "next/navigation";
@@ -6647,7 +6661,31 @@ export default function App() {
   const [lessonPlans,  setLessonPlans]  = useState(() => { try { return JSON.parse(localStorage.getItem("edu_lesson_plans")||"[]");  } catch{return[];} });
   const [evaluations,  setEvaluations]  = useState(() => { try { return JSON.parse(localStorage.getItem("edu_evaluations")||"[]");  } catch{return[];} });
   const [quranRecords, setQuranRecords] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quran_records")||"[]"); } catch{return[];} });
+  const [dbLoaded, setDbLoaded] = useState(false);
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
+
+  // Load from Supabase on mount (in background, localStorage is already loaded)
+  useEffect(() => {
+    Promise.all([sbLoadStudents(), sbLoadTeachers(), sbLoadClasses(), sbLoadAttendance(), sbLoadGrades(), sbLoadSubjects()])
+      .then(([s, t, cl, att, gr, sub]) => {
+        if (s  && s.length)   setStudents(s);
+        if (t  && t.length)   setTeachers(t);
+        if (cl && cl.length)  setClasses(cl);
+        if (att)              setAttendance(att);
+        if (gr)               setGrades(gr);
+        if (sub && sub.length) setSubjects(sub);
+        setDbLoaded(true);
+        console.log('Supabase loaded');
+      }).catch(() => setDbLoaded(true));
+  }, []);
+
+  // Sync to Supabase when data changes
+  useEffect(() => { if (dbLoaded) sbSyncStudents(students); }, [students, dbLoaded]);
+  useEffect(() => { if (dbLoaded) sbSyncTeachers(teachers); }, [teachers, dbLoaded]);
+  useEffect(() => { if (dbLoaded) sbSyncClasses(classes); },  [classes,  dbLoaded]);
+  useEffect(() => { if (dbLoaded) sbSyncAttendance(attendance); }, [attendance, dbLoaded]);
+  useEffect(() => { if (dbLoaded) sbSyncGrades(grades); },    [grades,   dbLoaded]);
+  useEffect(() => { if (dbLoaded) sbSyncSubjects(subjects); }, [subjects, dbLoaded]);
 
   useEffect(() => { save("edu_students", students); }, [students]);
   useEffect(() => { save("edu_teachers", teachers); }, [teachers]);
