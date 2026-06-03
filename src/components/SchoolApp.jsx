@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -12,6 +12,7 @@
     };
   }
 };import { useState, useMemo, useEffect, useCallback } from "react";
+// Amiri Quran font loaded via CSS
 
 import { useRouter as useNextRouter } from "next/navigation";
 
@@ -1441,7 +1442,7 @@ function StudentQuranPlayer() {
           {loadingPage ? (
             <div style={{ textAlign:"center", padding:40, color:"#94a3b8", fontSize:13 }}>Loading...</div>
           ) : (
-            <div style={{ direction:"rtl", fontFamily:"'Scheherazade New','Traditional Arabic',serif", lineHeight:2.4, fontSize:20, color:"#1e293b", textAlign:"justify" }}>
+            <div style={{ direction:"rtl", fontFamily:"'Amiri Quran','Amiri Quran','Scheherazade New',serif", lineHeight:2.4, fontSize:20, color:"#1e293b", textAlign:"justify" }}>
               {ayahs.map(a => (
                 <span key={a.number}
                   onClick={() => { _QAudio.stop(); _QAudio.playing = true; setPageAudioPlay(true); playFromIndex(ayahs.findIndex(x=>x.number===a.number), ayahs); }}
@@ -1475,7 +1476,7 @@ function StudentQuranPlayer() {
           </select>
         </div>
         <div className="quran-dark-card" style={{ background:"#0f172a", borderRadius:12, padding:20, textAlign:"center" }}>
-          <div style={{ fontSize:24, fontWeight:800, color:"#fff", fontFamily:"'Scheherazade New',serif", marginBottom:4 }}>
+          <div style={{ fontSize:24, fontWeight:800, color:"#fff", fontFamily:"'Amiri Quran','Scheherazade New',serif", marginBottom:4 }}>
             {SURAHS.find(s=>s.id===selectedSurah)?.arabic}
           </div>
           <div style={{ fontSize:12, fontWeight:600, color:"#5eead4", marginBottom:2 }}>{SURAHS.find(s=>s.id===selectedSurah)?.name}</div>
@@ -5374,12 +5375,12 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
       </div>
 
       {/* Ayahs */}
-      <div style={{ direction:"rtl", fontFamily:"'Scheherazade New','Traditional Arabic','Amiri',serif" }}>
+      <div style={{ direction:"rtl", fontFamily:"'Amiri Quran','Amiri Quran','Scheherazade New',serif" }}>
         {surahGroups.map((surah) => (
           <div key={surah.number} style={{ marginBottom:16 }}>
             {surah.ayahs[0]?.numberInSurah === 1 && (
               <div style={{ textAlign:"center", margin:"8px 0 12px", padding:"10px 20px", background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:10 }}>
-                <div style={{ fontSize:20, fontWeight:700, color:"#fff", fontFamily:"'Scheherazade New',serif" }}>{surah.name}</div>
+                <div style={{ fontSize:20, fontWeight:700, color:"#fff", fontFamily:"'Amiri Quran','Scheherazade New',serif" }}>{surah.name}</div>
                 <div style={{ fontSize:11, color:"#5eead4", marginTop:2 }}>{surah.englishName}</div>
                 {surah.number !== 1 && surah.number !== 9 && (
                   <div style={{ fontSize:18, color:"#fbbf24", marginTop:6 }}>{"\uFDFD"}</div>
@@ -5567,7 +5568,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
 
         {/* Player */}
         <div className="quran-dark-card" style={{ background:"#0f172a", borderRadius:14, padding:22, textAlign:"center" }}>
-          <div style={{ fontSize:26, fontWeight:800, color:"#fff", fontFamily:"'Scheherazade New','Traditional Arabic',serif", marginBottom:4, lineHeight:1.4 }}>
+          <div style={{ fontSize:26, fontWeight:800, color:"#fff", fontFamily:"'Amiri Quran','Amiri Quran','Scheherazade New',serif", marginBottom:4, lineHeight:1.4 }}>
             {SURAHS.find(s=>s.id===selectedSurah)?.arabic}
           </div>
           <div style={{ fontSize:13, fontWeight:600, color:"#5eead4", marginBottom:2 }}>
@@ -5625,7 +5626,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
             <div key={r.id} style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:"16px 20px", marginBottom:10 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontSize:18, fontWeight:700, color:"#1e293b", fontFamily:"'Scheherazade New','Traditional Arabic',serif" }}>{surah?.arabic || r.surahArabic}</div>
+                  <div style={{ fontSize:18, fontWeight:700, color:"#1e293b", fontFamily:"'Amiri Quran','Amiri Quran','Scheherazade New',serif" }}>{surah?.arabic || r.surahArabic}</div>
                   <div style={{ fontSize:13, fontWeight:600, color:S.text }}>{surah?.name || r.surahName}</div>
                   <div style={{ fontSize:12, color:S.sub, marginTop:4 }}>Pages {r.fromPage} – {r.toPage} · {r.date}</div>
                   {r.notes && <div style={{ fontSize:12, color:S.sub, marginTop:6, fontStyle:"italic" }}>"{r.notes}"</div>}
@@ -5705,7 +5706,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
               </div>
               {latest ? (
                 <div>
-                  <div style={{ fontSize:16, fontWeight:700, color:"#1e293b", fontFamily:"'Scheherazade New','Traditional Arabic',serif", marginBottom:2 }}>{surah?.arabic}</div>
+                  <div style={{ fontSize:16, fontWeight:700, color:"#1e293b", fontFamily:"'Amiri Quran','Amiri Quran','Scheherazade New',serif", marginBottom:2 }}>{surah?.arabic}</div>
                   <div style={{ fontSize:11, color:S.sub, marginBottom:8 }}>Pages {latest.fromPage}–{latest.toPage} · {latest.date}</div>
                   <div style={{ background:level?.bg, color:level?.color, borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:700, display:"inline-block" }}>
                     {level?.icon} {level?.label}
