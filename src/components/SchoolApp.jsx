@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -1447,7 +1447,7 @@ function StudentQuranPlayer() {
                 <span key={a.number}
                   onClick={() => { _QAudio.stop(); _QAudio.playing = true; setPageAudioPlay(true); playFromIndex(ayahs.findIndex(x=>x.number===a.number), ayahs); }}
                   style={{ cursor:"pointer", borderRadius:4, padding:"1px 3px", background:currentAyah===a.number?"#fef9c3":"transparent", boxShadow:currentAyah===a.number?"0 0 0 2px #fbbf24":"none" }}>
-                  {(() => { let t = a.text; if (a.numberInSurah===1 && a.surah && a.surah.number!==1 && a.surah.number!==9) { const p=t.split(String.fromCharCode(32)); if(p.length>4) t=p.slice(4).join(String.fromCharCode(32)); } return t; })()}
+                  {(() => { let t = a.text; if (a.numberInSurah===1 && a.surah && a.surah.number!==1 && a.surah.number!==9) { const p=t.split(String.fromCharCode(32)); if(p.length>4) t=p.slice(4).join(String.fromCharCode(32)); } const parts = t.split(/(\u0671\u0644\u0644\u0651\u064e\u0647|\u0627\u0644\u0644\u0651\u064e\u0647|\u0671\u0644\u0644\u0651\u064e\u0647\u064f|\u0627\u0644\u0644\u0651\u064e\u0647\u064f|\u0671\u0644\u0644\u0651\u064e\u0647\u0650|\u0627\u0644\u0644\u0651\u064e\u0647\u0650)/); return parts.map((p,i) => /\u0644\u0644/.test(p) ? <span key={i} style={{color:"#b91c1c",fontWeight:700}}>{p}</span> : p); })()}
                   <span style={{ fontSize:13, color:currentAyah===a.number?"#d97706":"#0d9488", margin:"0 3px" }}>&#x06DD;{a.numberInSurah}&#x06DD;</span>
                 </span>
               ))}
@@ -5408,7 +5408,7 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
                     background: currentAyah === a.number ? "#fef9c3" : "transparent",
                     boxShadow: currentAyah === a.number ? "0 0 0 2px #fbbf24" : "none",
                   }}>
-                  {(() => { let t = a.text; if (a.numberInSurah===1 && a.surah && a.surah.number!==1 && a.surah.number!==9) { const p=t.split(String.fromCharCode(32)); if(p.length>4) t=p.slice(4).join(String.fromCharCode(32)); } return t; })()}
+                  {(() => { let t = a.text; if (a.numberInSurah===1 && a.surah && a.surah.number!==1 && a.surah.number!==9) { const p=t.split(String.fromCharCode(32)); if(p.length>4) t=p.slice(4).join(String.fromCharCode(32)); } const parts = t.split(/(\u0671\u0644\u0644\u0651\u064e\u0647|\u0627\u0644\u0644\u0651\u064e\u0647|\u0671\u0644\u0644\u0651\u064e\u0647\u064f|\u0627\u0644\u0644\u0651\u064e\u0647\u064f|\u0671\u0644\u0644\u0651\u064e\u0647\u0650|\u0627\u0644\u0644\u0651\u064e\u0647\u0650)/); return parts.map((p,i) => /\u0644\u0644/.test(p) ? <span key={i} style={{color:"#b91c1c",fontWeight:700}}>{p}</span> : p); })()}
                   <span style={{ fontSize:14, color: currentAyah === a.number ? "#d97706":"#0d9488", margin:"0 4px", fontFamily:"serif" }}>
                     &#x06DD;{a.numberInSurah}&#x06DD;
                   </span>
