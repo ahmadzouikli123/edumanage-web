@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -6175,7 +6175,7 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
 }
 
 // ─── Settings ────────────────────────────────────────────────────────────────
-function Settings({ teachers, setTeachers, students, classes, subjects, setSubjects }) {
+function Settings({ teachers, setTeachers, students, setStudents, classes, subjects, setSubjects }) {
   const [parentEditId, setParentEditId] = useState(null);
   const [parentForm, setParentForm] = useState({ username: "", password: "" });
   const S = { primary: "#0d9488", border: "#e2e8f0", textMain: "#1e293b", textSub: "#64748b", textMuted: "#94a3b8", danger: "#ef4444", dangerBg: "#fee2e2" };
@@ -7019,7 +7019,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           {page === "grades"     && <Grades     students={students} classes={classes} subjects={subjects} grades={grades} setGrades={setGrades} teacherClassIds={teacherClassIds} />}
           {page === "timetable"  && <Timetable  classes={classes} subjects={subjects} timetable={timetable} setTimetable={setTimetable} teacherClassIds={teacherClassIds} />}
           {page === "messages"   && <EnhancedMessaging students={students} classes={classes} messages={messages} setMessages={setMessages} teachers={teachers} userRole={userRole} auth={auth} />}
-          {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
+          {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} setStudents={setStudents} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
           {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
           {page === "lessonplans"  && <LessonPlans classes={classes} subjects={subjects} lessonPlans={lessonPlans} setLessonPlans={setLessonPlans} teacherClassIds={teacherClassIds} userRole={userRole} auth={auth} teachers={teachers} />}
