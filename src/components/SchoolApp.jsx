@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -1437,6 +1437,7 @@ function StudentQuranPlayer() {
               {pageAudioPlay ? "\u23f9 Stop" : "\u25b6 Play Page"}
             </button>
           </div>
+          {!loadingPage && ayahs.length > 0 && ayahs[0].numberInSurah === 1 && ayahs[0].surah && ayahs[0].surah.number !== 1 && <div style={{ textAlign:"center", margin:"0 0 12px", padding:"10px 16px", background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:10 }}><div style={{ fontSize:20, fontWeight:700, color:"#fff", fontFamily:"serif" }}>{ayahs[0].surah.name}</div><div style={{ fontSize:11, color:"#5eead4" }}>{ayahs[0].surah.englishName}</div><div style={{ fontSize:18, color:"#fbbf24", marginTop:6 }}>{"\u0628\u0650\u0633\u0652\u0645\u0650 \u0671\u0644\u0644\u0651\u064e\u0647\u0650 \u0671\u0644\u0631\u0651\u064e\u062d\u0652\u0645\u064e\u0670\u0646\u0650 \u0671\u0644\u0631\u0651\u064e\u062d\u0650\u064a\u0645\u0650"}</div></div>}
           {loadingPage ? (
             <div style={{ textAlign:"center", padding:40, color:"#94a3b8", fontSize:13 }}>Loading...</div>
           ) : (
