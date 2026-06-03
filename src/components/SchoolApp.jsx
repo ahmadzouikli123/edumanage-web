@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -6374,7 +6374,7 @@ function Settings({ teachers, setTeachers, students, classes, subjects, setSubje
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#f8fafc" }}>
-                {["Student Name","Student ID","Password","Action"].map(h => (
+                {["Student Name","Student ID","New Student ID","Password","Action"].map(h => (
                   <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: S.textSub, borderBottom: `1px solid ${S.border}` }}>{h}</th>
                 ))}
               </tr>
@@ -6390,6 +6390,12 @@ function Settings({ teachers, setTeachers, students, classes, subjects, setSubje
                     <td style={{ padding: "12px 16px", fontSize: 13, fontFamily: "monospace" }}>{s.sid}</td>
                     <td style={{ padding: "12px 16px", fontSize: 13 }}>
                       {isEditing
+                        ? <input value={parentForm.username} onChange={e => setParentForm({...parentForm, username: e.target.value})} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "monospace", width: 100 }} placeholder="New SID" />
+                        : <span style={{ color: "#94a3b8", fontSize: 12 }}>—</span>
+                      }
+                    </td>
+                    <td style={{ padding: "12px 16px", fontSize: 13 }}>
+                      {isEditing
                         ? <input value={parentForm.password} onChange={e => setParentForm({...parentForm, password: e.target.value})} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "inherit", width: 140 }} />
                         : <span style={{ fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4, fontSize: 12 }}>••••••••</span>
                       }
@@ -6401,6 +6407,7 @@ function Settings({ teachers, setTeachers, students, classes, subjects, setSubje
                             const all = (() => { try { return JSON.parse(localStorage.getItem("edu_student_passwords") || "{}"); } catch { return {}; } })();
                             all[s.id] = parentForm.password;
                             localStorage.setItem("edu_student_passwords", JSON.stringify(all));
+                            if (parentForm.username && parentForm.username !== s.sid) { setStudents(students.map(st => st.id === s.id ? {...st, sid: parentForm.username} : st)); }
                             setParentEditId(null);
                           }} style={{ padding: "5px 12px", borderRadius: 6, border: "none", background: S.primary, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Save</button>
                           <button onClick={() => setParentEditId(null)} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
