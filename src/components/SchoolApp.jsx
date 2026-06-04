@@ -5464,6 +5464,9 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ studentId:"", surahId:1, fromPage:1, toPage:1, level:"good", notes:"", date: new Date().toISOString().split("T")[0] });
+  const [hifzRecords, setHifzRecords] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_hifz_records")||"[]"); } catch{return[];} });
+  const [hifzView, setHifzView] = useState("list"); // list | add
+  const [hifzForm, setHifzForm] = useState({ studentId:"", surahId:1, level:"memorized", notes:"", date: new Date().toISOString().split("T")[0] });
   const [displayPage, setDisplayPage] = useState(1);
   useEffect(() => { setDisplayPage(SURAH_START_PAGES[selectedSurah] || 1); }, [selectedSurah]);
 
@@ -5485,6 +5488,40 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
     setForm({ studentId:"", surahId:1, fromPage:1, toPage:1, level:"good", notes:"", date: new Date().toISOString().split("T")[0] });
   };
 
+  const saveHifz = () => {
+    if (!hifzForm.studentId) return alert("Please select a student");
+    const surah = SURAHS.find(s => s.id === Number(hifzForm.surahId));
+    // Check if already recorded for this student+surah
+    const exists = hifzRecords.find(r => String(r.studentId) === String(hifzForm.studentId) && Number(r.surahId) === Number(hifzForm.surahId));
+    let updated;
+    if (exists) {
+      updated = hifzRecords.map(r => String(r.studentId) === String(hifzForm.studentId) && Number(r.surahId) === Number(hifzForm.surahId)
+        ? { ...r, level: hifzForm.level, notes: hifzForm.notes, date: hifzForm.date }
+        : r);
+    } else {
+      const rec = { ...hifzForm, id: Date.now(), surahName: surah?.name, surahArabic: surah?.arabic, createdAt: new Date().toISOString() };
+      updated = [...hifzRecords, rec];
+    }
+    setHifzRecords(updated);
+    localStorage.setItem("edu_hifz_records", JSON.stringify(updated));
+    setHifzView("list");
+    setHifzForm({ studentId:"", surahId:1, level:"memorized", notes:"", date: new Date().toISOString().split("T")[0] });
+  };
+
+  const deleteHifz = (id) => {
+    const updated = hifzRecords.filter(r => r.id !== id);
+    setHifzRecords(updated);
+    localStorage.setItem("edu_hifz_records", JSON.stringify(updated));
+  };
+
+  const getStudentHifz = (studentId) => hifzRecords.filter(r => String(r.studentId) === String(studentId));
+  const getHifzProgress = (studentId) => {
+    const records = getStudentHifz(studentId);
+    const memorized = records.filter(r => r.level === "memorized").length;
+    const reviewing = records.filter(r => r.level === "reviewing").length;
+    return { memorized, reviewing, total: records.length, percent: Math.round((memorized/114)*100) };
+  };
+
   const playAudio = async (surahId) => {
     if (audio) { audio.pause(); setAudio(null); setPlaying(false); }
     setLoading(true);
@@ -5503,6 +5540,149 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
 
   const S = { border:"#e2e8f0", primary:"#0d9488", text:"#0f172a", sub:"#64748b" };
   const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+
+  // -- Hifz Tracker View
+  if (view === "hifz") {
+    const HIFZ_LEVELS = [
+      { value:"memorized", label:"Memorized", arabic:"محفوظ", color:"#059669", bg:"#d1fae5", icon:"🌟" },
+      { value:"reviewing", label:"Reviewing", arabic:"مراجعة", color:"#0284c7", bg:"#dbeafe", icon:"📖" },
+      { value:"weak",      label:"Needs Work", arabic:"يحتاج عمل", color:"#dc2626", bg:"#fee2e2", icon:"⚠️" },
+    ];
+
+    if (hifzView === "add") return (
+      <div style={{ maxWidth:600, margin:"0 auto" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+          <button onClick={() => setHifzView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+          <div style={{ fontSize:16, fontWeight:800, color:S.text }}>📗 Record Hifz Session</div>
+        </div>
+        <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
+            <div style={{ gridColumn:"1/-1" }}>
+              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Student *</label>
+              <select style={inp} value={hifzForm.studentId} onChange={e=>setHifzForm({...hifzForm,studentId:e.target.value})}>
+                <option value="">Select student...</option>
+                {visibleStudents.map(s=><option key={s.id} value={s.id}>{s.name} — {(classes.find(c=>c.id===s.classId)||{}).name||""}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Date</label>
+              <input type="date" style={inp} value={hifzForm.date} onChange={e=>setHifzForm({...hifzForm,date:e.target.value})} />
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Surah</label>
+              <select style={inp} value={hifzForm.surahId} onChange={e=>setHifzForm({...hifzForm,surahId:Number(e.target.value)})}>
+                {SURAHS.map(s=><option key={s.id} value={s.id}>{s.id}. {s.name} ({s.arabic})</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Level</label>
+              <select style={inp} value={hifzForm.level} onChange={e=>setHifzForm({...hifzForm,level:e.target.value})}>
+                {HIFZ_LEVELS.map(l=><option key={l.value} value={l.value}>{l.icon} {l.label} — {l.arabic}</option>)}
+              </select>
+            </div>
+            <div style={{ gridColumn:"1/-1" }}>
+              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Notes</label>
+              <textarea style={{...inp,resize:"vertical"}} rows={3} value={hifzForm.notes} onChange={e=>setHifzForm({...hifzForm,notes:e.target.value})} placeholder="Teacher notes..." />
+            </div>
+          </div>
+          <button onClick={saveHifz} style={{ width:"100%", padding:"13px 0", borderRadius:12, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+            💾 Save Record
+          </button>
+        </div>
+      </div>
+    );
+
+    return (
+      <div>
+        {/* Header */}
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+          <div>
+            <div style={{ fontSize:20, fontWeight:800, color:S.text }}>📗 Hifz Tracker</div>
+            <div style={{ fontSize:13, color:S.sub, marginTop:2 }}>Quran memorization progress</div>
+          </div>
+          <div style={{ display:"flex", gap:8 }}>
+            <button onClick={() => setView("dashboard")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
+            <button onClick={() => setHifzView("add")} style={{ padding:"9px 18px", borderRadius:9, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>+ Record Session</button>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
+          {[
+            { icon:"👥", label:"Total Students", value: visibleStudents.length, dark:true },
+            { icon:"🌟", label:"Memorized Surahs", value: hifzRecords.filter(r=>r.level==="memorized").length, color:"#059669" },
+            { icon:"📖", label:"Reviewing", value: hifzRecords.filter(r=>r.level==="reviewing").length, color:"#0284c7" },
+            { icon:"⚠️", label:"Needs Work", value: hifzRecords.filter(r=>r.level==="weak").length, color:"#dc2626" },
+          ].map((s,i)=>(
+            <div key={i} style={{ background: s.dark?"linear-gradient(135deg,#0f172a,#1e293b)":"#fff", borderRadius:14, border: s.dark?"none":"1px solid #e2e8f0", padding:"18px 20px" }}>
+              <div style={{ fontSize:22, marginBottom:8 }}>{s.icon}</div>
+              <div style={{ fontSize:26, fontWeight:800, color: s.dark?"#fff":s.color }}>{s.value}</div>
+              <div style={{ fontSize:12, color: s.dark?"rgba(255,255,255,.5)":"#94a3b8", marginTop:4 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Filter */}
+        <div style={{ marginBottom:16 }}>
+          <select style={{...inp, width:"auto", minWidth:200}} value={filterClass} onChange={e=>setFilterClass(e.target.value)}>
+            <option value="all">All Classes</option>
+            {visibleClasses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+
+        {/* Students Grid */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:12 }}>
+          {visibleStudents.map(student => {
+            const progress = getHifzProgress(student.id);
+            const records = getStudentHifz(student.id);
+            const lastRecord = records.sort((a,b)=>b.date?.localeCompare(a.date||"")||0)[0];
+            return (
+              <div key={student.id} style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:16 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+                  <div style={{ width:40, height:40, borderRadius:12, background:"linear-gradient(135deg,#0d9488,#14b8a6)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:14, fontWeight:700, flexShrink:0 }}>
+                    {student.name.split(" ").map(w=>w[0]).join("").slice(0,2)}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:S.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{student.name}</div>
+                    <div style={{ fontSize:11, color:S.sub }}>{progress.memorized} / 114 surahs</div>
+                  </div>
+                  <button onClick={() => { setHifzForm({...hifzForm, studentId:String(student.id)}); setHifzView("add"); }}
+                    style={{ padding:"5px 10px", borderRadius:7, border:"none", background:"#0d9488", color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:S.sub, marginBottom:4 }}>
+                    <span>Progress</span>
+                    <span>{progress.percent}%</span>
+                  </div>
+                  <div style={{ height:6, background:"#e2e8f0", borderRadius:3, overflow:"hidden" }}>
+                    <div style={{ height:"100%", width:progress.percent+"%", background:"linear-gradient(90deg,#0d9488,#14b8a6)", borderRadius:3, transition:"width .3s" }} />
+                  </div>
+                </div>
+
+                {/* Level badges */}
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:8 }}>
+                  {HIFZ_LEVELS.map(l => {
+                    const count = records.filter(r=>r.level===l.value).length;
+                    if (!count) return null;
+                    return <span key={l.value} style={{ background:l.bg, color:l.color, borderRadius:6, padding:"2px 8px", fontSize:10, fontWeight:700 }}>{l.icon} {count} {l.label}</span>;
+                  })}
+                </div>
+
+                {/* Last session */}
+                {lastRecord && (
+                  <div style={{ fontSize:11, color:S.sub, borderTop:"1px solid #f1f5f9", paddingTop:8 }}>
+                    Last: <span style={{ fontFamily:"serif", color:S.text }}>{lastRecord.surahArabic}</span> · {lastRecord.date}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   // -- Player View -------------------------------------------------------------
   useEffect(() => { setDisplayPage(SURAH_START_PAGES[selectedSurah] || 1); }, [selectedSurah]);
@@ -5671,6 +5851,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
         </div>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={() => setView("player")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:6 }}>🎧 Quran Player</button>
+          <button onClick={() => setView("hifz")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:6 }}>📗 Hifz Tracker</button>
         </div>
       </div>
 
