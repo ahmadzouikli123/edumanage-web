@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5541,15 +5541,15 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
   const S = { border:"#e2e8f0", primary:"#0d9488", text:"#0f172a", sub:"#64748b" };
   const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
 
-  // -- Hifz Tracker View
-  if (view === "hifz") {
-    const HIFZ_LEVELS = [
-      { value:"memorized", label:"Memorized", arabic:"محفوظ", color:"#059669", bg:"#d1fae5", icon:"🌟" },
-      { value:"reviewing", label:"Reviewing", arabic:"مراجعة", color:"#0284c7", bg:"#dbeafe", icon:"📖" },
-      { value:"weak",      label:"Needs Work", arabic:"يحتاج عمل", color:"#dc2626", bg:"#fee2e2", icon:"⚠️" },
-    ];
+  const HIFZ_LEVELS = [{ value:"memorized", label:"Memorized", arabic:"\u0645\u062d\u0641\u0648\u0638", color:"#059669", bg:"#d1fae5", icon:"\uD83C\uDF1F" },{ value:"reviewing", label:"Reviewing", arabic:"\u0645\u0631\u0627\u062c\u0639\u0629", color:"#0284c7", bg:"#dbeafe", icon:"\uD83D\uDCD6" },{ value:"weak", label:"Needs Work", arabic:"\u064a\u062d\u062a\u0627\u062c \u0639\u0645\u0644", color:"#dc2626", bg:"#fee2e2", icon:"\u26A0\uFE0F" }];
+  if (view === "hifz" && hifzView === "add") return (
 
-    if (hifzView === "add") return (
+
+
+
+
+
+
       <div style={{ maxWidth:600, margin:"0 auto" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
           <button onClick={() => setHifzView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
@@ -5682,7 +5682,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
         </div>
       </div>
     );
-  }
+
 
   // -- Player View -------------------------------------------------------------
   useEffect(() => { setDisplayPage(SURAH_START_PAGES[selectedSurah] || 1); }, [selectedSurah]);
