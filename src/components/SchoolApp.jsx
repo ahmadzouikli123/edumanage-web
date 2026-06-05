@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5454,7 +5454,7 @@ const SURAH_START_PAGES = {
   113:604,114:604
 };
 
-function QuranProgram({ students, classes, quranRecords, setQuranRecords, teacherClassIds, userRole, auth }) {
+function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRecords: hifzRecordsProp, setHifzRecords: setHifzRecordsProp, teacherClassIds, userRole, auth }) {
   const [view, setView] = useState("dashboard"); // dashboard | record | player | student
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [filterClass, setFilterClass] = useState("all");
@@ -5464,7 +5464,8 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, teache
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ studentId:"", surahId:1, fromPage:1, toPage:1, level:"good", notes:"", date: new Date().toISOString().split("T")[0] });
-  const [hifzRecords, setHifzRecords] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_hifz_records")||"[]"); } catch{return[];} });
+  const hifzRecords = hifzRecordsProp || [];
+  const setHifzRecords = (val) => { setHifzRecordsProp(val); localStorage.setItem("edu_hifz_records", JSON.stringify(val)); };
   const [hifzView, setHifzView] = useState("list"); // list | add
   const [hifzForm, setHifzForm] = useState({ studentId:"", surahId:1, level:"memorized", notes:"", date: new Date().toISOString().split("T")[0] });
   const [displayPage, setDisplayPage] = useState(1);
@@ -6849,7 +6850,8 @@ export default function App() {
   const [lessonPlans,  setLessonPlans]  = useState(() => { try { return JSON.parse(localStorage.getItem("edu_lesson_plans")||"[]");  } catch{return[];} });
   const [evaluations,  setEvaluations]  = useState(() => { try { return JSON.parse(localStorage.getItem("edu_evaluations")||"[]");  } catch{return[];} });
   const [quranRecords, setQuranRecords] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quran_records")||"[]"); } catch{return[];} });
-  const [hifzRecords, setHifzRecords] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_hifz_records")||"[]"); } catch{return[];} });
+  const hifzRecords = hifzRecordsProp || [];
+  const setHifzRecords = (val) => { setHifzRecordsProp(val); localStorage.setItem("edu_hifz_records", JSON.stringify(val)); };
   const [dbLoaded, setDbLoaded] = useState(false);
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
 
@@ -7206,7 +7208,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
           {page === "lessonplans"  && <LessonPlans classes={classes} subjects={subjects} lessonPlans={lessonPlans} setLessonPlans={setLessonPlans} teacherClassIds={teacherClassIds} userRole={userRole} auth={auth} teachers={teachers} />}
           {page === "evaluations"  && <TeacherEvaluations teachers={teachers} evaluations={evaluations} setEvaluations={setEvaluations} userRole={userRole} auth={auth} />}
-          {page === "quran"         && <QuranProgram students={students} classes={classes} quranRecords={quranRecords} setQuranRecords={setQuranRecords} teacherClassIds={teacherClassIds} userRole={userRole} />}
+          {page === "quran"         && <QuranProgram students={students} classes={classes} quranRecords={quranRecords} setQuranRecords={setQuranRecords} hifzRecords={hifzRecords} setHifzRecords={setHifzRecords} teacherClassIds={teacherClassIds} userRole={userRole} />}
         </div>
       </div>
     </div>
