@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -7136,6 +7136,37 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
             timetable={timetable}
             onClose={null}
           />
+          {/* Hifz Progress for Parent */}
+          {(hifzRecords||[]).filter(r => String(r.studentId) === String(student.id)).length > 0 && (() => {
+            const myR = (hifzRecords||[]).filter(r => String(r.studentId) === String(student.id));
+            const mem = myR.filter(r => r.level === "memorized").length;
+            const pct = Math.round((mem/114)*100);
+            const last = myR.sort((a,b)=>b.date?.localeCompare(a.date||"")||0)[0];
+            return (
+              <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20, marginBottom:16 }}>
+                <div style={{ fontSize:15, fontWeight:800, color:"#0f172a", marginBottom:12, display:"flex", alignItems:"center", gap:8 }}>{"\uD83D\uDCD7"} {"\u062a\u0642\u062f\u0645 \u0627\u0644\u062d\u0641\u0638"}</div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:12 }}>
+                  <div style={{ textAlign:"center", background:"#d1fae5", borderRadius:10, padding:10 }}>
+                    <div style={{ fontSize:20, fontWeight:800, color:"#059669" }}>{mem}</div>
+                    <div style={{ fontSize:11, color:"#059669" }}>Memorized</div>
+                  </div>
+                  <div style={{ textAlign:"center", background:"#dbeafe", borderRadius:10, padding:10 }}>
+                    <div style={{ fontSize:20, fontWeight:800, color:"#0284c7" }}>{myR.filter(r=>r.level==="reviewing").length}</div>
+                    <div style={{ fontSize:11, color:"#0284c7" }}>Reviewing</div>
+                  </div>
+                  <div style={{ textAlign:"center", background:"#f0fdf4", borderRadius:10, padding:10 }}>
+                    <div style={{ fontSize:20, fontWeight:800, color:"#0d9488" }}>{pct}%</div>
+                    <div style={{ fontSize:11, color:"#0d9488" }}>Progress</div>
+                  </div>
+                </div>
+                <div style={{ height:8, background:"#e2e8f0", borderRadius:4, overflow:"hidden", marginBottom:6 }}>
+                  <div style={{ height:"100%", width:pct+"%", background:"linear-gradient(90deg,#0d9488,#14b8a6)", borderRadius:4 }} />
+                </div>
+                <div style={{ fontSize:11, color:"#94a3b8", textAlign:"right" }}>{mem} / 114 {"\u0633\u0648\u0631\u0629"}</div>
+                {last && <div style={{ fontSize:12, color:"#64748b", marginTop:8, borderTop:"1px solid #f1f5f9", paddingTop:8 }}>{"\u0622\u062e\u0631 \u062c\u0644\u0633\u0629"}: <span style={{ fontFamily:"serif", color:"#0f172a" }}>{last.surahArabic||last.surahName}</span> {"\u00b7"} {last.date}</div>}
+              </div>
+            );
+          })()}
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
           <ParentLessonPlans student={student} lessonPlans={lessonPlans} subjects={subjects} classes={classes} />
           <ParentMessages student={student} messages={messages} setMessages={setMessages} />
