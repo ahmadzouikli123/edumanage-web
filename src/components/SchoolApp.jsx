@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -6850,8 +6850,8 @@ export default function App() {
   const [lessonPlans,  setLessonPlans]  = useState(() => { try { return JSON.parse(localStorage.getItem("edu_lesson_plans")||"[]");  } catch{return[];} });
   const [evaluations,  setEvaluations]  = useState(() => { try { return JSON.parse(localStorage.getItem("edu_evaluations")||"[]");  } catch{return[];} });
   const [quranRecords, setQuranRecords] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_quran_records")||"[]"); } catch{return[];} });
-  const hifzRecords = hifzRecordsProp || [];
-  const setHifzRecords = (val) => { setHifzRecordsProp(val); localStorage.setItem("edu_hifz_records", JSON.stringify(val)); };
+  const [hifzRecords, setHifzRecords] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_hifz_records")||"[]"); } catch{return[];} });
+
   const [dbLoaded, setDbLoaded] = useState(false);
   const [examResults, setExamResults] = useState(() => load("edu_exam_results", seedExamResults(seedExams(SEED_CLASSES, SEED_SUBJECTS), SEED_STUDENTS)));
 
