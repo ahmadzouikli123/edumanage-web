@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -1510,7 +1510,7 @@ function StudentQuranPlayer() {
   );
 }
 
-function StudentDashboard({ student, classes, attendance, grades, subjects, exams, examResults, messages, setMessages, timetable, quizzes, quizResults, quranRecords }) {
+function StudentDashboard({ student, classes, attendance, grades, subjects, exams, examResults, messages, setMessages, timetable, quizzes, quizResults, quranRecords, hifzRecords }) {
   const cls      = classes.find(cl => cl.id === student.classId);
   const stdSubjs = (subjects||[]).filter(s => s.classId === student.classId);
 
@@ -7054,7 +7054,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"4px 10px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:11,cursor:"pointer",fontFamily:"inherit",fontWeight:600,marginLeft:8}}>Sign Out</button>
         </div>
         <div style={{padding:"16px 12px",maxWidth:900,margin:"0 auto"}}>
-          <StudentDashboard student={student} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} setMessages={setMessages} timetable={timetable} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} quranRecords={quranRecords} />
+          <StudentDashboard student={student} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} setMessages={setMessages} timetable={timetable} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} quranRecords={quranRecords} hifzRecords={hifzRecords} />
         </div>
       </div>
     );
@@ -7105,7 +7105,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           <ParentNotifications student={student} attendance={attendance} grades={grades} subjects={subjects} exams={exams} messages={messages} />
           <ParentLessonPlans student={student} lessonPlans={lessonPlans} subjects={subjects} classes={classes} />
           <ParentMessages student={student} messages={messages} setMessages={setMessages} />
-          <ParentQuiz student={student} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} quranRecords={quranRecords} />
+          <ParentQuiz student={student} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} quranRecords={quranRecords} hifzRecords={hifzRecords} />
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
             <button onClick={() => exportParentReportPDF(student, classes.find(c=>c.id===student.classId), attendance, grades, subjects, exams, examResults)} style={{padding:"10px 20px",background:"#1e1e3a",color:"#fff",border:"none",borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
               Download PDF Report
