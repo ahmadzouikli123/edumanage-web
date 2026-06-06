@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -1236,7 +1236,7 @@ function exportToCSV(data, filename) {
 }
 
 // ─── Student Profile (Rich Tabbed) ───────────────────────────────────────────
-const PROFILE_TABS = ["Overview", "Attendance", "Grades", "Exams", "Messages", "Schedule", "Hifz"];
+const PROFILE_TABS = ["Overview", "Attendance", "Grades", "Exams", "Messages", "Schedule", "Hifz", "Quran"];
 
 function MiniBar({ value, max, color }) {
   const pct = max ? Math.min(100, Math.round((value / max) * 100)) : 0;
@@ -2266,6 +2266,11 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                       </div>
                     );
                   })}
+              </div>
+            )}
+            {tab === "Quran" && (
+              <div>
+                <StudentQuranPlayer />
               </div>
             )}
             {tab === "Hifz" && (
