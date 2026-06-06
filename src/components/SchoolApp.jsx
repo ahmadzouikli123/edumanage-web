@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -5492,12 +5492,15 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
       <div style={{ direction:"rtl", fontFamily:"'Amiri Quran','Amiri Quran','Scheherazade New',serif" }}>
         {surahGroups.map((surah) => (
           <div key={surah.number} style={{ marginBottom:16 }}>
-            {surah.ayahs[0]?.numberInSurah === 1 && (
+            {(surah.ayahs[0]?.numberInSurah === 1 || true) && (
               <div style={{ textAlign:"center", margin:"8px 0 12px", padding:"10px 20px", background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:10 }}>
                 <div style={{ fontSize:20, fontWeight:700, color:"#fff", fontFamily:"'Amiri Quran','Scheherazade New',serif" }}>{surah.name}</div>
                 <div style={{ fontSize:11, color:"#5eead4", marginTop:2 }}>{surah.englishName}</div>
-                {surah.number !== 1 && surah.number !== 9 && (
-                  <div style={{ fontSize:18, color:"#fbbf24", marginTop:6 }}>{"\uFDFD"}</div>
+                {surah.number !== 1 && surah.number !== 9 && surah.ayahs[0]?.numberInSurah === 1 && (
+                  <div style={{ fontSize:18, color:"#fbbf24", marginTop:6 }}>{"\u0628\u0650\u0633\u0652\u0645\u0650 \u0671\u0644\u0644\u0651\u064e\u0647\u0650 \u0671\u0644\u0631\u0651\u064e\u062d\u0652\u0645\u064e\u0670\u0646\u0650 \u0671\u0644\u0631\u0651\u064e\u062d\u0650\u064a\u0645\u0650"}</div>
+                )}
+                {surah.ayahs[0]?.numberInSurah > 1 && (
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,.5)", marginTop:4 }}>{"\u062a\u0627\u0628\u0639 \u0645\u0646 \u0627\u0644\u0622\u064a\u0629 "}{surah.ayahs[0]?.numberInSurah}</div>
                 )}
               </div>
             )}
