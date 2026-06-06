@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -1236,7 +1236,7 @@ function exportToCSV(data, filename) {
 }
 
 // ─── Student Profile (Rich Tabbed) ───────────────────────────────────────────
-const PROFILE_TABS = ["Overview", "Attendance", "Grades", "Exams", "Messages", "Schedule"];
+const PROFILE_TABS = ["Overview", "Attendance", "Grades", "Exams", "Messages", "Schedule", "Hifz"];
 
 function MiniBar({ value, max, color }) {
   const pct = max ? Math.min(100, Math.round((value / max) * 100)) : 0;
@@ -1782,7 +1782,7 @@ function ParentNotifications({ student, attendance, grades, subjects, exams, mes
   );
 }
 
-function StudentProfile({ student, classes, attendance, grades, subjects, exams, examResults, messages, timetable, onClose }) {
+function StudentProfile({ student, classes, attendance, grades, subjects, exams, examResults, messages, timetable, onClose, hifzRecords }) {
   const [tab, setTab] = useState("Overview");
 
   const cls       = classes.find(c => c.id === student.classId);
@@ -2268,6 +2268,70 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                   })}
               </div>
             )}
+            {tab === "Hifz" && (
+              <div>
+                {!(typeof hifzRecords !== "undefined" && hifzRecords) ? (
+                  <div style={{ textAlign:"center", padding:"60px 0", color:"#94a3b8", fontSize:14 }}>No Hifz records yet</div>
+                ) : (() => {
+                  const myR = (typeof hifzRecords !== "undefined" ? hifzRecords : []).filter(r => String(r.studentId) === String(student.id));
+                  if (!myR.length) return <div style={{ textAlign:"center", padding:"60px 0", color:"#94a3b8", fontSize:14 }}>No Hifz records yet</div>;
+                  const HIFZ_LEVELS = [
+                    { value:"memorized", label:"Memorized", arabic:"\u0645\u062d\u0641\u0648\u0638", color:"#059669", bg:"#d1fae5", icon:"\uD83C\uDF1F" },
+                    { value:"reviewing", label:"Reviewing", arabic:"\u0645\u0631\u0627\u062c\u0639\u0629", color:"#0284c7", bg:"#dbeafe", icon:"\uD83D\uDCD6" },
+                    { value:"weak",      label:"Needs Work", arabic:"\u064a\u062d\u062a\u0627\u062c \u0639\u0645\u0644", color:"#dc2626", bg:"#fee2e2", icon:"\u26A0\uFE0F" },
+                  ];
+                  const mem = myR.filter(r=>r.level==="memorized").length;
+                  const pct = Math.round((mem/114)*100);
+                  return (
+                    <div>
+                      {/* Stats */}
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:20 }}>
+                        {HIFZ_LEVELS.map(l => {
+                          const count = myR.filter(r=>r.level===l.value).length;
+                          return (
+                            <div key={l.value} style={{ background:l.bg, borderRadius:12, padding:"16px", textAlign:"center" }}>
+                              <div style={{ fontSize:24, marginBottom:4 }}>{l.icon}</div>
+                              <div style={{ fontSize:24, fontWeight:800, color:l.color }}>{count}</div>
+                              <div style={{ fontSize:12, color:l.color, fontWeight:600 }}>{l.label}</div>
+                              <div style={{ fontSize:11, color:l.color, opacity:.7 }}>{l.arabic}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {/* Progress bar */}
+                      <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:16, marginBottom:16 }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, fontWeight:600, color:"#1e293b", marginBottom:10 }}>
+                          <span>Overall Progress</span>
+                          <span style={{ color:"#0d9488" }}>{mem} / 114 surahs ({pct}%)</span>
+                        </div>
+                        <div style={{ height:10, background:"#e2e8f0", borderRadius:5, overflow:"hidden" }}>
+                          <div style={{ height:"100%", width:pct+"%", background:"linear-gradient(90deg,#0d9488,#14b8a6)", borderRadius:5, transition:"width .3s" }} />
+                        </div>
+                      </div>
+                      {/* Records list */}
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        {myR.sort((a,b)=>b.date?.localeCompare(a.date||"")||0).map(r => {
+                          const level = HIFZ_LEVELS.find(l=>l.value===r.level) || HIFZ_LEVELS[0];
+                          return (
+                            <div key={r.id} style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:"14px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                              <div>
+                                <div style={{ fontSize:18, fontFamily:"serif", color:"#1e293b", fontWeight:700 }}>{r.surahArabic}</div>
+                                <div style={{ fontSize:13, color:"#64748b" }}>{r.surahName} · {r.date}</div>
+                                {r.notes && <div style={{ fontSize:12, color:"#94a3b8", marginTop:4, fontStyle:"italic" }}>"{r.notes}"</div>}
+                              </div>
+                              <div style={{ background:level.bg, color:level.color, borderRadius:8, padding:"6px 12px", fontSize:12, fontWeight:700, flexShrink:0 }}>
+                                {level.icon} {level.label}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
 
           </div>
         </div>
@@ -7133,7 +7197,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
             student={student} classes={classes} attendance={attendance}
             grades={grades} subjects={subjects} exams={exams}
             examResults={examResults} messages={messages}
-            timetable={timetable}
+            timetable={timetable} hifzRecords={hifzRecords}
             onClose={null}
           />
           {/* Hifz Progress for Parent */}
