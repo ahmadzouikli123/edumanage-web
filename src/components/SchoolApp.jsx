@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -7152,7 +7152,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"4px 10px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:11,cursor:"pointer",fontFamily:"inherit",fontWeight:600,marginLeft:8}}>Sign Out</button>
         </div>
         <div style={{padding:"16px 12px",maxWidth:900,margin:"0 auto"}}>
-          <StudentDashboard student={student} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} setMessages={setMessages} timetable={timetable} quizzes={quizzes} quizResults={quizResults} setQuizResults={setQuizResults} quranRecords={quranRecords} hifzRecords={hifzRecords} />
+          <StudentProfile student={student} classes={classes} attendance={attendance} grades={grades} subjects={subjects} exams={exams} examResults={examResults} messages={messages} timetable={timetable} onClose={null} hifzRecords={hifzRecords} />
         </div>
       </div>
     );
