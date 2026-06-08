@@ -1503,14 +1503,26 @@ function StudentQuranPlayer() {
             <div style={{ textAlign:"center", padding:40, color:"#94a3b8", fontSize:13 }}>Loading...</div>
           ) : (
             <div style={{ direction:"rtl", fontFamily:"'Amiri Quran','Scheherazade New',serif", lineHeight:2.4, fontSize:20, color:"#1e293b", textAlign:"justify" }}>
-              {ayahs.map(a => (
-                <span key={a.number}
+              {ayahs.reduce((acc, a, idx) => {
+                const prev = ayahs[idx - 1];
+                const isNewSurah = idx > 0 && a.numberInSurah === 1 && a.surah?.number !== prev?.surah?.number;
+                if (isNewSurah) {
+                  acc.push(
+                    <div key={"sep-"+a.surah.number} style={{ textAlign:"center", margin:"16px 0 12px", padding:"10px 16px", background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:10, display:"block", width:"100%" }}>
+                      <div style={{ fontSize:18, fontWeight:700, color:"#fff", fontFamily:"serif" }}>{a.surah.name}</div>
+                      <div style={{ fontSize:11, color:"#5eead4" }}>{a.surah.englishName}</div>
+                      {a.surah.number !== 9 && <div style={{ fontSize:16, color:"#fbbf24", marginTop:4 }}>{"بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ"}</div>}
+                    </div>
+                  );
+                }
+                acc.push(<span key={a.number}
                   onClick={() => { _QAudio.stop(); _QAudio.playing = true; setPageAudioPlay(true); playFromIndex(ayahs.findIndex(x=>x.number===a.number), ayahs); }}
                   style={{ cursor:"pointer", borderRadius:4, padding:"1px 3px", background:currentAyah===a.number?"#fef9c3":"transparent", boxShadow:currentAyah===a.number?"0 0 0 2px #fbbf24":"none" }}>
                   {(() => { let t = a.text; if (a.numberInSurah===1 && a.surah && a.surah.number!==1 && a.surah.number!==9) { const p=t.split(String.fromCharCode(32)); if(p.length>4) t=p.slice(4).join(String.fromCharCode(32)); } const parts = t.split(/(ٱللَّهِ|اللَّهِ|ٱللَّهُ|اللَّهُ|ٱللَّهَ|اللَّهَ)/); return parts.map((p,i) => /لل/.test(p) ? <span key={i} style={{color:"#b91c1c",fontWeight:700}}>{p}</span> : p); })()}
                   <span style={{ fontSize:13, color:currentAyah===a.number?"#d97706":"#0d9488", margin:"0 3px" }}>&#x06DD;{a.numberInSurah}&#x06DD;</span>
-                </span>
-              ))}
+                </span>);
+                return acc;
+              }, [])}
             </div>
           )}
           <style>{"@keyframes wave{0%,100%{transform:scaleY(0.4)}50%{transform:scaleY(1)}} @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}"}</style>
@@ -7396,6 +7408,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
     </div>
   );
 }
+
 
 
 
