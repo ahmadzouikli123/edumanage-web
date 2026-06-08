@@ -5448,7 +5448,7 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
       <div style={{ direction:"rtl", fontFamily:"'Amiri Quran','Amiri Quran','Scheherazade New',serif" }}>
         {surahGroups.map((surah) => (
           <div key={surah.number} style={{ marginBottom:16 }}>
-            {(surah.ayahs[0]?.numberInSurah === 1 || true) && (
+            {(surah.number > 0) && (
               <div style={{ textAlign:"center", margin:"8px 0 12px", padding:"10px 20px", background:"linear-gradient(135deg,#0f172a,#134e4a)", borderRadius:10 }}>
                 <div style={{ fontSize:20, fontWeight:700, color:"#fff", fontFamily:"'Amiri Quran','Scheherazade New',serif" }}>{surah.name}</div>
                 <div style={{ fontSize:11, color:"#5eead4", marginTop:2 }}>{surah.englishName}</div>
