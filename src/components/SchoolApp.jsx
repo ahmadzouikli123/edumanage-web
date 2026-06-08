@@ -1387,9 +1387,15 @@ function StudentQuranPlayer() {
   const [playing,       setPlaying]       = useState(false);
   const [audio,         setAudio]         = useState(null);
 
-  useEffect(() => { setDisplayPage(SURAH_START_PAGES[selectedSurah] || 1); }, [selectedSurah]);
+  useEffect(() => {
+    setDisplayPage(SURAH_START_PAGES[selectedSurah] || 1);
+  }, [selectedSurah]);
 
-  const stopAudio = () => { if (audio) { audio.pause(); audio.currentTime = 0; setAudio(null); setPlaying(false); } _QAudio.stop(); setPlaying(false); };
+  const stopAudio = () => {
+    _QAudio.stop();
+    setPlaying(false);
+    if (audio) { audio.pause(); audio.currentTime = 0; setAudio(null); }
+  };
 
   const S = { text:"#0f172a", sub:"#64748b" };
   const inp = { width:"100%", padding:"8px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
@@ -1403,6 +1409,8 @@ function StudentQuranPlayer() {
           .quran-dark-card { display: none !important; }
         }
       `}</style>
+
+      {/* Quran Page Viewer */}
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden" }}>
         <div style={{ padding:"12px 16px", borderBottom:"1px solid #e2e8f0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div>
@@ -1410,17 +1418,22 @@ function StudentQuranPlayer() {
             <div style={{ fontSize:11, color:S.sub }}>{"تتزامن مع السورة"}</div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <button onClick={() => { stopAudio(); setDisplayPage(p => Math.max(1, p-1)); }} style={{ width:28, height:28, borderRadius:6, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer" }}>{"›"}</button>
-            <span style={{ fontSize:12, fontWeight:600, color:S.text, minWidth:64, textAlign:"center" }}>{"صفحة "}{displayPage}</span>
-            <button onClick={() => { stopAudio(); setDisplayPage(p => Math.min(604, p+1)); }} style={{ width:28, height:28, borderRadius:6, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer" }}>{"‹"}</button>
+            <button onClick={() => { stopAudio(); setDisplayPage(p => Math.max(1, p-1)); }}
+              style={{ width:30, height:30, borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", fontSize:16 }}>{"›"}</button>
+            <span style={{ fontSize:12, fontWeight:600, color:S.text, minWidth:72, textAlign:"center" }}>{"صفحة "}{displayPage}</span>
+            <button onClick={() => { stopAudio(); setDisplayPage(p => Math.min(604, p+1)); }}
+              style={{ width:30, height:30, borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", fontSize:16 }}>{"‹"}</button>
           </div>
         </div>
-        <div style={{ minHeight:480, background:"#fdfdf8", overflowY:"auto", padding:"16px 20px" }}>
+        <div style={{ minHeight:520, background:"#fdfdf8", overflowY:"auto", padding:"16px 20px" }}>
           <QuranPageText page={displayPage} reciter={reciter} playing={playing} setPlaying={setPlaying} externalAudio={audio} setExternalAudio={setAudio} />
         </div>
       </div>
+
+      {/* Right Panel */}
       <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:14 }}>
+        {/* Reciter */}
+        <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:14 }}>
           <div style={{ fontSize:11, fontWeight:700, color:S.sub, marginBottom:10 }}>{"القارئ"}</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
             {RECITERS.map(r => (
@@ -1432,24 +1445,31 @@ function StudentQuranPlayer() {
             ))}
           </div>
         </div>
-        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:14 }}>
+
+        {/* Surah */}
+        <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:14 }}>
           <div style={{ fontSize:11, fontWeight:700, color:S.sub, marginBottom:10 }}>{"السورة"}</div>
           <select style={inp} value={selectedSurah} onChange={e => { setSelectedSurah(Number(e.target.value)); stopAudio(); }}>
             {SURAHS.map(s => <option key={s.id} value={s.id}>{s.id}. {s.name} - {s.arabic}</option>)}
           </select>
         </div>
-        <div className="quran-dark-card" style={{ background:"#0f172a", borderRadius:12, padding:20, textAlign:"center" }}>
-          <div style={{ fontSize:22, fontWeight:800, color:"#fff", fontFamily:"'Amiri Quran','Scheherazade New',serif", marginBottom:4 }}>
+
+        {/* Dark card */}
+        <div className="quran-dark-card" style={{ background:"#0f172a", borderRadius:14, padding:22, textAlign:"center" }}>
+          <div style={{ fontSize:24, fontWeight:800, color:"#fff", fontFamily:"'Amiri Quran','Scheherazade New',serif", marginBottom:4 }}>
             {SURAHS.find(s=>s.id===selectedSurah)?.arabic}
           </div>
-          <div style={{ fontSize:12, fontWeight:600, color:"#5eead4", marginBottom:2 }}>{SURAHS.find(s=>s.id===selectedSurah)?.name}</div>
+          <div style={{ fontSize:12, fontWeight:600, color:"#5eead4", marginBottom:2 }}>
+            {SURAHS.find(s=>s.id===selectedSurah)?.name}
+          </div>
           <div style={{ fontSize:11, color:"rgba(255,255,255,.35)", marginBottom:16 }}>
             {SURAHS.find(s=>s.id===selectedSurah)?.verses} {"آية"} &middot; {RECITERS.find(r=>r.id===reciter)?.arabic}
           </div>
           {playing && (
             <div style={{ display:"flex", justifyContent:"center", gap:3, height:20, alignItems:"center" }}>
               {[8,14,20,14,8].map((h,i) => (
-                <div key={i} style={{ width:3, height:h, borderRadius:2, background:"#5eead4", animation:"wave 0.9s ease-in-out infinite " + (i*0.15).toFixed(2) + "s" }} />
+                <div key={i} style={{ width:3, height:h, borderRadius:2, background:"#5eead4",
+                  animation:"wave 0.9s ease-in-out infinite " + (i*0.15).toFixed(2) + "s" }} />
               ))}
             </div>
           )}
