@@ -5368,13 +5368,18 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
     const ayah  = ayahList[idx];
     const num   = ayah.number;
     const recId = reciter || "ar.alafasy";
-    const url   = `https://cdn.islamic.network/quran/audio/128/${recId}/${num}.mp3`;
+    const isNewSurah = ayah.numberInSurah === 1 && idx > 0;
+    const delay = isNewSurah ? 1500 : 0;
     setCurrentAyah(num);
-    _QAudio.play(
-      url,
-      () => { if (_QAudio.playing) playFromIndex(idx + 1, ayahList); },
-      () => { if (_QAudio.playing) playFromIndex(idx + 1, ayahList); }
-    );
+    setTimeout(() => {
+      if (!_QAudio.playing) return;
+      const url = "https://cdn.islamic.network/quran/audio/128/" + recId + "/" + num + ".mp3";
+      _QAudio.play(
+        url,
+        () => { if (_QAudio.playing) playFromIndex(idx + 1, ayahList); },
+        () => { if (_QAudio.playing) playFromIndex(idx + 1, ayahList); }
+      );
+    }, delay);
   };
 
   const togglePagePlay = () => {
