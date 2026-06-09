@@ -2398,7 +2398,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim() && !(form.firstName||"").trim()) e.name = "Required";
+    const hasName = (form.firstName||"").trim() || (form.name||"").trim(); if (!hasName) e.name = "Required";
     if (!form.sid.trim())  e.sid  = "Required";
     else if (students.some(s => s.sid === form.sid && s.id !== form.id)) e.sid = "ID already exists";
     return e;
@@ -2407,10 +2407,11 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
   const saveStudent = () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
+    const finalForm = { ...form, name: ((form.firstName||"") + " " + (form.lastName||"")).trim() || form.name };
     if (modal.mode === "add") {
-      setStudents(prev => [...prev, { ...form, id: uid() }]);
+      setStudents(prev => [...prev, { ...finalForm, id: uid() }]);
     } else {
-      setStudents(prev => prev.map(s => s.id === form.id ? form : s));
+      setStudents(prev => prev.map(s => s.id === form.id ? finalForm : s));
     }
     setModal(null);
     showToast(modal.mode === "add" ? "Student added" : "Student updated");
