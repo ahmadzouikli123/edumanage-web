@@ -164,7 +164,7 @@ function save(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
 
-const EMPTY_STUDENT = { name: "", firstName: "", lastName: "", parentName: "", sid: "", classId: 1, gender: "Male", phone: "", status: "Active" };
+const EMPTY_STUDENT = { name: "", firstName: "", lastName: "", parentName: "", sid: "", classId: 1, gender: "Male", phone: "", status: "Active", showQuran: true };
 const EMPTY_CLASS   = { name: "", grade: "", room: "", teacher: "", capacity: 25 };
 
 // ─── Grades Seed Data ─────────────────────────────────────────────────────────
@@ -2563,6 +2563,12 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
                   <option>Active</option><option>Inactive</option>
                 </select>
               </Field>
+            </div>
+            <div style={{ gridColumn: "1/-1", display:"flex", alignItems:"center", gap:10, padding:"10px 0" }}>
+              <input type="checkbox" id="showQuranCheck" checked={form.showQuran !== false} onChange={e => setForm({ ...form, showQuran: e.target.checked })} style={{ width:16, height:16, accentColor:"#0d9488", cursor:"pointer" }} />
+              <label htmlFor="showQuranCheck" style={{ fontSize:13, color:T.textMain, cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
+                <span>🕌</span> Enable Quran tab for student and parent
+              </label>
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
