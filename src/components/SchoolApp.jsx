@@ -2398,7 +2398,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = "Required";
+    if (!form.name.trim() && !(form.firstName||"").trim()) e.name = "Required";
     if (!form.sid.trim())  e.sid  = "Required";
     else if (students.some(s => s.sid === form.sid && s.id !== form.id)) e.sid = "ID already exists";
     return e;
