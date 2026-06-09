@@ -164,7 +164,7 @@ function save(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
 
-const EMPTY_STUDENT = { name: "", sid: "", classId: 1, gender: "Male", phone: "", status: "Active" };
+const EMPTY_STUDENT = { name: "", firstName: "", lastName: "", parentName: "", sid: "", classId: 1, gender: "Male", phone: "", status: "Active" };
 const EMPTY_CLASS   = { name: "", grade: "", room: "", teacher: "", capacity: 25 };
 
 // ─── Grades Seed Data ─────────────────────────────────────────────────────────
@@ -2526,10 +2526,18 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
       {modal && (
         <Modal title={modal.mode === "add" ? "Add New Student" : "Edit Student"} onClose={() => setModal(null)}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+            <Field label="First Name" error={errors.name}>
+              <input style={errors.name ? inputErrorStyle : inputStyle} value={form.firstName || ""}
+                onChange={e => { const fn=e.target.value; setForm({ ...form, firstName: fn, name: (fn+" "+(form.lastName||"")).trim() }); setErrors(p => ({ ...p, name: "" })); }} placeholder="e.g. Ahmad" />
+            </Field>
+            <Field label="Last Name">
+              <input style={inputStyle} value={form.lastName || ""}
+                onChange={e => { const ln=e.target.value; setForm({ ...form, lastName: ln, name: ((form.firstName||"")+" "+ln).trim() }); }} placeholder="e.g. Hassan" />
+            </Field>
             <div style={{ gridColumn: "1/-1" }}>
-              <Field label="Full Name" error={errors.name}>
-                <input style={errors.name ? inputErrorStyle : inputStyle} value={form.name}
-                  onChange={e => { setForm({ ...form, name: e.target.value }); setErrors(p => ({ ...p, name: "" })); }} placeholder="e.g. John Smith" />
+              <Field label="Parent Name">
+                <input style={inputStyle} value={form.parentName || ""}
+                  onChange={e => setForm({ ...form, parentName: e.target.value })} placeholder="e.g. Mohammed Al-Hassan" />
               </Field>
             </div>
             <Field label="Student ID" error={errors.sid}>
