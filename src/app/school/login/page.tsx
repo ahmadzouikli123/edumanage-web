@@ -48,7 +48,7 @@ export default function Login() {
         const allTeachers = [...SEED_TEACHERS, ...storedTeachers.filter((t: any) => t.username && !SEED_TEACHERS.find((s: any) => s.username === t.username))]
         const t = allTeachers.find((x: any) => x.username === user.toLowerCase().trim() && x.password === pass)
         if (t) {
-          save("edu_auth", {role:"teacher", name:t.name, classIds:t.class_ids||[], classId:(t.class_ids||[])[0]})
+          const tClassIds = t.classIds || t.class_ids || []; save("edu_auth", {role:"teacher", name:t.name, classIds:tClassIds, classId:tClassIds[0]})
           router.replace("/school")
         } else {
           setErr("Invalid credentials")
@@ -86,7 +86,7 @@ export default function Login() {
           acc.username.toLowerCase() === user.toLowerCase().trim() && acc.password === pass
         )
         if (customEntry) {
-          const s = allStudents.find((x: any) => x.id === parseInt(customEntry[0]))
+          const s = allStudents.find((x: any) => x.id === allStudents.find((x: any) => String(x.id) === String(customEntry[0]))
           if (s) {
             save("edu_auth", { role:"parent", name:s.name, phone:s.phone, studentId:s.id, studentIds:[s.id] })
             router.replace("/school")
@@ -241,5 +241,7 @@ export default function Login() {
     </div>
   )
 }
+
+
 
 
