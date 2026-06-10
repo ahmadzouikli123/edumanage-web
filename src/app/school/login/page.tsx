@@ -34,7 +34,21 @@ export default function Login() {
   const go = async () => {
     setErr(""); setBusy(true)
     try {
-      if (role === "admin") {
+      if (role === "principal") {
+        const storedPass = localStorage.getItem("edu_principal_password") || "principal123"
+        if (user === "principal" && pass === storedPass) {
+          save("edu_auth", {role:"principal", name:"School Principal"})
+          router.replace("/school")
+        } else { setErr("Invalid credentials") }
+
+      } else if (role === "supervisor") {
+        const storedPass = localStorage.getItem("edu_supervisor_password") || "supervisor123"
+        if (user === "supervisor" && pass === storedPass) {
+          save("edu_auth", {role:"supervisor", name:"Supervisor"})
+          router.replace("/school")
+        } else { setErr("Invalid credentials") }
+
+      } else if (role === "admin") {
         const storedPass = localStorage.getItem("edu_admin_password") || "admin123"
         if (user === "admin" && pass === storedPass) {
           save("edu_auth", {role:"admin", name:"Admin User"})
@@ -209,7 +223,7 @@ export default function Login() {
             </div>
             <div style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:20,padding:28}}>
               <div style={{display:"flex",gap:4,background:"rgba(0,0,0,.3)",borderRadius:10,padding:4,marginBottom:24}}>
-                {[["parent","Parent"],["student","Student"],["teacher","Teacher"],["admin","Admin"]].map(([r,l])=>(
+                {[["parent","Parent"],["student","Student"],["teacher","Teacher"],["principal","Principal"],["supervisor","Supervisor"],["admin","Admin"]].map(([r,l])=>(
                   <button key={r} onClick={()=>{setRole(r);setUser("");setPass("");setErr("")}} style={{flex:1,padding:"8px 0",borderRadius:7,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:"inherit",background:role===r?"#0d9488":"transparent",color:role===r?"#fff":"rgba(255,255,255,.45)"}}>
                     {l}
                   </button>
@@ -232,6 +246,8 @@ export default function Login() {
               <div style={{marginTop:16,padding:"12px 14px",background:"rgba(13,148,136,.08)",border:"1px solid rgba(13,148,136,.2)",borderRadius:10,fontSize:11,color:"rgba(255,255,255,.45)"}}>
                 <div style={{fontWeight:600,color:"#5eead4",marginBottom:6}}>Demo credentials</div>
                 {role==="admin"   && <div>Username: admin / Password: admin123</div>}
+                {role==="principal" && <div>Username: principal / Password: principal123</div>}
+                {role==="supervisor" && <div>Username: supervisor / Password: supervisor123</div>}
                 {role==="teacher" && <div>Username: sarah.johnson / Password: teacher</div>}
                 {role==="parent"  && <div>Username: S001 / Password: 555-0101</div>}
                 {role==="student" && <div>Username: S001 / Password: student123</div>}
@@ -243,6 +259,9 @@ export default function Login() {
     </div>
   )
 }
+
+
+
 
 
 

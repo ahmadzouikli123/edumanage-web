@@ -7174,6 +7174,130 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
   });
 }
 
+  if (auth.role === "principal" || auth.role === "supervisor") {
+    const isPrincipal = auth.role === "principal";
+    return (
+      <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"system-ui,sans-serif"}}>
+        <div style={{background:"#1e1e3a",padding:"0 24px",display:"flex",alignItems:"center",gap:12,height:52}}>
+          <div style={{fontSize:14,fontWeight:700,color:"#5eead4"}}>{isPrincipal ? "🏫 Principal Dashboard" : "👁️ Supervisor Dashboard"}</div>
+          <div style={{flex:1}} />
+          <span style={{fontSize:12,color:"rgba(255,255,255,.6)"}}>{auth.name}</span>
+          <button onClick={()=>{localStorage.removeItem("edu_auth"); window.location.href="/school/login";}} style={{padding:"4px 12px",borderRadius:7,border:"1px solid rgba(255,255,255,.15)",background:"rgba(220,38,38,.2)",color:"#fca5a5",fontSize:11,cursor:"pointer",fontFamily:"inherit",marginLeft:8}}>Sign Out</button>
+        </div>
+        <div style={{maxWidth:1100,margin:"0 auto",padding:"24px 16px"}}>
+
+          {/* Stats Row */}
+          {isPrincipal && (
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:24}}>
+              {[
+                {icon:"👥",label:"Total Students",value:students.length,color:"#0d9488",bg:"#f0fdf9"},
+                {icon:"👨‍🏫",label:"Total Teachers",value:teachers.length,color:"#7c3aed",bg:"#f5f3ff"},
+                {icon:"🏫",label:"Classes",value:classes.length,color:"#2563eb",bg:"#eff6ff"},
+                {icon:"📋",label:"Upcoming Exams",value:(exams||[]).filter(e=>new Date(e.date+"T00:00:00")>=new Date()).length,color:"#d97706",bg:"#fffbeb"},
+              ].map((s,i)=>(
+                <div key={i} style={{background:s.bg,borderRadius:14,padding:"20px",border:"1px solid #e2e8f0"}}>
+                  <div style={{fontSize:24,marginBottom:8}}>{s.icon}</div>
+                  <div style={{fontSize:28,fontWeight:800,color:s.color}}>{s.value}</div>
+                  <div style={{fontSize:12,color:"#64748b",marginTop:4}}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Evaluations Section */}
+          <div style={{background:"#fff",borderRadius:14,border:"1px solid #e2e8f0",overflow:"hidden",marginBottom:20}}>
+            <div style={{padding:"16px 20px",borderBottom:"1px solid #e2e8f0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{fontSize:16,fontWeight:700,color:"#1e293b"}}>⭐ Teacher Evaluations</div>
+              {!isPrincipal && (
+                <button onClick={()=>{
+                  const name = prompt("Teacher name:");
+                  if (!name) return;
+                  alert("Use the full Evaluations module for detailed input.");
+                }} style={{padding:"8px 16px",borderRadius:8,border:"none",background:"#0d9488",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer"}}>+ New Evaluation</button>
+              )}
+            </div>
+            {(evaluations||[]).length === 0 ? (
+              <div style={{padding:40,textAlign:"center",color:"#94a3b8"}}>No evaluations yet</div>
+            ) : (
+              <table style={{width:"100%",borderCollapse:"collapse"}}>
+                <thead>
+                  <tr style={{background:"#f8fafc"}}>
+                    {["Teacher","Date","Type","Score","Level"].map(h=>(
+                      <th key={h} style={{padding:"10px 16px",textAlign:"left",fontSize:11,fontWeight:600,color:"#64748b",borderBottom:"1px solid #e2e8f0",textTransform:"uppercase"}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...(evaluations||[])].sort((a,b)=>b.createdAt?.localeCompare(a.createdAt||"")||0).map(ev=>{
+                    const perf = ev.pct>=90?{label:"Excellent",color:"#059669",bg:"#d1fae5"}:ev.pct>=75?{label:"Very Good",color:"#0284c7",bg:"#dbeafe"}:ev.pct>=60?{label:"Good",color:"#d97706",bg:"#fef3c7"}:{label:"Needs Improvement",color:"#dc2626",bg:"#fee2e2"};
+                    return (
+                      <tr key={ev.id} style={{borderBottom:"1px solid #f1f5f9"}}>
+                        <td style={{padding:"12px 16px",fontSize:13,fontWeight:600}}>{ev.teacherName}</td>
+                        <td style={{padding:"12px 16px",fontSize:12,color:"#64748b"}}>{ev.visitDate}</td>
+                        <td style={{padding:"12px 16px",fontSize:12,color:"#64748b"}}>{ev.visitType}</td>
+                        <td style={{padding:"12px 16px",fontSize:14,fontWeight:700,color:perf.color}}>{ev.pct}%</td>
+                        <td style={{padding:"12px 16px"}}><span style={{background:perf.bg,color:perf.color,borderRadius:8,padding:"3px 10px",fontSize:11,fontWeight:700}}>{perf.label}</span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Lesson Plans for Supervisor */}
+          {!isPrincipal && (
+            <div style={{background:"#fff",borderRadius:14,border:"1px solid #e2e8f0",overflow:"hidden",marginBottom:20}}>
+              <div style={{padding:"16px 20px",borderBottom:"1px solid #e2e8f0",fontSize:16,fontWeight:700,color:"#1e293b"}}>📚 Lesson Plans</div>
+              {(lessonPlans||[]).length === 0 ? (
+                <div style={{padding:40,textAlign:"center",color:"#94a3b8"}}>No lesson plans yet</div>
+              ) : (
+                <div style={{padding:16,display:"flex",flexDirection:"column",gap:8}}>
+                  {[...(lessonPlans||[])].sort((a,b)=>b.createdAt?.localeCompare(a.createdAt||"")||0).slice(0,10).map(p=>{
+                    const cls = classes.find(c=>c.id===p.classId);
+                    const sub = subjects.find(s=>s.id===p.subjectId);
+                    return (
+                      <div key={p.id} style={{padding:"12px 16px",borderRadius:10,border:"1px solid #e2e8f0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <div>
+                          <div style={{fontSize:13,fontWeight:600,color:"#1e293b"}}>{p.title}</div>
+                          <div style={{fontSize:11,color:"#64748b",marginTop:2}}>{cls?.name} · {sub?.name} · {p.day} · {p.week}</div>
+                        </div>
+                        <span style={{fontSize:11,color:"#0d9488",fontWeight:600}}>{p.createdBy}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Attendance Summary for Principal */}
+          {isPrincipal && (
+            <div style={{background:"#fff",borderRadius:14,border:"1px solid #e2e8f0",overflow:"hidden"}}>
+              <div style={{padding:"16px 20px",borderBottom:"1px solid #e2e8f0",fontSize:16,fontWeight:700,color:"#1e293b"}}>✅ Attendance Overview</div>
+              <div style={{padding:20,display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}}>
+                {classes.map(cls=>{
+                  const todayStr = new Date().toISOString().split("T")[0];
+                  const todayRec = attendance[todayStr] || {};
+                  const clsStudents = students.filter(s=>s.classId===cls.id);
+                  const present = clsStudents.filter(s=>todayRec[s.id]==="present").length;
+                  const pct = clsStudents.length ? Math.round((present/clsStudents.length)*100) : 0;
+                  return (
+                    <div key={cls.id} style={{background:"#f8fafc",borderRadius:10,padding:14}}>
+                      <div style={{fontSize:13,fontWeight:700,color:"#1e293b",marginBottom:6}}>{cls.name}</div>
+                      <div style={{fontSize:22,fontWeight:800,color: pct>=80?"#059669":pct>=60?"#d97706":"#dc2626"}}>{pct}%</div>
+                      <div style={{fontSize:11,color:"#64748b"}}>{present}/{clsStudents.length} present today</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (auth.role === "student") {
     const student = students.find(s => s.id === auth.studentId);
     if (!student) { localStorage.removeItem("edu_auth"); window.location.href = "/school/login"; return null; }
@@ -7374,6 +7498,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
     </div>
   );
 }
+
 
 
 
