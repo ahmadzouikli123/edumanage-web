@@ -69,7 +69,7 @@ export default function Login() {
         if (!s) { setErr("Student not found"); setBusy(false); return; }
         // تحقق من كلمة المرور
         const studentPasswords = load("edu_student_passwords", {})
-        const expectedPass = studentPasswords[s.id] || "student123"
+        const expectedPass = studentPasswords[s.id] || studentPasswords[String(s.id)] || "student123"
         if (pass !== expectedPass) { setErr("Invalid password"); setBusy(false); return; }
         save("edu_auth", { role:"student", name:s.name, studentId:s.id, sid:s.sid })
         router.replace("/school")
@@ -241,4 +241,5 @@ export default function Login() {
     </div>
   )
 }
+
 
