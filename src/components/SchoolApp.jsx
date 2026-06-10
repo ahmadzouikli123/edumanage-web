@@ -157,6 +157,7 @@ function seedAttendance(students) {
 
 // ─── localStorage helpers ─────────────────────────────────────────────────────
 function load(key, fallback) {
+  if (typeof window === "undefined") return fallback;
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
   catch { return fallback; }
 }
@@ -6901,6 +6902,16 @@ export default function App() {
   }, []);
   const [auth, setAuth] = useState(null);
 
+
+  // Re-load data from localStorage after hydration
+  useEffect(() => {
+    const s = localStorage.getItem("edu_students");
+    if (s) { try { setStudents(JSON.parse(s)); } catch {} }
+    const t = localStorage.getItem("edu_teachers");
+    if (t) { try { setTeachers(JSON.parse(t)); } catch {} }
+    const cl = localStorage.getItem("edu_classes");
+    if (cl) { try { setClasses(JSON.parse(cl)); } catch {} }
+  }, []);
   useEffect(() => {
     try {
       const stored = localStorage.getItem("edu_auth");
