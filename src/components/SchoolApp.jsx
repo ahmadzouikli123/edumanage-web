@@ -2415,6 +2415,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
       setStudents(prev => [...prev, { ...finalForm, id: uid() }]);
     } else {
       setStudents(prev => prev.map(s => s.id === form.id ? finalForm : s));
+      if (profile && profile.id === form.id) setProfile(finalForm);
     }
     setModal(null);
     showToast(modal.mode === "add" ? "Student added" : "Student updated");
@@ -7373,6 +7374,8 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
     </div>
   );
 }
+
+
 
 
 
