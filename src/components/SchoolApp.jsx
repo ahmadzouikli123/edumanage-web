@@ -2397,7 +2397,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
   };
 
   const openAdd  = () => { setForm({ ...EMPTY_STUDENT, sid: `S${String(students.length + 1).padStart(3, "0")}` }); setErrors({}); setModal({ mode: "add", data: null }); };
-  const openEdit = (s) => { setForm({ ...s }); setErrors({}); setModal({ mode: "edit", data: s }); };
+  const openEdit = (s) => { setForm({ ...s, showQuran: s.showQuran !== false }); setErrors({}); setModal({ mode: "edit", data: s }); };
 
   const validate = () => {
     const e = {};
@@ -7373,6 +7373,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
     </div>
   );
 }
+
 
 
 
