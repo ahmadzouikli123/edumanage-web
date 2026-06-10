@@ -229,7 +229,7 @@ export default function Login() {
                   </button>
                 ))}
               </div>
-              <form onSubmit={e=>e.preventDefault()} autoComplete="on">
+              <form onSubmit={e=>{e.preventDefault();go();}} autoComplete="on">
               <div style={{marginBottom:14}}>
                 <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Username</label>
                 <input name="username" style={inp} value={user} onChange={e=>setUser(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="admin"?"admin":role==="teacher"?"sarah.johnson":"S001"} autoComplete="username" />
@@ -259,6 +259,7 @@ export default function Login() {
     </div>
   )
 }
+
 
 
 
