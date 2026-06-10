@@ -215,6 +215,7 @@ export default function Login() {
                   </button>
                 ))}
               </div>
+              <form onSubmit={e=>e.preventDefault()} autoComplete="on">
               <div style={{marginBottom:14}}>
                 <label style={{display:"block",fontSize:12,color:"rgba(255,255,255,.5)",marginBottom:6}}>Username</label>
                 <input name="username" style={inp} value={user} onChange={e=>setUser(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder={role==="admin"?"admin":role==="teacher"?"sarah.johnson":"S001"} autoComplete="username" />
@@ -227,6 +228,7 @@ export default function Login() {
               <button onClick={go} disabled={busy} style={{width:"100%",padding:"13px 0",borderRadius:10,border:"none",background:"linear-gradient(135deg,#0d9488,#14b8a6)",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 16px rgba(13,148,136,.4)"}}>
                 {busy?"Signing in...":"Sign In →"}
               </button>
+              </form>
               <div style={{marginTop:16,padding:"12px 14px",background:"rgba(13,148,136,.08)",border:"1px solid rgba(13,148,136,.2)",borderRadius:10,fontSize:11,color:"rgba(255,255,255,.45)"}}>
                 <div style={{fontWeight:600,color:"#5eead4",marginBottom:6}}>Demo credentials</div>
                 {role==="admin"   && <div>Username: admin / Password: admin123</div>}
@@ -241,6 +243,8 @@ export default function Login() {
     </div>
   )
 }
+
+
 
 
 
