@@ -2593,7 +2593,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
         </Modal>
       )}
       {profile && (
-        <StudentProfile student={profile} classes={classes} attendance={attendance || {}} grades={grades || {}} subjects={subjects || []} exams={exams || []} examResults={examResults || {}} messages={messages || []} onClose={() => setProfile(null)} />
+        <StudentProfile key={profile.id + "-" + (profile.showQuran !== false ? "q" : "nq")} student={profile} classes={classes} attendance={attendance || {}} grades={grades || {}} subjects={subjects || []} exams={exams || []} examResults={examResults || {}} messages={messages || []} onClose={() => setProfile(null)} />
       )}
     </div>
   );
@@ -7373,6 +7373,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
     </div>
   );
 }
+
 
 
 
