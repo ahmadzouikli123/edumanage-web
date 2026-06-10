@@ -86,7 +86,7 @@ export default function Login() {
           acc.username.toLowerCase() === user.toLowerCase().trim() && acc.password === pass
         )
         if (customEntry) {
-          const s = allStudents.find((x: any) => x.id === allStudents.find((x: any) => String(x.id) === String(customEntry[0]))
+          const s = allStudents.find((x: any) => String(x.id) === String(customEntry[0]))
           if (s) {
             save("edu_auth", { role:"parent", name:s.name, phone:s.phone, studentId:s.id, studentIds:[s.id] })
             router.replace("/school")
@@ -241,6 +241,7 @@ export default function Login() {
     </div>
   )
 }
+
 
 
 
