@@ -1237,7 +1237,8 @@ function exportToCSV(data, filename) {
 }
 
 // ─── Student Profile (Rich Tabbed) ───────────────────────────────────────────
-const PROFILE_TABS = ["Overview", "Attendance", "Grades", "Exams", "Messages", "Schedule", "Hifz", "Quran"];
+const ALL_PROFILE_TABS = ["Overview", "Attendance", "Grades", "Exams", "Messages", "Schedule", "Hifz", "Quran"];
+const getProfileTabs = (showQuran) => showQuran === false ? ALL_PROFILE_TABS.filter(t => t !== "Hifz" && t !== "Quran") : ALL_PROFILE_TABS;
 
 function MiniBar({ value, max, color }) {
   const pct = max ? Math.min(100, Math.round((value / max) * 100)) : 0;
@@ -1755,6 +1756,7 @@ function ParentNotifications({ student, attendance, grades, subjects, exams, mes
 }
 
 function StudentProfile({ student, classes, attendance, grades, subjects, exams, examResults, messages, timetable, onClose, hifzRecords }) {
+  const PROFILE_TABS = getProfileTabs(student.showQuran);
   const [tab, setTab] = useState("Overview");
 
   const cls       = classes.find(c => c.id === student.classId);
@@ -7371,6 +7373,8 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
     </div>
   );
 }
+
+
 
 
 
