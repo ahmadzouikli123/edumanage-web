@@ -29,7 +29,7 @@ export default function Login() {
   const [err,  setErr]  = useState("")
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => { if (load("edu_auth", null)) router.replace("/school") }, [])
+  useEffect(() => { if (load("edu_auth", null)) window.location.href = "/school" }, [])
 
   const go = async () => {
     setErr(""); setBusy(true)
@@ -38,21 +38,21 @@ export default function Login() {
         const storedPass = localStorage.getItem("edu_principal_password") || "principal123"
         if (user === "principal" && pass === storedPass) {
           save("edu_auth", {role:"principal", name:"School Principal"})
-          router.replace("/school")
+          window.location.href = "/school"
         } else { setErr("Invalid credentials") }
 
       } else if (role === "supervisor") {
         const storedPass = localStorage.getItem("edu_supervisor_password") || "supervisor123"
         if (user === "supervisor" && pass === storedPass) {
           save("edu_auth", {role:"supervisor", name:"Supervisor"})
-          router.replace("/school")
+          window.location.href = "/school"
         } else { setErr("Invalid credentials") }
 
       } else if (role === "admin") {
         const storedPass = localStorage.getItem("edu_admin_password") || "admin123"
         if (user === "admin" && pass === storedPass) {
           save("edu_auth", {role:"admin", name:"Admin User"})
-          router.replace("/school")
+          window.location.href = "/school"
         } else {
           setErr("Invalid credentials")
         }
@@ -63,7 +63,7 @@ export default function Login() {
         const t = allTeachers.find((x: any) => x.username === user.toLowerCase().trim() && x.password === pass)
         if (t) {
           const tClassIds = t.classIds || t.class_ids || []; save("edu_auth", {role:"teacher", name:t.name, classIds:tClassIds, classId:tClassIds[0]})
-          router.replace("/school")
+          window.location.href = "/school"
         } else {
           setErr("Invalid credentials")
         }
@@ -86,7 +86,7 @@ export default function Login() {
         const expectedPass = studentPasswords[s.id] || studentPasswords[String(s.id)] || "student123"
         if (pass !== expectedPass) { setErr("Invalid password"); setBusy(false); return; }
         save("edu_auth", { role:"student", name:s.name, studentId:s.id, sid:s.sid })
-        router.replace("/school")
+        window.location.href = "/school"
 
       } else {
         // Parent login - محلي بدون Supabase
@@ -103,7 +103,7 @@ export default function Login() {
           const s = allStudents.find((x: any) => String(x.id) === String(customEntry[0]))
           if (s) {
             save("edu_auth", { role:"parent", name:s.name, phone:s.phone, studentId:s.id, studentIds:[s.id] })
-            router.replace("/school")
+            window.location.href = "/school"
             return
           }
         }
@@ -115,7 +115,7 @@ export default function Login() {
         )
         if (s) {
           save("edu_auth", { role:"parent", name:s.name, phone:s.phone, studentId:s.id, studentIds:[s.id] })
-          router.replace("/school")
+          window.location.href = "/school"
         } else {
           setErr("Invalid username or password")
         }
@@ -259,6 +259,7 @@ export default function Login() {
     </div>
   )
 }
+
 
 
 
