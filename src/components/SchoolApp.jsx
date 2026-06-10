@@ -389,6 +389,7 @@ const NAV = [
   { id: "evaluations",   icon: "⭐", label: "Evaluations"  },
   { id: "quran",          icon: "🕌", label: "Quran"         },
   { id: "settings",   icon: "⚙️", label: "Settings"   },
+  { id: "internal",   icon: "📨", label: "Staff Messages" },
 ];
 
 
@@ -6929,7 +6930,7 @@ export default function App() {
   const teacherName    = auth?.name    || "";
 
   // ─── Teacher: pages allowed ───────────────────────────────────────────────
-  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes", "lessonplans", "quran"];
+  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes", "lessonplans", "quran", "internal"];
   const PARENT_PAGES  = ["dashboard"];
   const STUDENT_PAGES = ["dashboard"];
 
@@ -7033,6 +7034,7 @@ export default function App() {
     exams:      { title: "Exams",       sub: "Schedule exams & record results" },
     teachers:   { title: "Teachers",    sub: "Manage teaching staff & assignments" },
     settings:   { title: "Settings",    sub: "Manage accounts & access" },
+    internal:   { title: "Staff Messages", sub: "Internal communication between staff" },
   };
 
   const [activeChildId, setActiveChildId] = useState(null);
@@ -7174,6 +7176,159 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
   });
 }
 
+
+// ─── Internal Messaging System ───────────────────────────────────────────────
+function InternalMessaging({ auth, teachers }) {
+  const [messages, setMessages] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_internal_messages")||"[]"); } catch{return[];} });
+  const [view, setView] = useState("inbox"); // inbox | compose | thread
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState({ to:"", subject:"", body:"" });
+  const [replyText, setReplyText] = useState("");
+
+  const saveMessages = (msgs) => { setMessages(msgs); localStorage.setItem("edu_internal_messages", JSON.stringify(msgs)); };
+
+  const myId = auth.role === "teacher" ? auth.name : auth.role;
+  const myLabel = auth.name || auth.role;
+
+  const recipients = [
+    { id:"admin", label:"Admin" },
+    { id:"principal", label:"Principal" },
+    { id:"supervisor", label:"Supervisor" },
+    ...(teachers||[]).map(t => ({ id:t.name, label:t.name }))
+  ].filter(r => r.id !== myId);
+
+  const inbox = messages.filter(m => m.to === myId).sort((a,b)=>b.timestamp-a.timestamp);
+  const sent  = messages.filter(m => m.from === myId).sort((a,b)=>b.timestamp-a.timestamp);
+  const unread = inbox.filter(m => !m.read).length;
+  const [tab, setTab] = useState("inbox");
+  const list = tab === "inbox" ? inbox : sent;
+  const selectedMsg = messages.find(m => m.id === selected);
+
+  const fmtTime = (ts) => {
+    const d = new Date(ts), now = new Date(), diff = now - d;
+    if (diff < 3600000) return Math.floor(diff/60000) + "m ago";
+    if (diff < 86400000) return d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+    return d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  };
+
+  const send = () => {
+    if (!form.to || !form.subject.trim() || !form.body.trim()) return;
+    const msg = { id: Date.now(), from: myId, fromLabel: myLabel, to: form.to, toLabel: recipients.find(r=>r.id===form.to)?.label||form.to, subject: form.subject, body: form.body, timestamp: Date.now(), read: false, replies: [] };
+    saveMessages([msg, ...messages]);
+    setForm({ to:"", subject:"", body:"" });
+    setView("inbox"); setTab("sent");
+  };
+
+  const sendReply = () => {
+    if (!replyText.trim() || !selectedMsg) return;
+    const reply = { id: Date.now(), from: myId, fromLabel: myLabel, body: replyText, timestamp: Date.now() };
+    const updated = messages.map(m => m.id === selected ? {...m, replies:[...(m.replies||[]),reply]} : m);
+    saveMessages(updated);
+    setReplyText("");
+  };
+
+  const openMsg = (msg) => {
+    setSelected(msg.id);
+    setView("thread");
+    if (!msg.read && msg.to === myId) {
+      saveMessages(messages.map(m => m.id === msg.id ? {...m, read:true} : m));
+    }
+  };
+
+  const S = { text:"#1e293b", sub:"#64748b", border:"#e2e8f0", primary:"#0d9488" };
+  const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+
+  if (view === "compose") return (
+    <div style={{maxWidth:600,margin:"0 auto"}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+        <button onClick={()=>setView("inbox")} style={{padding:"7px 14px",borderRadius:8,border:"1px solid #e2e8f0",background:"#fff",cursor:"pointer",fontSize:13}}>← Back</button>
+        <div style={{fontSize:16,fontWeight:700,color:S.text}}>✉️ New Message</div>
+      </div>
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:24}}>
+        <div style={{marginBottom:12}}>
+          <label style={{fontSize:12,fontWeight:600,color:S.sub,display:"block",marginBottom:4}}>To</label>
+          <select style={inp} value={form.to} onChange={e=>setForm({...form,to:e.target.value})}>
+            <option value="">Select recipient...</option>
+            {recipients.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}
+          </select>
+        </div>
+        <div style={{marginBottom:12}}>
+          <label style={{fontSize:12,fontWeight:600,color:S.sub,display:"block",marginBottom:4}}>Subject</label>
+          <input style={inp} value={form.subject} onChange={e=>setForm({...form,subject:e.target.value})} placeholder="Subject..." />
+        </div>
+        <div style={{marginBottom:16}}>
+          <label style={{fontSize:12,fontWeight:600,color:S.sub,display:"block",marginBottom:4}}>Message</label>
+          <textarea style={{...inp,resize:"vertical"}} rows={5} value={form.body} onChange={e=>setForm({...form,body:e.target.value})} placeholder="Write your message..." />
+        </div>
+        <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
+          <button onClick={()=>setView("inbox")} style={{padding:"9px 18px",borderRadius:8,border:"1px solid #e2e8f0",background:"#fff",fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Cancel</button>
+          <button onClick={send} style={{padding:"9px 20px",borderRadius:8,border:"none",background:"#0d9488",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Send</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (view === "thread" && selectedMsg) return (
+    <div style={{maxWidth:680,margin:"0 auto"}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+        <button onClick={()=>setView("inbox")} style={{padding:"7px 14px",borderRadius:8,border:"1px solid #e2e8f0",background:"#fff",cursor:"pointer",fontSize:13}}>← Back</button>
+        <div style={{flex:1}}>
+          <div style={{fontSize:15,fontWeight:700,color:S.text}}>{selectedMsg.subject}</div>
+          <div style={{fontSize:12,color:S.sub}}>{selectedMsg.fromLabel} → {selectedMsg.toLabel} · {fmtTime(selectedMsg.timestamp)}</div>
+        </div>
+      </div>
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:20,marginBottom:12}}>
+        <div style={{fontSize:14,color:"#334155",lineHeight:1.6}}>{selectedMsg.body}</div>
+      </div>
+      {(selectedMsg.replies||[]).map(r=>(
+        <div key={r.id} style={{background: r.from===myId?"#f0fdf9":"#f8f4ff",borderRadius:12,border:"1px solid "+(r.from===myId?"#99f6e4":"#ddd6fe"),padding:16,marginBottom:8}}>
+          <div style={{fontSize:12,fontWeight:600,color:S.sub,marginBottom:6}}>{r.fromLabel} · {fmtTime(r.timestamp)}</div>
+          <div style={{fontSize:13,color:"#334155"}}>{r.body}</div>
+        </div>
+      ))}
+      <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:16,marginTop:12}}>
+        <textarea value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder="Write a reply..." rows={3} style={{...inp,resize:"vertical",marginBottom:8}} />
+        <div style={{display:"flex",justifyContent:"flex-end"}}>
+          <button onClick={sendReply} style={{padding:"8px 20px",borderRadius:8,border:"none",background:"#0d9488",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Send Reply</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <div style={{fontSize:18,fontWeight:700,color:S.text}}>💬 Internal Messages {unread>0 && <span style={{background:"#ef4444",color:"#fff",borderRadius:20,fontSize:11,padding:"2px 8px",marginLeft:6}}>{unread}</span>}</div>
+        <button onClick={()=>setView("compose")} style={{padding:"9px 18px",borderRadius:9,border:"none",background:"#0d9488",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>✉️ New Message</button>
+      </div>
+      <div style={{display:"flex",gap:8,marginBottom:16}}>
+        {[["inbox","Inbox"],["sent","Sent"]].map(([id,label])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{padding:"8px 18px",borderRadius:8,border:"none",background:tab===id?"#1e1e3a":"#f1f5f9",color:tab===id?"#fff":"#64748b",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{label} {id==="inbox"&&unread>0?`(${unread})`:""}</button>
+        ))}
+      </div>
+      {list.length === 0 ? (
+        <div style={{textAlign:"center",padding:60,background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",color:"#94a3b8"}}>
+          <div style={{fontSize:36,marginBottom:12}}>💬</div>
+          <div style={{fontSize:14}}>{tab==="inbox"?"No messages yet":"No sent messages"}</div>
+        </div>
+      ) : list.map(msg=>(
+        <div key={msg.id} onClick={()=>openMsg(msg)} style={{background:"#fff",borderRadius:12,border:"1px solid "+((!msg.read&&msg.to===myId)?"#0d9488":"#e2e8f0"),padding:"14px 18px",marginBottom:8,cursor:"pointer",display:"flex",gap:14,alignItems:"center"}}
+          onMouseEnter={e=>e.currentTarget.style.background="#f8fafc"}
+          onMouseLeave={e=>e.currentTarget.style.background="#fff"}>
+          <div style={{width:40,height:40,borderRadius:10,background:"#0d9488",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:14,fontWeight:700,flexShrink:0}}>
+            {(tab==="inbox"?msg.fromLabel:msg.toLabel||"")[0]?.toUpperCase()}
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:13,fontWeight:(!msg.read&&msg.to===myId)?700:500,color:S.text}}>{msg.subject}</div>
+            <div style={{fontSize:11,color:S.sub,marginTop:2}}>{tab==="inbox"?`From: ${msg.fromLabel}`:`To: ${msg.toLabel}`} · {fmtTime(msg.timestamp)}</div>
+          </div>
+          {!msg.read && msg.to===myId && <div style={{width:8,height:8,borderRadius:"50%",background:"#0d9488"}} />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
   if (auth.role === "principal" || auth.role === "supervisor") {
     const isPrincipal = auth.role === "principal";
     return (
@@ -7270,6 +7425,14 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
               )}
             </div>
           )}
+
+          {/* Internal Messages */}
+          <div style={{background:"#fff",borderRadius:14,border:"1px solid #e2e8f0",overflow:"hidden",marginBottom:20}}>
+            <div style={{padding:"16px 20px",borderBottom:"1px solid #e2e8f0",fontSize:16,fontWeight:700,color:"#1e293b"}}>💬 Internal Messages</div>
+            <div style={{padding:20}}>
+              <InternalMessaging auth={auth} teachers={teachers} />
+            </div>
+          </div>
 
           {/* Attendance Summary for Principal */}
           {isPrincipal && (
@@ -7487,6 +7650,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
           {page === "grades"     && <Grades     students={students} classes={classes} subjects={subjects} grades={grades} setGrades={setGrades} teacherClassIds={teacherClassIds} />}
           {page === "timetable"  && <Timetable  classes={classes} subjects={subjects} timetable={timetable} setTimetable={setTimetable} teacherClassIds={teacherClassIds} />}
           {page === "messages"   && <EnhancedMessaging students={students} classes={classes} messages={messages} setMessages={setMessages} teachers={teachers} userRole={userRole} auth={auth} />}
+          {page === "internal"   && <InternalMessaging auth={auth} teachers={teachers} />}
           {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} setStudents={setStudents} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
           {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
@@ -7498,6 +7662,10 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
     </div>
   );
 }
+
+
+
+
 
 
 
