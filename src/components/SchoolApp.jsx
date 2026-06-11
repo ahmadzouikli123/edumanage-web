@@ -395,14 +395,14 @@ const NAV = [
 
 
 function Teachers({ userRole, classes = [] }) {
-  const [teachers, setTeachers] = React.useState(() => { try { const v = localStorage.getItem("edu_teachers"); return v ? JSON.parse(v) : SEED_TEACHERS; } catch { return SEED_TEACHERS; } });
-  const [search, setSearch] = React.useState("");
-  const [showForm, setShowForm] = React.useState(false);
-  const [editing, setEditing] = React.useState(null);
-  const [deleteId, setDeleteId] = React.useState(null);
-  const [toast, setToast] = React.useState("");
+  const [teachers, setTeachers] = useState(() => { try { const v = localStorage.getItem("edu_teachers"); return v ? JSON.parse(v) : SEED_TEACHERS; } catch { return SEED_TEACHERS; } });
+  const [search, setSearch] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+  const [toast, setToast] = useState("");
 
-  React.useEffect(() => { try { localStorage.setItem("edu_teachers", JSON.stringify(teachers)); } catch {} }, [teachers]);
+  useEffect(() => { try { localStorage.setItem("edu_teachers", JSON.stringify(teachers)); } catch {} }, [teachers]);
 
   const filtered = teachers.filter(t =>
     t.name.toLowerCase().includes(search.toLowerCase()) ||
