@@ -390,6 +390,8 @@ const NAV = [
   { id: "quran",          icon: "🕌", label: "Quran"         },
   { id: "settings",   icon: "⚙️", label: "Settings"   },
   { id: "internal",   icon: "📨", label: "Staff Messages" },
+  { id: "principals",  icon: "🏫", label: "Principals"     },
+  { id: "supervisors", icon: "👁️", label: "Supervisors"    },
 ];
 
 
@@ -7100,7 +7102,9 @@ export default function App() {
     exams:      { title: "Exams",       sub: "Schedule exams & record results" },
     teachers:   { title: "Teachers",    sub: "Manage teaching staff & assignments" },
     settings:   { title: "Settings",    sub: "Manage accounts & access" },
-    internal:   { title: "Staff Messages", sub: "Internal communication between staff" },
+    internal:   { title: "Staff Messages",  sub: "Internal communication between staff" },
+    principals:  { title: "Principals",      sub: "Manage school principals" },
+    supervisors: { title: "Supervisors",     sub: "Manage supervisors" },
   };
 
   const [activeChildId, setActiveChildId] = useState(null);
@@ -7240,6 +7244,174 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
 
     doc.save(student.name.replace(/ /g,"_")+"_Report.pdf");
   });
+}
+
+
+// ─── Staff Management (Principals & Supervisors) ─────────────────────────────
+function StaffManagement({ role, title, icon, storageKey }) {
+  const EMPTY = { name: "", username: "", password: "", email: "", phone: "", startDate: "", endDate: "", status: "Active", notes: "" };
+  const [staff, setStaff] = useState(() => { try { return JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch { return []; } });
+  const [modal, setModal] = useState(null);
+  const [form, setForm] = useState(EMPTY);
+  const [deleteId, setDeleteId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState("");
+
+  useEffect(() => { localStorage.setItem(storageKey, JSON.stringify(staff)); }, [staff]);
+
+  const filtered = staff.filter(s =>
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    (s.email||"").toLowerCase().includes(search.toLowerCase())
+  );
+
+  const save = () => {
+    if (!form.name.trim()) return;
+    if (modal === "add") {
+      setStaff(prev => [...prev, { ...form, id: Date.now() }]);
+      setToast(title.slice(0,-1) + " added");
+    } else {
+      setStaff(prev => prev.map(s => s.id === form.id ? form : s));
+      setToast(title.slice(0,-1) + " updated");
+    }
+    setModal(null); setForm(EMPTY);
+  };
+
+  const inp = { width: "100%", padding: "9px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" };
+
+  return (
+    <div>
+      {toast && <Toast msg={toast} onDone={() => setToast("")} />}
+
+      {/* Toolbar */}
+      <div style={{ background: "#fff", border: "1px solid #e8ecf2", borderRadius: 14, padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10, boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
+        <div style={{ position: "relative", flex: 1 }}>
+          <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#94a3b8" }}>🔍</span>
+          <input placeholder={"Search " + title.toLowerCase() + "..."} value={search} onChange={e => setSearch(e.target.value)}
+            style={{ ...inp, paddingLeft: 34 }} />
+        </div>
+        <button onClick={() => { setForm(EMPTY); setModal("add"); }}
+          style={{ padding: "9px 18px", background: "#0d9488", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+          ＋ Add {title.slice(0,-1)}
+        </button>
+      </div>
+
+      {/* Table */}
+      <div style={{ background: "#fff", border: "1px solid #e8ecf2", borderRadius: 14, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
+        <div style={{ padding: "14px 18px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: "#1e1e3a" }}>{icon} All {title}</div>
+          <div style={{ fontSize: 12, color: "#94a3b8", background: "#f1f5f9", padding: "3px 10px", borderRadius: 20 }}>{filtered.length} records</div>
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#f8fafc" }}>
+                {["Name", "Username", "Email", "Phone", "Start Date", "End Date", "Status", "Actions"].map(h => (
+                  <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#94a3b8", borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: ".05em" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={8} style={{ padding: 48, textAlign: "center", color: "#94a3b8" }}>No {title.toLowerCase()} yet — click Add to create one</td></tr>
+              ) : filtered.map(s => (
+                <tr key={s.id} onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <Avatar name={s.name} size={34} />
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#1e1e3a" }}>{s.name}</div>
+                        {s.notes && <div style={{ fontSize: 11, color: "#94a3b8" }}>{s.notes}</div>}
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 12, color: "#64748b", fontFamily: "monospace" }}>{s.username || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: "#64748b" }}>{s.email || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: "#64748b" }}>{s.phone || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 12, color: "#64748b" }}>{s.startDate || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 12, color: "#64748b" }}>{s.endDate || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc" }}>
+                    <Badge status={s.status === "Active" ? "Active" : "Inactive"} />
+                  </td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc" }}>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button onClick={() => { setForm(s); setModal("edit"); }}
+                        style={{ padding: "5px 12px", borderRadius: 6, border: "1px solid #e8ecf2", background: "#fff", fontSize: 12, cursor: "pointer", color: "#334155" }}>Edit</button>
+                      <button onClick={() => setDeleteId(s.id)}
+                        style={{ padding: "5px 12px", borderRadius: 6, border: "none", background: "#fee2e2", fontSize: 12, cursor: "pointer", color: "#dc2626" }}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Add/Edit Modal */}
+      {modal && (
+        <Modal title={(modal === "add" ? "Add" : "Edit") + " " + title.slice(0,-1)} onClose={() => { setModal(null); setForm(EMPTY); }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+            <div style={{ gridColumn: "1/-1" }}>
+              <Field label="Full Name">
+                <input style={inp} value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="e.g. Dr. Ahmad Hassan" />
+              </Field>
+            </div>
+            <Field label="Username">
+              <input style={inp} value={form.username} onChange={e => setForm({...form, username: e.target.value})} placeholder={role} />
+            </Field>
+            <Field label="Password">
+              <input style={inp} value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="••••••••" />
+            </Field>
+            <Field label="Email">
+              <input style={inp} type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="name@school.edu" />
+            </Field>
+            <Field label="Phone">
+              <input style={inp} value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} placeholder="555-0000" />
+            </Field>
+            <Field label="Start Date">
+              <input style={inp} type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} />
+            </Field>
+            <Field label="End Date">
+              <input style={inp} type="date" value={form.endDate} onChange={e => setForm({...form, endDate: e.target.value})} />
+            </Field>
+            <div style={{ gridColumn: "1/-1" }}>
+              <Field label="Status">
+                <select style={inp} value={form.status} onChange={e => setForm({...form, status: e.target.value})}>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </Field>
+            </div>
+            <div style={{ gridColumn: "1/-1" }}>
+              <Field label="Notes (optional)">
+                <input style={inp} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} placeholder="Any additional notes..." />
+              </Field>
+            </div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
+            <button onClick={() => { setModal(null); setForm(EMPTY); }}
+              style={{ padding: "9px 18px", borderRadius: 8, border: "1px solid #e8ecf2", background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+            <button onClick={save}
+              style={{ padding: "9px 24px", borderRadius: 8, border: "none", background: "#0d9488", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+              {modal === "add" ? "Add" : "Save Changes"}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Delete Modal */}
+      {deleteId && (
+        <Modal title="Confirm Delete" onClose={() => setDeleteId(null)}>
+          <p style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>Are you sure you want to delete <strong>{staff.find(s => s.id === deleteId)?.name}</strong>?</p>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+            <button onClick={() => setDeleteId(null)} style={{ padding: "9px 18px", borderRadius: 8, border: "1px solid #e8ecf2", background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+            <button onClick={() => { setStaff(prev => prev.filter(s => s.id !== deleteId)); setDeleteId(null); setToast("Deleted"); }}
+              style={{ padding: "9px 22px", borderRadius: 8, border: "none", background: "#dc2626", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
 }
 
 
@@ -7656,7 +7828,7 @@ function InternalMessaging({ auth, teachers }) {
             <img src={(() => { try { return localStorage.getItem("edu_logo") || "/logo.png"; } catch { return "/logo.png"; } })()} style={{ width: 44, height: 44, objectFit: "contain", background: "#fff", borderRadius: 8, padding: 3, flexShrink: 0 }} />
           </div>
         </div>
-        <nav style={{ flex: 1, padding: "14px 10px", display: "flex", flexDirection: "column", gap: 3 }}>
+        <nav style={{ flex: 1, padding: "14px 10px", display: "flex", flexDirection: "column", gap: 3, overflowY: "auto", minHeight: 0 }}>
           {NAV.filter(n => !allowedPages || allowedPages.includes(n.id)).map(n => {
             const unreadCount = n.id === "messages" ? messages.filter(m => !m.read).length : 0;
             return (
@@ -7717,6 +7889,8 @@ function InternalMessaging({ auth, teachers }) {
           {page === "timetable"  && <Timetable  classes={classes} subjects={subjects} timetable={timetable} setTimetable={setTimetable} teacherClassIds={teacherClassIds} />}
           {page === "messages"   && <EnhancedMessaging students={students} classes={classes} messages={messages} setMessages={setMessages} teachers={teachers} userRole={userRole} auth={auth} />}
           {page === "internal"   && <InternalMessaging auth={auth} teachers={teachers} />}
+          {page === "principals"  && <StaffManagement role="principal" title="Principals" icon="🏫" storageKey="edu_principals" />}
+          {page === "supervisors" && <StaffManagement role="supervisor" title="Supervisors" icon="👁️" storageKey="edu_supervisors" />}
           {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} setStudents={setStudents} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
           {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
