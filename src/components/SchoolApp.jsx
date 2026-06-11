@@ -394,6 +394,51 @@ const NAV = [
   { id: "supervisors", icon: "👁️", label: "Supervisors"    },
 ];
 
+const NAV_GROUPS = [
+  { id: "dashboard", icon: "⊞", label: "Dashboard", single: true },
+  {
+    id: "staff", icon: "👥", label: "School Staff",
+    items: [
+      { id: "teachers",    icon: "👤", label: "Teachers"    },
+      { id: "principals",  icon: "🏫", label: "Principals"  },
+      { id: "supervisors", icon: "👁️", label: "Supervisors" },
+    ]
+  },
+  {
+    id: "academic", icon: "📊", label: "Academic",
+    items: [
+      { id: "attendance", icon: "✓",  label: "Attendance"   },
+      { id: "grades",     icon: "★",  label: "Grades"       },
+      { id: "exams",      icon: "📋", label: "Exams"        },
+      { id: "quizzes",    icon: "📝", label: "Quizzes"      },
+    ]
+  },
+  {
+    id: "communication", icon: "💬", label: "Communication",
+    items: [
+      { id: "messages",  icon: "💬", label: "Messages"      },
+      { id: "internal",  icon: "📨", label: "Staff Messages"},
+    ]
+  },
+  {
+    id: "planning", icon: "📚", label: "Planning",
+    items: [
+      { id: "lessonplans", icon: "📚", label: "Lesson Plans" },
+      { id: "timetable",   icon: "▦",  label: "Timetable"   },
+    ]
+  },
+  {
+    id: "management", icon: "🏫", label: "Management",
+    items: [
+      { id: "students",    icon: "◉",  label: "Students"    },
+      { id: "classes",     icon: "▦",  label: "Classes"     },
+      { id: "evaluations", icon: "⭐", label: "Evaluations" },
+      { id: "quran",       icon: "🕌", label: "Quran"       },
+    ]
+  },
+  { id: "settings", icon: "⚙️", label: "Settings", single: true },
+];
+
 
 
 function Teachers({ userRole, classes = [] }) {
@@ -6962,6 +7007,105 @@ function LogoutButton() {
     </button>
   )
 }
+// ─── Grouped Nav Component ────────────────────────────────────────────────────
+function GroupedNav({ page, setPage, setSidebarOpen, allowedPages, messages }) {
+  const unreadCount = messages.filter(m => !m.read).length;
+  const [openGroups, setOpenGroups] = useState(() => {
+    // Auto-open the group that contains the current page
+    const obj = {};
+    NAV_GROUPS.forEach(g => {
+      if (!g.single) {
+        obj[g.id] = g.items?.some(i => i.id === page) || false;
+      }
+    });
+    return obj;
+  });
+
+  const toggleGroup = (id) => {
+    setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const navBtn = (item) => {
+    if (allowedPages && !allowedPages.includes(item.id)) return null;
+    const isActive = page === item.id;
+    const count = item.id === "messages" ? unreadCount : 0;
+    return (
+      <button key={item.id} onClick={() => { setPage(item.id); setSidebarOpen(false); }} style={{
+        display: "flex", alignItems: "center", gap: 8, padding: "8px 12px 8px 28px",
+        borderRadius: 8, cursor: "pointer", fontSize: 12, border: "none", width: "100%",
+        textAlign: "left", background: isActive ? "#0d9488" : "transparent",
+        color: isActive ? "#fff" : "rgba(255,255,255,.55)",
+        fontFamily: "inherit", transition: "all .15s",
+      }}
+        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,.07)"; }}
+        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+      >
+        <span style={{ fontSize: 13 }}>{item.icon}</span>
+        <span style={{ flex: 1 }}>{item.label}</span>
+        {count > 0 && <span style={{ background: "#ef4444", color: "#fff", borderRadius: 20, fontSize: 9, fontWeight: 700, padding: "1px 5px" }}>{count}</span>}
+      </button>
+    );
+  };
+
+  return (
+    <nav style={{ flex: 1, padding: "10px 8px", display: "flex", flexDirection: "column", gap: 2, overflowY: "auto", minHeight: 0 }}>
+      {NAV_GROUPS.map(group => {
+        if (group.single) {
+          if (allowedPages && !allowedPages.includes(group.id)) return null;
+          const isActive = page === group.id;
+          return (
+            <button key={group.id} onClick={() => { setPage(group.id); setSidebarOpen(false); }} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "9px 12px",
+              borderRadius: 8, cursor: "pointer", fontSize: 13, border: "none", width: "100%",
+              background: isActive ? "#0d9488" : "transparent",
+              color: isActive ? "#fff" : "rgba(255,255,255,.7)",
+              fontFamily: "inherit", fontWeight: 600, transition: "all .15s",
+            }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,.07)"; }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+            >
+              <span style={{ fontSize: 15 }}>{group.icon}</span>
+              <span style={{ flex: 1 }}>{group.label}</span>
+            </button>
+          );
+        }
+
+        // Check if any item in group is allowed
+        const visibleItems = group.items?.filter(i => !allowedPages || allowedPages.includes(i.id)) || [];
+        if (visibleItems.length === 0) return null;
+
+        const isOpen = openGroups[group.id];
+        const hasActive = visibleItems.some(i => i.id === page);
+
+        return (
+          <div key={group.id}>
+            <button onClick={() => toggleGroup(group.id)} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "9px 12px",
+              borderRadius: 8, cursor: "pointer", fontSize: 12, border: "none", width: "100%",
+              background: hasActive ? "rgba(13,148,136,.2)" : "transparent",
+              color: hasActive ? "#5eead4" : "rgba(255,255,255,.6)",
+              fontFamily: "inherit", fontWeight: 600, transition: "all .15s",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.07)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = hasActive ? "rgba(13,148,136,.2)" : "transparent"; }}
+            >
+              <span style={{ fontSize: 14 }}>{group.icon}</span>
+              <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
+              <span style={{ fontSize: 10, transition: "transform .2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
+            </button>
+            {isOpen && (
+              <div style={{ marginBottom: 4 }}>
+                {visibleItems.map(item => navBtn(item))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
+
+
 export default function App() {
   const [page, setPage] = useState((() => { try { const a = JSON.parse(localStorage.getItem("edu_auth")||"{}"); return a.role === "teacher" ? "attendance" : "dashboard"; } catch { return "dashboard"; } })());
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -7828,26 +7972,7 @@ function InternalMessaging({ auth, teachers }) {
             <img src={(() => { try { return localStorage.getItem("edu_logo") || "/logo.png"; } catch { return "/logo.png"; } })()} style={{ width: 44, height: 44, objectFit: "contain", background: "#fff", borderRadius: 8, padding: 3, flexShrink: 0 }} />
           </div>
         </div>
-        <nav style={{ flex: 1, padding: "14px 10px", display: "flex", flexDirection: "column", gap: 3, overflowY: "auto", minHeight: 0 }}>
-          {NAV.filter(n => !allowedPages || allowedPages.includes(n.id)).map(n => {
-            const unreadCount = n.id === "messages" ? messages.filter(m => !m.read).length : 0;
-            return (
-            <button key={n.id} onClick={() => { setPage(n.id); setSidebarOpen(false); }} style={{
-              display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8,
-              cursor: "pointer", fontSize: 13, border: "none", width: "100%", textAlign: "right",
-              background: page === n.id ? T.primary : "transparent",
-              color: page === n.id ? "#fff" : "rgba(255,255,255,.55)",
-              fontFamily: "inherit", transition: "all .15s",
-            }}>
-              <span style={{ fontSize: 15 }}>{n.icon}</span>
-              <span style={{ flex: 1 }}>{n.label}</span>
-              {unreadCount > 0 && (
-                <span style={{ background: "#ef4444", color: "#fff", borderRadius: 20, fontSize: 10, fontWeight: 700, padding: "1px 6px", minWidth: 18, textAlign: "center" }}>{unreadCount}</span>
-              )}
-            </button>
-            );
-          })}
-        </nav>
+        <GroupedNav page={page} setPage={setPage} setSidebarOpen={setSidebarOpen} allowedPages={allowedPages} messages={messages} />
         <div style={{ padding: "14px 20px", borderTop: "1px solid rgba(255,255,255,.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
             <Avatar name="Admin User" size={30} />
