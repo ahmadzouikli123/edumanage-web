@@ -6450,6 +6450,48 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
   );
 }
 
+
+function StaffPasswords() {
+  const accounts = [
+    { label: "Admin",      key: "edu_admin_password",      def: "admin123",      icon: "⚙️" },
+    { label: "Principal",  key: "edu_principal_password",  def: "principal123",  icon: "🏫" },
+    { label: "Supervisor", key: "edu_supervisor_password", def: "supervisor123", icon: "👁️" },
+  ];
+  const [pwds, setPwds] = useState(() => {
+    const obj = {};
+    accounts.forEach(a => { obj[a.key] = localStorage.getItem(a.key) || a.def; });
+    return obj;
+  });
+  const [saved, setSaved] = useState({});
+
+  const save = (key) => {
+    localStorage.setItem(key, pwds[key]);
+    setSaved(prev => ({ ...prev, [key]: true }));
+    setTimeout(() => setSaved(prev => ({ ...prev, [key]: false })), 2000);
+  };
+
+  return (
+    <div>
+      {accounts.map(({ label, key, icon }) => (
+        <div key={key} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, padding: "14px 16px", background: "#f8fafc", borderRadius: 10, border: "1px solid #e2e8f0" }}>
+          <div style={{ fontSize: 24, width: 40, textAlign: "center" }}>{icon}</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#1e293b", marginBottom: 6 }}>{label}</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input type="password" value={pwds[key]} onChange={e => setPwds(prev => ({ ...prev, [key]: e.target.value }))}
+                style={{ flex: 1, padding: "8px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13, fontFamily: "inherit", outline: "none" }} />
+              <button onClick={() => save(key)}
+                style={{ padding: "8px 18px", borderRadius: 8, border: "none", background: saved[key] ? "#d1fae5" : "#0d9488", color: saved[key] ? "#065f46" : "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                {saved[key] ? "✓ Saved" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Settings ────────────────────────────────────────────────────────────────
 function Settings({ teachers, setTeachers, students, setStudents, classes, subjects, setSubjects }) {
   const [parentEditId, setParentEditId] = useState(null);
@@ -6548,7 +6590,7 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
   return (
     <div style={{ maxWidth: 820, margin: "0 auto" }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
-        {[["school","🏫","School"],["subjects","📚","Subjects"],["teachers","👨‍🏫","Teachers"],["parents","👨‍👩‍👧","Parents"],["students-pwd","🎓","Students"],["appearance","🎨","Appearance"],["data","📦","Data"]].map(([id,icon,label]) => (
+        {[["school","🏫","School"],["subjects","📚","Subjects"],["teachers","👨‍🏫","Teachers"],["parents","👨‍👩‍👧","Parents"],["students-pwd","🎓","Students"],["staff-pwd","🔐","Staff Access"],["appearance","🎨","Appearance"],["data","📦","Data"]].map(([id,icon,label]) => (
           <button key={id} style={tabStyle(id)} onClick={() => setTab(id)}>{icon} {label}</button>
         ))}
       </div>
@@ -6833,6 +6875,12 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
         </div>
       )}
 
+      {tab === "staff-pwd" && (
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: 24 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#1e293b", marginBottom: 20 }}>🔐 Staff Access Passwords</div>
+          <StaffPasswords />
+        </div>
+      )}
       {tab === "data" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, padding: 24 }}>
@@ -7657,6 +7705,7 @@ function InternalMessaging({ auth, teachers }) {
     </div>
   );
 }
+
 
 
 
