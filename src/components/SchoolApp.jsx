@@ -6453,38 +6453,61 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
 
 function StaffPasswords() {
   const accounts = [
-    { label: "Admin",      key: "edu_admin_password",      def: "admin123",      icon: "⚙️" },
-    { label: "Principal",  key: "edu_principal_password",  def: "principal123",  icon: "🏫" },
-    { label: "Supervisor", key: "edu_supervisor_password", def: "supervisor123", icon: "👁️" },
+    { label: "Admin",      pwdKey: "edu_admin_password",      defPwd: "admin123",      defUser: "admin",      icon: "⚙️" },
+    { label: "Principal",  pwdKey: "edu_principal_password",  defPwd: "principal123",  defUser: "principal",  icon: "🏫" },
+    { label: "Supervisor", pwdKey: "edu_supervisor_password", defPwd: "supervisor123", defUser: "supervisor", icon: "👁️" },
   ];
-  const [pwds, setPwds] = useState(() => {
+  const [vals, setVals] = useState(() => {
     const obj = {};
-    accounts.forEach(a => { obj[a.key] = localStorage.getItem(a.key) || a.def; });
+    accounts.forEach(a => {
+      obj[a.pwdKey] = localStorage.getItem(a.pwdKey) || a.defPwd;
+      obj[a.pwdKey + "_user"] = a.defUser;
+    });
     return obj;
   });
   const [saved, setSaved] = useState({});
+  const [show, setShow] = useState({});
 
-  const save = (key) => {
-    localStorage.setItem(key, pwds[key]);
-    setSaved(prev => ({ ...prev, [key]: true }));
-    setTimeout(() => setSaved(prev => ({ ...prev, [key]: false })), 2000);
+  const save = (pwdKey) => {
+    localStorage.setItem(pwdKey, vals[pwdKey]);
+    setSaved(prev => ({ ...prev, [pwdKey]: true }));
+    setTimeout(() => setSaved(prev => ({ ...prev, [pwdKey]: false })), 2000);
   };
+
+  const inp = { flex: 1, padding: "8px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13, fontFamily: "inherit", outline: "none" };
 
   return (
     <div>
-      {accounts.map(({ label, key, icon }) => (
-        <div key={key} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, padding: "14px 16px", background: "#f8fafc", borderRadius: 10, border: "1px solid #e2e8f0" }}>
-          <div style={{ fontSize: 24, width: 40, textAlign: "center" }}>{icon}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#1e293b", marginBottom: 6 }}>{label}</div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <input type="password" value={pwds[key]} onChange={e => setPwds(prev => ({ ...prev, [key]: e.target.value }))}
-                style={{ flex: 1, padding: "8px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13, fontFamily: "inherit", outline: "none" }} />
-              <button onClick={() => save(key)}
-                style={{ padding: "8px 18px", borderRadius: 8, border: "none", background: saved[key] ? "#d1fae5" : "#0d9488", color: saved[key] ? "#065f46" : "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-                {saved[key] ? "✓ Saved" : "Save"}
-              </button>
+      {accounts.map(({ label, pwdKey, defUser, icon }) => (
+        <div key={pwdKey} style={{ marginBottom: 16, padding: "16px 18px", background: "#f8fafc", borderRadius: 12, border: "1px solid #e2e8f0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ fontSize: 22 }}>{icon}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#1e293b" }}>{label}</div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 10 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#64748b", display: "block", marginBottom: 4 }}>Username</label>
+              <input value={defUser} readOnly
+                style={{ ...inp, background: "#f1f5f9", color: "#94a3b8", cursor: "not-allowed" }} />
             </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#64748b", display: "block", marginBottom: 4 }}>Password</label>
+              <div style={{ display: "flex", gap: 6 }}>
+                <input type={show[pwdKey] ? "text" : "password"} value={vals[pwdKey]}
+                  onChange={e => setVals(prev => ({ ...prev, [pwdKey]: e.target.value }))}
+                  style={{ ...inp, flex: 1 }} />
+                <button onClick={() => setShow(prev => ({ ...prev, [pwdKey]: !prev[pwdKey] }))}
+                  style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", cursor: "pointer", fontSize: 13 }}>
+                  {show[pwdKey] ? "🙈" : "👁"}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button onClick={() => save(pwdKey)}
+              style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: saved[pwdKey] ? "#d1fae5" : "#0d9488", color: saved[pwdKey] ? "#065f46" : "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+              {saved[pwdKey] ? "✓ Saved" : "💾 Save"}
+            </button>
           </div>
         </div>
       ))}
