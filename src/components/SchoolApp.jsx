@@ -8368,9 +8368,11 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
 }
 
 
-  if (auth.role === "principal" || auth.role === "supervisor") {
+  const isPrincipalOrSupervisor = auth.role === "principal" || auth.role === "supervisor";
+  const [dashTab, setDashTab] = useState(auth.role === "principal" ? "overview" : "evaluations");
+
+  if (isPrincipalOrSupervisor) {
     const isPrincipal = auth.role === "principal";
-    const [dashTab, setDashTab] = useState(isPrincipal ? "overview" : "evaluations");
 
     const principalTabs = [
       { id: "overview",     icon: "📊", label: "Overview"     },
