@@ -26,6 +26,7 @@ async function sbSyncAttendance(att){const rows=[];Object.entries(att).forEach((
 async function sbSyncGrades(gr){const rows=[];Object.entries(gr).forEach(([sid,subs])=>{Object.entries(subs).forEach(([subId,g])=>rows.push({student_id:parseInt(sid),subject_id:parseInt(subId),quiz:g.quiz??null,homework:g.homework??null,midterm:g.midterm??null,final:g.final??null}));});if(rows.length)await _SB.upsert("grades",rows,"student_id,subject_id");}
 async function sbSyncSubjects(sub){await _SB.upsert("subjects",sub.map(s=>({id:s.id,class_id:s.classId,name:s.name,icon:s.icon||null})),"id");}
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { TeacherSubRequests, SubManagement } from "./SubSystem";
 // Amiri Quran font loaded via CSS
 
 import { useRouter as useNextRouter } from "next/navigation";
@@ -390,6 +391,7 @@ const NAV = [
   { id: "quran",          icon: "🕌", label: "Quran"         },
   { id: "settings",   icon: "⚙️", label: "Settings"   },
   { id: "internal",   icon: "📨", label: "Staff Messages" },
+  { id: "subrequests", icon: "🔄", label: "Sub Requests" },
   { id: "principals",  icon: "🏫", label: "Principals"     },
   { id: "supervisors", icon: "👁️", label: "Supervisors"    },
 ];
@@ -416,8 +418,9 @@ const NAV_GROUPS = [
   {
     id: "communication", icon: "💬", label: "Communication",
     items: [
-      { id: "messages",  icon: "💬", label: "Messages"      },
-      { id: "internal",  icon: "📨", label: "Staff Messages"},
+      { id: "messages",    icon: "💬", label: "Messages"      },
+      { id: "internal",    icon: "📨", label: "Staff Messages"},
+      { id: "subrequests", icon: "🔄", label: "Sub Requests"  },
     ]
   },
   {
@@ -7142,7 +7145,7 @@ export default function App() {
   const teacherName    = auth?.name    || "";
 
   // ─── Teacher: pages allowed ───────────────────────────────────────────────
-  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes", "lessonplans", "quran", "internal"];
+  const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes", "lessonplans", "quran", "internal", "subrequests"];
   const PARENT_PAGES  = ["dashboard"];
   const STUDENT_PAGES = ["dashboard"];
 
@@ -7246,7 +7249,8 @@ export default function App() {
     exams:      { title: "Exams",       sub: "Schedule exams & record results" },
     teachers:   { title: "Teachers",    sub: "Manage teaching staff & assignments" },
     settings:   { title: "Settings",    sub: "Manage accounts & access" },
-    internal:   { title: "Staff Messages",  sub: "Internal communication between staff" },
+    internal:     { title: "Staff Messages",  sub: "Internal communication between staff" },
+    subrequests:  { title: "Sub Requests",    sub: "Request absence coverage or accept sub jobs" },
     principals:  { title: "Principals",      sub: "Manage school principals" },
     supervisors: { title: "Supervisors",     sub: "Manage supervisors" },
   };
@@ -8403,6 +8407,8 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
           {page === "timetable"  && <Timetable  classes={classes} subjects={subjects} timetable={timetable} setTimetable={setTimetable} teacherClassIds={teacherClassIds} />}
           {page === "messages"   && <EnhancedMessaging students={students} classes={classes} messages={messages} setMessages={setMessages} teachers={teachers} userRole={userRole} auth={auth} />}
           {page === "internal"   && <InternalMessaging auth={auth} teachers={teachers} />}
+          {page === "subrequests" && userRole === "teacher" && <TeacherSubRequests auth={auth} classes={classes} teachers={teachers} />}
+          {page === "subrequests" && (userRole === "admin" || userRole === "supervisor") && <SubManagement auth={auth} classes={classes} teachers={teachers} />}
           {page === "principals"  && <StaffManagement role="principal" title="Principals" icon="🏫" storageKey="edu_principals" />}
           {page === "supervisors" && <StaffManagement role="supervisor" title="Supervisors" icon="👁️" storageKey="edu_supervisors" />}
           {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} setStudents={setStudents} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
