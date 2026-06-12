@@ -7711,6 +7711,364 @@ function InternalMessaging({ auth, teachers }) {
   );
 }
 
+// ─── Principal & Supervisor PDF Reports ──────────────────────────────────────
+function printPrincipalMonthlyReport({ students, teachers, classes, attendance, evaluations, exams }) {
+  const today = new Date();
+  const monthName = today.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const todayStr = today.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+  // Attendance stats
+  const allDates = Object.keys(attendance || {}).sort().slice(-30);
+  let totalPresent = 0, totalRecords = 0;
+  allDates.forEach(d => {
+    Object.values(attendance[d] || {}).forEach(v => {
+      totalRecords++;
+      if (v === "present") totalPresent++;
+    });
+  });
+  const attRate = totalRecords ? Math.round((totalPresent / totalRecords) * 100) : 0;
+
+  // Evaluations avg
+  const evalAvg = (evaluations||[]).length
+    ? Math.round((evaluations||[]).reduce((s,e) => s + e.pct, 0) / (evaluations||[]).length)
+    : null;
+
+  const w = window.open("", "_blank");
+  w.document.write(`<!DOCTYPE html><html><head><title>Monthly Report - ${monthName}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Times New Roman',serif;color:#1a1a1a;padding:50px;max-width:900px;margin:0 auto}
+    .header{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #0d9488;padding-bottom:16px;margin-bottom:30px}
+    .school-name{font-size:24px;font-weight:bold;color:#0d9488}
+    .school-sub{font-size:12px;color:#64748b;margin-top:4px}
+    .report-title{font-size:18px;font-weight:bold;color:#1e1e3a;text-align:center;margin-bottom:24px;padding:12px;background:#f0fdf9;border-radius:8px;border:1px solid #0d9488}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+    .stat-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;text-align:center}
+    .stat-val{font-size:28px;font-weight:bold;color:#0d9488}
+    .stat-label{font-size:11px;color:#64748b;margin-top:4px}
+    h2{font-size:14px;font-weight:bold;color:#0d9488;margin:24px 0 10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+    table{width:100%;border-collapse:collapse;margin:10px 0}
+    th{background:#1e1e3a;color:#fff;padding:10px 14px;text-align:left;font-size:12px}
+    td{padding:9px 14px;border-bottom:1px solid #f1f5f9;font-size:12px}
+    tr:nth-child(even) td{background:#f8fafc}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold}
+    .good{background:#d1fae5;color:#065f46}
+    .warn{background:#fef3c7;color:#92400e}
+    .bad{background:#fee2e2;color:#991b1b}
+    .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#9ca3af}
+    @media print{button{display:none!important}}
+  </style></head><body>
+  <div class="header">
+    <div>
+      <div class="school-name">Al-Huffath Academy</div>
+      <div class="school-sub">Ilm | Iman | Hifz</div>
+      <div class="school-sub">admin@al-huffath.edu</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:13px;color:#64748b">Monthly Report</div>
+      <div style="font-size:16px;font-weight:bold;color:#1e1e3a">${monthName}</div>
+      <div style="font-size:11px;color:#94a3b8">${todayStr}</div>
+    </div>
+  </div>
+
+  <div class="report-title">📊 Monthly School Performance Report — ${monthName}</div>
+
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-val">${students.length}</div><div class="stat-label">Total Students</div></div>
+    <div class="stat-box"><div class="stat-val">${teachers.length}</div><div class="stat-label">Total Teachers</div></div>
+    <div class="stat-box"><div class="stat-val">${attRate}%</div><div class="stat-label">Attendance Rate</div></div>
+    <div class="stat-box"><div class="stat-val">${evalAvg !== null ? evalAvg + "%" : "N/A"}</div><div class="stat-label">Avg Teacher Score</div></div>
+  </div>
+
+  <h2>Students by Class</h2>
+  <table>
+    <tr><th>Class</th><th>Teacher</th><th>Room</th><th>Students</th></tr>
+    ${classes.map(c => `<tr><td>${c.name}</td><td>${c.teacher||"-"}</td><td>${c.room||"-"}</td><td>${students.filter(s=>s.classId===c.id).length}</td></tr>`).join("")}
+  </table>
+
+  <h2>Attendance Overview (Last 30 Days)</h2>
+  <table>
+    <tr><th>Date</th><th>Present</th><th>Absent</th><th>Late</th><th>Rate</th></tr>
+    ${allDates.slice(-10).map(d => {
+      const rec = attendance[d] || {};
+      const p = Object.values(rec).filter(v=>v==="present").length;
+      const a = Object.values(rec).filter(v=>v==="absent").length;
+      const l = Object.values(rec).filter(v=>v==="late").length;
+      const total = Object.values(rec).length;
+      const rate = total ? Math.round((p/total)*100) : 0;
+      return `<tr><td>${d}</td><td>${p}</td><td>${a}</td><td>${l}</td><td><span class="badge ${rate>=90?"good":rate>=75?"warn":"bad"}">${rate}%</span></td></tr>`;
+    }).join("")}
+  </table>
+
+  ${(evaluations||[]).length > 0 ? `
+  <h2>Teacher Evaluations</h2>
+  <table>
+    <tr><th>Teacher</th><th>Date</th><th>Type</th><th>Score</th><th>Level</th></tr>
+    ${(evaluations||[]).slice(-10).map(ev => {
+      const level = ev.pct>=90?"Excellent":ev.pct>=75?"Very Good":ev.pct>=60?"Good":"Needs Improvement";
+      const cls = ev.pct>=90?"good":ev.pct>=75?"good":ev.pct>=60?"warn":"bad";
+      return `<tr><td>${ev.teacherName}</td><td>${ev.visitDate}</td><td>${ev.visitType}</td><td><b>${ev.pct}%</b></td><td><span class="badge ${cls}">${level}</span></td></tr>`;
+    }).join("")}
+  </table>` : ""}
+
+  <div class="footer">Al-Huffath Academy | Generated by EduManage | ${todayStr}</div>
+  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">🖨️ Print Report</button></div>
+  </body></html>`);
+  w.document.close();
+}
+
+function printTeacherPerformanceReport({ teachers, evaluations }) {
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const w = window.open("", "_blank");
+  w.document.write(`<!DOCTYPE html><html><head><title>Teacher Performance Report</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Times New Roman',serif;color:#1a1a1a;padding:50px;max-width:900px;margin:0 auto}
+    .header{border-bottom:3px solid #7c3aed;padding-bottom:16px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:center}
+    .school-name{font-size:22px;font-weight:bold;color:#7c3aed}
+    h2{font-size:14px;font-weight:bold;color:#7c3aed;margin:24px 0 10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+    table{width:100%;border-collapse:collapse;margin:10px 0}
+    th{background:#1e1e3a;color:#fff;padding:10px 14px;text-align:left;font-size:12px}
+    td{padding:9px 14px;border-bottom:1px solid #f1f5f9;font-size:12px}
+    tr:nth-child(even) td{background:#f8fafc}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold}
+    .excellent{background:#d1fae5;color:#065f46}
+    .verygood{background:#dbeafe;color:#1d4ed8}
+    .good{background:#fef3c7;color:#92400e}
+    .needs{background:#fee2e2;color:#991b1b}
+    .progress-bar{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;width:120px;display:inline-block;vertical-align:middle;margin-right:8px}
+    .progress-fill{height:100%;border-radius:4px}
+    .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#9ca3af}
+    @media print{button{display:none!important}}
+  </style></head><body>
+  <div class="header">
+    <div>
+      <div class="school-name">Al-Huffath Academy</div>
+      <div style="font-size:12px;color:#64748b">Teacher Performance Report</div>
+    </div>
+    <div style="text-align:right;font-size:12px;color:#64748b">${today}</div>
+  </div>
+
+  <h2>Teacher Performance Summary</h2>
+  <table>
+    <tr><th>Teacher</th><th>Subject</th><th>Evaluations</th><th>Avg Score</th><th>Performance</th><th>Last Visit</th></tr>
+    ${teachers.map(t => {
+      const tEvals = (evaluations||[]).filter(e => String(e.teacherId) === String(t.id));
+      const avg = tEvals.length ? Math.round(tEvals.reduce((s,e)=>s+e.pct,0)/tEvals.length) : null;
+      const level = avg===null?"N/A":avg>=90?"Excellent":avg>=75?"Very Good":avg>=60?"Good":"Needs Improvement";
+      const cls = avg===null?"needs":avg>=90?"excellent":avg>=75?"verygood":avg>=60?"good":"needs";
+      const lastVisit = tEvals.sort((a,b)=>b.visitDate?.localeCompare(a.visitDate||"")||0)[0]?.visitDate || "—";
+      return `<tr>
+        <td><b>${t.name}</b></td>
+        <td>${t.subject||"-"}</td>
+        <td style="text-align:center">${tEvals.length}</td>
+        <td>${avg!==null?`<div class="progress-bar"><div class="progress-fill" style="width:${avg}%;background:${avg>=90?"#059669":avg>=75?"#0284c7":avg>=60?"#d97706":"#dc2626"}"></div></div><b>${avg}%</b>`:"—"}</td>
+        <td><span class="badge ${cls}">${level}</span></td>
+        <td>${lastVisit}</td>
+      </tr>`;
+    }).join("")}
+  </table>
+
+  ${(evaluations||[]).length > 0 ? `
+  <h2>Detailed Evaluations</h2>
+  <table>
+    <tr><th>Teacher</th><th>Date</th><th>Type</th><th>Topic</th><th>Score</th><th>Evaluator</th></tr>
+    ${[...(evaluations||[])].sort((a,b)=>b.visitDate?.localeCompare(a.visitDate||"")||0).map(ev => {
+      const cls = ev.pct>=90?"excellent":ev.pct>=75?"verygood":ev.pct>=60?"good":"needs";
+      const level = ev.pct>=90?"Excellent":ev.pct>=75?"Very Good":ev.pct>=60?"Good":"Needs Improvement";
+      return `<tr><td>${ev.teacherName}</td><td>${ev.visitDate}</td><td>${ev.visitType}</td><td>${ev.lessonTopic||"-"}</td><td><span class="badge ${cls}">${ev.pct}% — ${level}</span></td><td>${ev.evaluatorName||"-"}</td></tr>`;
+    }).join("")}
+  </table>` : ""}
+
+  <div class="footer">Al-Huffath Academy | Generated by EduManage | ${today}</div>
+  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">🖨️ Print Report</button></div>
+  </body></html>`);
+  w.document.close();
+}
+
+function printAttendanceReport({ students, classes, attendance }) {
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const allDates = Object.keys(attendance || {}).sort();
+  const w = window.open("", "_blank");
+  w.document.write(`<!DOCTYPE html><html><head><title>Attendance Report</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Times New Roman',serif;color:#1a1a1a;padding:50px;max-width:900px;margin:0 auto}
+    .header{border-bottom:3px solid #059669;padding-bottom:16px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:center}
+    .school-name{font-size:22px;font-weight:bold;color:#059669}
+    h2{font-size:14px;font-weight:bold;color:#059669;margin:24px 0 10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+    table{width:100%;border-collapse:collapse;margin:10px 0}
+    th{background:#1e1e3a;color:#fff;padding:10px 14px;text-align:left;font-size:12px}
+    td{padding:9px 14px;border-bottom:1px solid #f1f5f9;font-size:12px}
+    tr:nth-child(even) td{background:#f8fafc}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold}
+    .good{background:#d1fae5;color:#065f46}
+    .warn{background:#fef3c7;color:#92400e}
+    .bad{background:#fee2e2;color:#991b1b}
+    .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#9ca3af}
+    @media print{button{display:none!important}}
+  </style></head><body>
+  <div class="header">
+    <div>
+      <div class="school-name">Al-Huffath Academy</div>
+      <div style="font-size:12px;color:#64748b">Attendance Report</div>
+    </div>
+    <div style="text-align:right;font-size:12px;color:#64748b">${today}</div>
+  </div>
+
+  <h2>Attendance by Class</h2>
+  <table>
+    <tr><th>Class</th><th>Students</th><th>Present Days</th><th>Absent Days</th><th>Avg Rate</th></tr>
+    ${classes.map(cls => {
+      const clsStudents = students.filter(s => s.classId === cls.id);
+      let p=0, a=0, total=0;
+      allDates.forEach(d => {
+        clsStudents.forEach(s => {
+          const rec = (attendance[d]||{})[s.id];
+          if (rec) { total++; if (rec==="present") p++; else if (rec==="absent") a++; }
+        });
+      });
+      const rate = total ? Math.round((p/total)*100) : 0;
+      return `<tr><td><b>${cls.name}</b></td><td>${clsStudents.length}</td><td>${p}</td><td>${a}</td><td><span class="badge ${rate>=90?"good":rate>=75?"warn":"bad"}">${rate}%</span></td></tr>`;
+    }).join("")}
+  </table>
+
+  <h2>Students with Low Attendance (Below 75%)</h2>
+  <table>
+    <tr><th>Student</th><th>Class</th><th>Present</th><th>Absent</th><th>Rate</th></tr>
+    ${students.map(s => {
+      let p=0, a=0, l=0, total=0;
+      allDates.forEach(d => {
+        const rec = (attendance[d]||{})[s.id];
+        if (rec) { total++; if (rec==="present") p++; else if (rec==="absent") a++; else if (rec==="late") l++; }
+      });
+      const rate = total ? Math.round((p/total)*100) : 100;
+      const cls = classes.find(c=>c.id===s.classId);
+      if (rate >= 75) return "";
+      return `<tr><td><b>${s.name}</b></td><td>${cls?.name||"-"}</td><td>${p}</td><td>${a}</td><td><span class="badge bad">${rate}%</span></td></tr>`;
+    }).filter(Boolean).join("") || "<tr><td colspan='5' style='text-align:center;color:#64748b'>All students have good attendance ✅</td></tr>"}
+  </table>
+
+  <div class="footer">Al-Huffath Academy | Generated by EduManage | ${today}</div>
+  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#059669;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">🖨️ Print Report</button></div>
+  </body></html>`);
+  w.document.close();
+}
+
+function printSupervisorEvalReport({ teachers, evaluations }) {
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const w = window.open("", "_blank");
+  w.document.write(`<!DOCTYPE html><html><head><title>Supervisor Evaluation Report</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Times New Roman',serif;color:#1a1a1a;padding:50px;max-width:900px;margin:0 auto}
+    .header{border-bottom:3px solid #0d9488;padding-bottom:16px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:center}
+    .school-name{font-size:22px;font-weight:bold;color:#0d9488}
+    h2{font-size:14px;font-weight:bold;color:#0d9488;margin:24px 0 10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+    table{width:100%;border-collapse:collapse;margin:10px 0}
+    th{background:#1e1e3a;color:#fff;padding:10px 14px;text-align:left;font-size:12px}
+    td{padding:9px 14px;border-bottom:1px solid #f1f5f9;font-size:12px}
+    tr:nth-child(even) td{background:#f8fafc}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold}
+    .excellent{background:#d1fae5;color:#065f46}
+    .verygood{background:#dbeafe;color:#1d4ed8}
+    .good{background:#fef3c7;color:#92400e}
+    .needs{background:#fee2e2;color:#991b1b}
+    .section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin:16px 0}
+    .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#9ca3af}
+    @media print{button{display:none!important}}
+  </style></head><body>
+  <div class="header">
+    <div>
+      <div class="school-name">Al-Huffath Academy</div>
+      <div style="font-size:12px;color:#64748b">Supervisor Evaluation Report</div>
+    </div>
+    <div style="text-align:right;font-size:12px;color:#64748b">${today}</div>
+  </div>
+
+  <h2>Evaluation Summary</h2>
+  <div class="section" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
+    <div><div style="font-size:28px;font-weight:bold;color:#0d9488">${(evaluations||[]).length}</div><div style="font-size:12px;color:#64748b">Total Evaluations</div></div>
+    <div><div style="font-size:28px;font-weight:bold;color:#059669">${(evaluations||[]).length ? Math.round((evaluations||[]).reduce((s,e)=>s+e.pct,0)/(evaluations||[]).length) : 0}%</div><div style="font-size:12px;color:#64748b">Average Score</div></div>
+    <div><div style="font-size:28px;font-weight:bold;color:#7c3aed">${teachers.length}</div><div style="font-size:12px;color:#64748b">Teachers Evaluated</div></div>
+  </div>
+
+  <h2>Detailed Evaluations</h2>
+  <table>
+    <tr><th>Teacher</th><th>Subject</th><th>Date</th><th>Type</th><th>Topic</th><th>Score</th><th>Strengths</th><th>Improvements</th></tr>
+    ${[...(evaluations||[])].sort((a,b)=>b.visitDate?.localeCompare(a.visitDate||"")||0).map(ev => {
+      const cls = ev.pct>=90?"excellent":ev.pct>=75?"verygood":ev.pct>=60?"good":"needs";
+      const level = ev.pct>=90?"Excellent":ev.pct>=75?"Very Good":ev.pct>=60?"Good":"Needs Improvement";
+      const teacher = teachers.find(t => String(t.id) === String(ev.teacherId));
+      return `<tr>
+        <td><b>${ev.teacherName}</b></td>
+        <td>${teacher?.subject||"-"}</td>
+        <td>${ev.visitDate}</td>
+        <td>${ev.visitType}</td>
+        <td>${ev.lessonTopic||"-"}</td>
+        <td><span class="badge ${cls}">${ev.pct}%<br>${level}</span></td>
+        <td style="font-size:11px;color:#064e3b">${ev.strengths||"-"}</td>
+        <td style="font-size:11px;color:#1e40af">${ev.improvements||"-"}</td>
+      </tr>`;
+    }).join("") || "<tr><td colspan='8' style='text-align:center;color:#64748b'>No evaluations yet</td></tr>"}
+  </table>
+
+  <div class="footer">Al-Huffath Academy | Generated by EduManage | ${today}</div>
+  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">🖨️ Print Report</button></div>
+  </body></html>`);
+  w.document.close();
+}
+
+function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const w = window.open("", "_blank");
+  w.document.write(`<!DOCTYPE html><html><head><title>Lesson Plans Report</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Times New Roman',serif;color:#1a1a1a;padding:50px;max-width:900px;margin:0 auto}
+    .header{border-bottom:3px solid #0d9488;padding-bottom:16px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:center}
+    .school-name{font-size:22px;font-weight:bold;color:#0d9488}
+    h2{font-size:14px;font-weight:bold;color:#0d9488;margin:24px 0 10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+    table{width:100%;border-collapse:collapse;margin:10px 0}
+    th{background:#1e1e3a;color:#fff;padding:10px 14px;text-align:left;font-size:12px}
+    td{padding:9px 14px;border-bottom:1px solid #f1f5f9;font-size:12px}
+    tr:nth-child(even) td{background:#f8fafc}
+    .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#9ca3af}
+    @media print{button{display:none!important}}
+  </style></head><body>
+  <div class="header">
+    <div>
+      <div class="school-name">Al-Huffath Academy</div>
+      <div style="font-size:12px;color:#64748b">Lesson Plans Report</div>
+    </div>
+    <div style="text-align:right;font-size:12px;color:#64748b">${today}</div>
+  </div>
+
+  <h2>Lesson Plans Summary (${(lessonPlans||[]).length} plans)</h2>
+  <table>
+    <tr><th>Title</th><th>Teacher</th><th>Class</th><th>Subject</th><th>Day</th><th>Week</th><th>Homework</th></tr>
+    ${[...(lessonPlans||[])].sort((a,b)=>b.week?.localeCompare(a.week||"")||0).map(p => {
+      const cls = classes.find(c=>c.id===p.classId);
+      const sub = subjects.find(s=>s.id===p.subjectId);
+      return `<tr>
+        <td><b>${p.title}</b></td>
+        <td>${p.createdBy||"-"}</td>
+        <td>${cls?.name||"-"}</td>
+        <td>${sub?.name||"-"}</td>
+        <td>${p.day||"-"}</td>
+        <td>${p.week||"-"}</td>
+        <td>${p.homework?"✅ Yes":"—"}</td>
+      </tr>`;
+    }).join("") || "<tr><td colspan='7' style='text-align:center;color:#64748b'>No lesson plans yet</td></tr>"}
+  </table>
+
+  <div class="footer">Al-Huffath Academy | Generated by EduManage | ${today}</div>
+  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">🖨️ Print Report</button></div>
+  </body></html>`);
+  w.document.close();
+}
+
+
   if (auth.role === "principal" || auth.role === "supervisor") {
     const isPrincipal = auth.role === "principal";
     return (
@@ -7807,6 +8165,37 @@ function InternalMessaging({ auth, teachers }) {
               )}
             </div>
           )}
+
+          {/* PDF Reports */}
+          <div style={{background:"#fff",borderRadius:14,border:"1px solid #e2e8f0",padding:20,marginBottom:20}}>
+            <div style={{fontSize:16,fontWeight:700,color:"#1e293b",marginBottom:16}}>📄 Reports</div>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+              {isPrincipal && <>
+                <button onClick={() => printPrincipalMonthlyReport({students,teachers,classes,attendance,evaluations,exams})}
+                  style={{padding:"10px 20px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#1e1e3a,#0d3330)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
+                  📊 Monthly School Report
+                </button>
+                <button onClick={() => printTeacherPerformanceReport({teachers,evaluations})}
+                  style={{padding:"10px 20px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#7c3aed,#6d28d9)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
+                  ⭐ Teacher Performance Report
+                </button>
+                <button onClick={() => printAttendanceReport({students,classes,attendance})}
+                  style={{padding:"10px 20px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#059669,#047857)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
+                  ✅ Attendance Report
+                </button>
+              </>}
+              {!isPrincipal && <>
+                <button onClick={() => printSupervisorEvalReport({teachers,evaluations})}
+                  style={{padding:"10px 20px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#1e1e3a,#0d3330)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
+                  ⭐ Evaluations Report
+                </button>
+                <button onClick={() => printLessonPlansReport({teachers,classes,subjects,lessonPlans})}
+                  style={{padding:"10px 20px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#0d9488,#0f766e)",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8}}>
+                  📚 Lesson Plans Report
+                </button>
+              </>}
+            </div>
+          </div>
 
           {/* Internal Messages */}
           <div style={{background:"#fff",borderRadius:14,border:"1px solid #e2e8f0",overflow:"hidden",marginBottom:20}}>
