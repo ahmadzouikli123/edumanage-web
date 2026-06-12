@@ -26,7 +26,6 @@ async function sbSyncAttendance(att){const rows=[];Object.entries(att).forEach((
 async function sbSyncGrades(gr){const rows=[];Object.entries(gr).forEach(([sid,subs])=>{Object.entries(subs).forEach(([subId,g])=>rows.push({student_id:parseInt(sid),subject_id:parseInt(subId),quiz:g.quiz??null,homework:g.homework??null,midterm:g.midterm??null,final:g.final??null}));});if(rows.length)await _SB.upsert("grades",rows,"student_id,subject_id");}
 async function sbSyncSubjects(sub){await _SB.upsert("subjects",sub.map(s=>({id:s.id,class_id:s.classId,name:s.name,icon:s.icon||null})),"id");}
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { TeacherSubRequests, SubManagement } from "./SubSystem";
 // Amiri Quran font loaded via CSS
 
 import { useRouter as useNextRouter } from "next/navigation";
@@ -7010,6 +7009,302 @@ function LogoutButton() {
     </button>
   )
 }
+// ─── Sub Request System ───────────────────────────────────────────────────────
+const SUB_STATUS = {
+  pending:   { label: "Pending",   bg: "#fef3c7", color: "#b45309", icon: "⏳" },
+  approved:  { label: "Approved",  bg: "#dbeafe", color: "#1d4ed8", icon: "✅" },
+  filled:    { label: "Filled",    bg: "#d1fae5", color: "#065f46", icon: "🎯" },
+  rejected:  { label: "Rejected",  bg: "#fee2e2", color: "#dc2626", icon: "❌" },
+  cancelled: { label: "Cancelled", bg: "#f1f5f9", color: "#64748b", icon: "🚫" },
+};
+
+function SubBadge({ status }) {
+  const cfg = SUB_STATUS[status] || SUB_STATUS.pending;
+  return (
+    <span style={{ display:"inline-flex", alignItems:"center", gap:5, background:cfg.bg, color:cfg.color, borderRadius:20, padding:"3px 10px", fontSize:11, fontWeight:600 }}>
+      {cfg.icon} {cfg.label}
+    </span>
+  );
+}
+
+function fmtSubDate(d) {
+  if (!d) return "—";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric", year:"numeric" });
+}
+
+function TeacherSubRequests({ auth, classes }) {
+  const [requests, setRequests] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_sub_requests")||"[]"); } catch{return[];} });
+  const [modal, setModal] = useState(false);
+  const [tab, setTab] = useState("my");
+  const [note, setNote] = useState("");
+  const [form, setForm] = useState({ date:"", endDate:"", reason:"", classId:"", notes:"", lessonPlan:"", isMultiDay:false });
+
+  const saveReqs = (reqs) => { setRequests(reqs); localStorage.setItem("edu_sub_requests", JSON.stringify(reqs)); };
+
+  const myRequests = requests.filter(r => r.teacherName === auth.name).sort((a,b) => b.createdAt - a.createdAt);
+  const availableJobs = requests.filter(r => r.status === "approved" && !r.filledBy && r.teacherName !== auth.name).sort((a,b) => a.date.localeCompare(b.date));
+
+  const myClasses = auth.classIds?.length ? classes.filter(c => (auth.classIds||[]).includes(c.id)) : classes;
+
+  const submitRequest = () => {
+    if (!form.date || !form.reason || !form.classId) return alert("Please fill all required fields");
+    const req = {
+      id: uid(), teacherName: auth.name,
+      classId: parseInt(form.classId),
+      className: classes.find(c => c.id === parseInt(form.classId))?.name || "—",
+      date: form.date, endDate: form.isMultiDay ? form.endDate : form.date,
+      isMultiDay: form.isMultiDay, reason: form.reason,
+      notes: form.notes, lessonPlan: form.lessonPlan,
+      status: "pending", createdAt: Date.now(), filledBy: null, supervisorNote: "",
+    };
+    saveReqs([req, ...requests]);
+    setModal(false);
+    setForm({ date:"", endDate:"", reason:"", classId:"", notes:"", lessonPlan:"", isMultiDay:false });
+  };
+
+  const acceptJob = (id) => saveReqs(requests.map(r => r.id === id ? {...r, status:"filled", filledBy:auth.name, filledAt:Date.now()} : r));
+  const cancelRequest = (id) => saveReqs(requests.map(r => r.id === id ? {...r, status:"cancelled"} : r));
+
+  const S = { border:"#e2e8f0", primary:"#0d9488", text:"#1e293b", sub:"#64748b" };
+  const inp2 = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+
+  return (
+    <div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <div>
+          <div style={{ fontSize:20, fontWeight:700, color:S.text }}>🔄 Sub Requests</div>
+          <div style={{ fontSize:13, color:"#94a3b8", marginTop:2 }}>Request absence coverage or accept sub jobs</div>
+        </div>
+        <button onClick={() => setModal(true)} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+          + Request Absence
+        </button>
+      </div>
+
+      <div style={{ display:"flex", gap:8, marginBottom:20 }}>
+        {[["my","My Requests"],["available",`Available Jobs (${availableJobs.length})`]].map(([id,label]) => (
+          <button key={id} onClick={() => setTab(id)} style={{ padding:"8px 18px", borderRadius:8, border:"none", cursor:"pointer", fontSize:13, fontWeight:600, fontFamily:"inherit", background:tab===id?"#1e1e3a":"#f1f5f9", color:tab===id?"#fff":"#64748b" }}>{label}</button>
+        ))}
+      </div>
+
+      {tab === "my" && (
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          {myRequests.length === 0 ? (
+            <div style={{ textAlign:"center", padding:60, background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", color:"#94a3b8" }}>
+              <div style={{ fontSize:40, marginBottom:12 }}>📋</div>
+              <div style={{ fontSize:15, fontWeight:600 }}>No absence requests yet</div>
+            </div>
+          ) : myRequests.map(req => (
+            <div key={req.id} style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+                <div>
+                  <div style={{ fontSize:15, fontWeight:700, color:S.text }}>{fmtSubDate(req.date)}{req.isMultiDay && req.endDate !== req.date ? ` → ${fmtSubDate(req.endDate)}` : ""}</div>
+                  <div style={{ fontSize:12, color:"#94a3b8", marginTop:2 }}>{req.className}</div>
+                </div>
+                <SubBadge status={req.status} />
+              </div>
+              <div style={{ fontSize:13, color:S.sub, marginBottom:8 }}><strong>Reason:</strong> {req.reason}</div>
+              {req.lessonPlan && <div style={{ fontSize:13, color:S.sub, background:"#f0fdf9", borderRadius:8, padding:"8px 12px", marginBottom:8 }}><strong>📚 Lesson Plan:</strong> {req.lessonPlan}</div>}
+              {req.supervisorNote && <div style={{ fontSize:12, background:"#fef3c7", borderRadius:8, padding:"8px 12px", color:"#92400e", marginBottom:8 }}><strong>Supervisor Note:</strong> {req.supervisorNote}</div>}
+              {req.filledBy && <div style={{ fontSize:12, background:"#d1fae5", borderRadius:8, padding:"8px 12px", color:"#065f46" }}>✅ Covered by <strong>{req.filledBy}</strong></div>}
+              {req.status === "pending" && (
+                <div style={{ marginTop:12, display:"flex", justifyContent:"flex-end" }}>
+                  <button onClick={() => cancelRequest(req.id)} style={{ padding:"6px 14px", borderRadius:8, border:"none", background:"#fee2e2", color:"#dc2626", fontSize:12, fontWeight:600, cursor:"pointer" }}>Cancel</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "available" && (
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          {availableJobs.length === 0 ? (
+            <div style={{ textAlign:"center", padding:60, background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", color:"#94a3b8" }}>
+              <div style={{ fontSize:40, marginBottom:12 }}>🎯</div>
+              <div style={{ fontSize:15, fontWeight:600 }}>No available jobs right now</div>
+            </div>
+          ) : availableJobs.map(req => (
+            <div key={req.id} style={{ background:"#fff", borderRadius:14, border:"2px solid #0d9488", padding:20 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+                <div>
+                  <div style={{ fontSize:15, fontWeight:700, color:S.text }}>📅 {fmtSubDate(req.date)}{req.isMultiDay && req.endDate !== req.date ? ` → ${fmtSubDate(req.endDate)}` : ""}</div>
+                  <div style={{ fontSize:12, color:"#94a3b8", marginTop:2 }}>{req.className} · {req.teacherName}</div>
+                </div>
+                <span style={{ background:"#d1fae5", color:"#065f46", borderRadius:20, padding:"4px 12px", fontSize:12, fontWeight:700 }}>Available</span>
+              </div>
+              {req.lessonPlan && <div style={{ fontSize:13, color:S.sub, background:"#f0fdf9", borderRadius:8, padding:"8px 12px", marginBottom:12 }}><strong>📚 Lesson Plan:</strong> {req.lessonPlan}</div>}
+              {req.notes && <div style={{ fontSize:13, color:S.sub, marginBottom:12 }}><strong>Notes:</strong> {req.notes}</div>}
+              <div style={{ display:"flex", justifyContent:"flex-end" }}>
+                <button onClick={() => acceptJob(req.id)} style={{ padding:"9px 22px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>✋ Accept This Job</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {modal && (
+        <Modal title="📋 Request Absence Coverage" onClose={() => setModal(false)}>
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Class *</label>
+              <select style={inp2} value={form.classId} onChange={e => setForm({...form, classId:e.target.value})}>
+                <option value="">Select class...</option>
+                {myClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <input type="checkbox" id="multiDay" checked={form.isMultiDay} onChange={e => setForm({...form, isMultiDay:e.target.checked})} />
+              <label htmlFor="multiDay" style={{ fontSize:13, cursor:"pointer" }}>Multi-day absence</label>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:form.isMultiDay?"1fr 1fr":"1fr", gap:12 }}>
+              <div>
+                <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>{form.isMultiDay?"Start Date *":"Date *"}</label>
+                <input type="date" style={inp2} value={form.date} onChange={e => setForm({...form, date:e.target.value})} />
+              </div>
+              {form.isMultiDay && (
+                <div>
+                  <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>End Date *</label>
+                  <input type="date" style={inp2} value={form.endDate} onChange={e => setForm({...form, endDate:e.target.value})} />
+                </div>
+              )}
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Reason *</label>
+              <select style={inp2} value={form.reason} onChange={e => setForm({...form, reason:e.target.value})}>
+                <option value="">Select reason...</option>
+                {["Sick Leave","Personal Leave","Family Emergency","Professional Development","Medical Appointment","Other"].map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>📚 Lesson Plan for Sub</label>
+              <textarea style={{...inp2, resize:"vertical"}} rows={3} value={form.lessonPlan} onChange={e => setForm({...form, lessonPlan:e.target.value})} placeholder="Describe what the substitute should teach..." />
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Additional Notes</label>
+              <textarea style={{...inp2, resize:"vertical"}} rows={2} value={form.notes} onChange={e => setForm({...form, notes:e.target.value})} placeholder="Seating chart, behavior notes, materials..." />
+            </div>
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:10 }}>
+              <button onClick={() => setModal(false)} style={{ padding:"9px 18px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+              <button onClick={submitRequest} style={{ padding:"9px 24px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Submit Request</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function SubManagement({ auth, classes, teachers }) {
+  const [requests, setRequests] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_sub_requests")||"[]"); } catch{return[];} });
+  const [filter, setFilter] = useState("all");
+  const [selected, setSelected] = useState(null);
+  const [note, setNote] = useState("");
+
+  const saveReqs = (reqs) => { setRequests(reqs); localStorage.setItem("edu_sub_requests", JSON.stringify(reqs)); };
+
+  const filtered = requests.filter(r => filter === "all" || r.status === filter).sort((a,b) => b.createdAt - a.createdAt);
+  const stats = { pending:requests.filter(r=>r.status==="pending").length, approved:requests.filter(r=>r.status==="approved").length, filled:requests.filter(r=>r.status==="filled").length, rejected:requests.filter(r=>r.status==="rejected").length };
+  const selectedReq = requests.find(r => r.id === selected);
+
+  const updateStatus = (id, status) => {
+    saveReqs(requests.map(r => r.id === id ? {...r, status, supervisorNote:note, reviewedBy:auth.name, reviewedAt:Date.now()} : r));
+    setSelected(null); setNote("");
+  };
+
+  const inp2 = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+
+  return (
+    <div>
+      <div style={{ marginBottom:20 }}>
+        <div style={{ fontSize:20, fontWeight:700, color:"#1e293b" }}>🔄 Sub Request Management</div>
+        <div style={{ fontSize:13, color:"#94a3b8", marginTop:2 }}>Review and approve teacher absence requests</div>
+      </div>
+
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:24 }}>
+        {[["pending","⏳","Pending","#fef3c7","#b45309"],["approved","✅","Approved","#dbeafe","#1d4ed8"],["filled","🎯","Filled","#d1fae5","#065f46"],["rejected","❌","Rejected","#fee2e2","#dc2626"]].map(([key,icon,label,bg,color]) => (
+          <div key={key} style={{ background:bg, borderRadius:12, padding:"16px 18px", border:"1px solid #e2e8f0" }}>
+            <div style={{ fontSize:26, fontWeight:800, color }}>{stats[key]}</div>
+            <div style={{ fontSize:12, color, marginTop:4, fontWeight:600 }}>{icon} {label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
+        {[["all","All"],["pending","Pending"],["approved","Approved"],["filled","Filled"],["rejected","Rejected"]].map(([id,label]) => (
+          <button key={id} onClick={() => setFilter(id)} style={{ padding:"7px 16px", borderRadius:8, border:"none", cursor:"pointer", fontSize:12, fontWeight:600, fontFamily:"inherit", background:filter===id?"#1e1e3a":"#f1f5f9", color:filter===id?"#fff":"#64748b" }}>{label}</button>
+        ))}
+      </div>
+
+      <div style={{ background:"#fff", border:"1px solid #e8ecf2", borderRadius:14, overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,.06)" }}>
+        <table style={{ width:"100%", borderCollapse:"collapse" }}>
+          <thead>
+            <tr style={{ background:"#f8fafc" }}>
+              {["Teacher","Class","Date","Reason","Status","Covered By","Actions"].map(h => (
+                <th key={h} style={{ padding:"11px 16px", textAlign:"left", fontSize:11, fontWeight:600, color:"#94a3b8", borderBottom:"1px solid #e2e8f0", textTransform:"uppercase", whiteSpace:"nowrap" }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr><td colSpan={7} style={{ padding:48, textAlign:"center", color:"#94a3b8" }}>No requests found</td></tr>
+            ) : filtered.map(req => (
+              <tr key={req.id} onMouseEnter={e=>e.currentTarget.style.background="#f8fafc"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:13, fontWeight:600 }}>{req.teacherName}</td>
+                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:13, color:"#64748b" }}>{req.className}</td>
+                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:12, color:"#64748b", whiteSpace:"nowrap" }}>{fmtSubDate(req.date)}{req.isMultiDay && req.endDate !== req.date ? ` → ${fmtSubDate(req.endDate)}` : ""}</td>
+                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:13, color:"#64748b" }}>{req.reason}</td>
+                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc" }}><SubBadge status={req.status} /></td>
+                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:12, color:req.filledBy?"#059669":"#94a3b8" }}>{req.filledBy||"—"}</td>
+                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc" }}>
+                  <button onClick={() => { setSelected(req.id); setNote(req.supervisorNote||""); }}
+                    style={{ padding:"5px 12px", borderRadius:6, border:"1px solid #e2e8f0", background:"#fff", fontSize:12, cursor:"pointer", marginRight:6 }}>View</button>
+                  {req.status === "pending" && (
+                    <>
+                      <button onClick={() => { setSelected(req.id); setNote(""); }}
+                        style={{ padding:"5px 12px", borderRadius:6, border:"none", background:"#dbeafe", color:"#1d4ed8", fontSize:12, cursor:"pointer", fontWeight:600 }}>Review</button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {selected && selectedReq && (
+        <Modal title={`📋 Request — ${selectedReq.teacherName}`} onClose={() => { setSelected(null); setNote(""); }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            <div style={{ background:"#f8fafc", borderRadius:10, padding:16, display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, fontSize:13 }}>
+              {[["Teacher",selectedReq.teacherName],["Class",selectedReq.className],["Date",fmtSubDate(selectedReq.date)],["Reason",selectedReq.reason]].map(([label,val]) => (
+                <div key={label}><div style={{ fontSize:11, color:"#94a3b8", fontWeight:600, marginBottom:2 }}>{label}</div><div style={{ color:"#1e293b", fontWeight:500 }}>{val}</div></div>
+              ))}
+            </div>
+            {selectedReq.lessonPlan && <div style={{ background:"#f0fdf9", borderRadius:10, padding:14, border:"1px solid #99f6e4" }}><div style={{ fontSize:12, fontWeight:700, color:"#065f46", marginBottom:6 }}>📚 Lesson Plan</div><div style={{ fontSize:13, color:"#134e4a" }}>{selectedReq.lessonPlan}</div></div>}
+            {selectedReq.notes && <div style={{ background:"#fef9c3", borderRadius:10, padding:14 }}><div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:6 }}>📝 Notes</div><div style={{ fontSize:13, color:"#78350f" }}>{selectedReq.notes}</div></div>}
+            {selectedReq.filledBy && <div style={{ background:"#d1fae5", borderRadius:10, padding:14 }}><div style={{ fontSize:13, fontWeight:700, color:"#065f46" }}>✅ Covered by: {selectedReq.filledBy}</div></div>}
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>Note to Teacher</label>
+              <textarea style={{...inp2, resize:"vertical"}} rows={2} value={note} onChange={e=>setNote(e.target.value)} placeholder="Add a note..." />
+            </div>
+            {selectedReq.status === "pending" && (
+              <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+                <button onClick={() => updateStatus(selected,"rejected")} style={{ padding:"9px 18px", borderRadius:8, border:"none", background:"#fee2e2", color:"#dc2626", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>❌ Reject</button>
+                <button onClick={() => updateStatus(selected,"approved")} style={{ padding:"9px 22px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>✅ Approve</button>
+              </div>
+            )}
+            {selectedReq.status !== "pending" && (
+              <div style={{ display:"flex", justifyContent:"flex-end" }}>
+                <button onClick={() => { setSelected(null); setNote(""); }} style={{ padding:"9px 18px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Close</button>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+
 // ─── Grouped Nav Component ────────────────────────────────────────────────────
 function GroupedNav({ page, setPage, setSidebarOpen, allowedPages, messages }) {
   const unreadCount = messages.filter(m => !m.read).length;
