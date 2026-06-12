@@ -7551,6 +7551,7 @@ export default function App() {
   };
 
   const [activeChildId, setActiveChildId] = useState(null);
+  const [dashTab, setDashTab] = useState("overview");
 
   if (!auth) return null;
 
@@ -8368,10 +8369,7 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
 }
 
 
-  const isPrincipalOrSupervisor = auth.role === "principal" || auth.role === "supervisor";
-  const [dashTab, setDashTab] = useState(auth.role === "principal" ? "overview" : "evaluations");
-
-  if (isPrincipalOrSupervisor) {
+  if (auth.role === "principal" || auth.role === "supervisor") {
     const isPrincipal = auth.role === "principal";
 
     const principalTabs = [
