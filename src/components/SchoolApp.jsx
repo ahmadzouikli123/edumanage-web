@@ -7511,9 +7511,9 @@ export default function App() {
   }, []);
 
   // Sync to Supabase when data changes
-  // useEffect(() => { if (dbLoaded) sbSyncStudents(students); }, [students, dbLoaded]);
-  // useEffect(() => { if (dbLoaded) sbSyncTeachers(teachers); }, [teachers, dbLoaded]);
-  // useEffect(() => { if (dbLoaded) sbSyncClasses(classes); },  [classes,  dbLoaded]);
+  useEffect(() => { if (dbLoaded) sbSyncStudents(students); }, [students, dbLoaded]);
+  useEffect(() => { if (dbLoaded) sbSyncTeachers(teachers); }, [teachers, dbLoaded]);
+  useEffect(() => { if (dbLoaded) sbSyncClasses(classes); },  [classes,  dbLoaded]);
   useEffect(() => { if (dbLoaded) sbSyncAttendance(attendance); }, [attendance, dbLoaded]);
   useEffect(() => { if (dbLoaded) sbSyncGrades(grades); },    [grades,   dbLoaded]);
   useEffect(() => { if (dbLoaded) sbSyncSubjects(subjects); }, [subjects, dbLoaded]);
