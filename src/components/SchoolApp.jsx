@@ -7478,10 +7478,16 @@ export default function App() {
   useEffect(() => {
     Promise.all([sbLoadStudents(), sbLoadTeachers(), sbLoadClasses(), sbLoadAttendance(), sbLoadGrades(), sbLoadSubjects()])
       .then(([s, t, cl, att, gr, sub]) => {
-        // Supabase is the single source of truth
+        // Load from Supabase, fallback to localStorage
+        const localStudents = (() => { try { return JSON.parse(localStorage.getItem("edu_students") || "[]"); } catch { return []; } })();
+        const localTeachers = (() => { try { return JSON.parse(localStorage.getItem("edu_teachers") || "[]"); } catch { return []; } })();
+        const localClasses = (() => { try { return JSON.parse(localStorage.getItem("edu_classes") || "[]"); } catch { return []; } })();
         if (s && s.length) setStudents(s);
+        else if (localStudents.length) setStudents(localStudents);
         if (t && t.length) setTeachers(t);
+        else if (localTeachers.length) setTeachers(localTeachers);
         if (cl && cl.length) setClasses(cl);
+        else if (localClasses.length) setClasses(localClasses);
         if (att)               setAttendance(att);
         if (gr)                setGrades(gr);
         if (sub && sub.length) setSubjects(sub);
