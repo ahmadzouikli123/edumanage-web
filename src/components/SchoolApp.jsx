@@ -7478,16 +7478,30 @@ export default function App() {
   useEffect(() => {
     Promise.all([sbLoadStudents(), sbLoadTeachers(), sbLoadClasses(), sbLoadAttendance(), sbLoadGrades(), sbLoadSubjects()])
       .then(([s, t, cl, att, gr, sub]) => {
-        // Load from Supabase, fallback to localStorage
         const localStudents = (() => { try { return JSON.parse(localStorage.getItem("edu_students") || "[]"); } catch { return []; } })();
+        if (s && s.length) {
+          const merged = [...s];
+          localStudents.forEach(ls => { if (!merged.find(x => x.id === ls.id)) merged.push(ls); });
+          setStudents(merged);
+        } else if (localStudents.length) {
+          setStudents(localStudents);
+        }
         const localTeachers = (() => { try { return JSON.parse(localStorage.getItem("edu_teachers") || "[]"); } catch { return []; } })();
+        if (t && t.length) {
+          const merged = [...t];
+          localTeachers.forEach(lt => { if (!merged.find(x => x.id === lt.id)) merged.push(lt); });
+          setTeachers(merged);
+        } else if (localTeachers.length) {
+          setTeachers(localTeachers);
+        }
         const localClasses = (() => { try { return JSON.parse(localStorage.getItem("edu_classes") || "[]"); } catch { return []; } })();
-        if (s && s.length) setStudents(s);
-        else if (localStudents.length) setStudents(localStudents);
-        if (t && t.length) setTeachers(t);
-        else if (localTeachers.length) setTeachers(localTeachers);
-        if (cl && cl.length) setClasses(cl);
-        else if (localClasses.length) setClasses(localClasses);
+        if (cl && cl.length) {
+          const merged = [...cl];
+          localClasses.forEach(lc => { if (!merged.find(x => x.id === lc.id)) merged.push(lc); });
+          setClasses(merged);
+        } else if (localClasses.length) {
+          setClasses(localClasses);
+        }
         if (att)               setAttendance(att);
         if (gr)                setGrades(gr);
         if (sub && sub.length) setSubjects(sub);
