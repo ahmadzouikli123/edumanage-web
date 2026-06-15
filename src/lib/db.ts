@@ -2,7 +2,8 @@ import { supabase } from './supabase'
 
 export async function syncStudents(students: any[]) {
   if (!students.length) return;
-  const rows = students.map((s: any) => ({
+  const seen = new Set();
+  const rows = students.filter((s: any) => { const k = String(Math.round(Number(s.id))); if (seen.has(k)) return false; seen.add(k); return true; }).map((s: any) => ({
     id: Math.round(Number(s.id)), sid: s.sid, name: s.name, class_id: s.classId,
     gender: s.gender, phone: s.phone || null, status: s.status, academic_year: s.academicYear || null,
   }));
@@ -187,4 +188,5 @@ export async function loadTimetable() {
   });
   return result;
 }
+
 
