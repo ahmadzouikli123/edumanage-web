@@ -1,4 +1,22 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
+﻿// Auto-clean localStorage duplicates
+(function cleanLocalStorage() {
+  try {
+    var raw = JSON.parse(localStorage.getItem('edu_students') || '[]');
+    var seen = {};
+    var clean = raw.filter(function(s) {
+      var k = parseInt(String(s.id));
+      if (isNaN(k) || seen[k]) return false;
+      seen[k] = true;
+      return true;
+    }).map(function(s) {
+      return Object.assign({}, s, { id: parseInt(String(s.id)) });
+    });
+    if (clean.length !== raw.length) {
+      localStorage.setItem('edu_students', JSON.stringify(clean));
+    }
+  } catch(e) {}
+})();
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
