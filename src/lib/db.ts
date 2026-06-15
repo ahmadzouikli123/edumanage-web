@@ -4,7 +4,7 @@ export async function syncStudents(students: any[]) {
   if (!students.length) return;
   const seen = new Set();
   const rows = students.filter((s: any) => { const k = String(Math.round(Number(s.id))); if (seen.has(k)) return false; seen.add(k); return true; }).map((s: any) => ({
-    id: Math.round(Number(s.id)), sid: s.sid, name: s.name, class_id: s.classId,
+    id: parseInt(String(s.id)), sid: s.sid, name: s.name, class_id: s.classId,
     gender: s.gender, phone: s.phone || null, status: s.status, academic_year: s.academicYear || null,
   }));
   const { error } = await supabase.from('students').upsert(rows, { onConflict: 'id' });
@@ -14,7 +14,7 @@ export async function syncStudents(students: any[]) {
 export async function loadStudents() {
   const { data, error } = await supabase.from('students').select('*').order('id');
   if (error) { console.error('loadStudents:', error.message); return null; }
-  return data.map((s: any) => ({ id: Math.round(Number(s.id)), sid: s.sid, name: s.name, classId: s.class_id, gender: s.gender, phone: s.phone, status: s.status, academicYear: s.academic_year }));
+  return data.map((s: any) => ({ id: parseInt(String(s.id)), sid: s.sid, name: s.name, classId: s.class_id, gender: s.gender, phone: s.phone, status: s.status, academicYear: s.academic_year }));
 }
 
 export async function syncTeachers(teachers: any[]) {
@@ -89,7 +89,7 @@ export async function loadMessages() {
 export async function syncSubjects(subjects: any[]) {
   if (!subjects.length) return;
   const rows = subjects.map((s: any) => ({
-    id: Math.round(Number(s.id)), class_id: s.classId, name: s.name, icon: s.icon || null,
+    id: parseInt(String(s.id)), class_id: s.classId, name: s.name, icon: s.icon || null,
   }));
   const { error } = await supabase.from('subjects').upsert(rows, { onConflict: 'id' });
   if (error) console.error('syncSubjects:', error.message);
@@ -98,7 +98,7 @@ export async function syncSubjects(subjects: any[]) {
 export async function loadSubjects() {
   const { data, error } = await supabase.from('subjects').select('*').order('id');
   if (error) { console.error('loadSubjects:', error.message); return null; }
-  return data.map((s: any) => ({ id: Math.round(Number(s.id)), classId: s.class_id, name: s.name, icon: s.icon || 'book' }));
+  return data.map((s: any) => ({ id: parseInt(String(s.id)), classId: s.class_id, name: s.name, icon: s.icon || 'book' }));
 }
 
 export async function syncGrades(grades: any) {
@@ -188,5 +188,6 @@ export async function loadTimetable() {
   });
   return result;
 }
+
 
 
