@@ -1,4 +1,4 @@
-??????????????????????????????????????????????const supabase = {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿const supabase = {
   from: (name) => {
     const key = "edu_" + name;
     const loadT = () => { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch{return[];} };
@@ -30,7 +30,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 
 import { useRouter as useNextRouter } from "next/navigation";
 
-// --- Theme Constants ----------------------------------------------------------
+// ─── Theme Constants ──────────────────────────────────────────────────────────
 const T = {
   // Brand
   primary:   "#0d9488",
@@ -56,7 +56,7 @@ const T = {
 
 const uid = () => Date.now() + Math.random();
 
-// --- Academic Year ------------------------------------------------------------
+// ─── Academic Year ────────────────────────────────────────────────────────────
 function getCurrentAcademicYear() {
   const now = new Date();
   const y = now.getFullYear();
@@ -81,7 +81,7 @@ const inputErrorStyle = { ...inputStyle, border: "1px solid #ef4444", background
 const selectStyle = { ...inputStyle, cursor: "pointer" };
 
 
-// --- Mobile CSS ---------------------------------------------------------------
+// ─── Mobile CSS ───────────────────────────────────────────────────────────────
 const MOBILE_CSS = `
   @media (max-width: 768px) {
     .edu-sidebar { position: fixed !important; left: 0; top: 0; height: 100vh; z-index: 50; transform: translateX(-100%); transition: transform .25s ease; }
@@ -104,7 +104,7 @@ const MOBILE_CSS = `
   }
 `;
 
-// --- Status Config ------------------------------------------------------------
+// ─── Status Config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
   present: { label: "Present", color: "#059669", bg: "#d1fae5", dot: "#10b981", short: "P" },
   absent:  { label: "Absent",  color: "#dc2626", bg: "#fee2e2", dot: "#ef4444", short: "A" },
@@ -112,12 +112,12 @@ const STATUS_CONFIG = {
   excused: { label: "Excused", color: "#7c3aed", bg: "#ede9fe", dot: "#8b5cf6", short: "E" },
 };
 
-// --- Seed Data ----------------------------------------------------------------
+// ─── Seed Data ────────────────────────────────────────────────────────────────
 const SEED_CLASSES = [
-  { id: 1, name: "Grade 1 � A", grade: "Grade 1", room: "101", teacher: "Ms. Sarah Johnson", capacity: 25 },
-  { id: 2, name: "Grade 1 � B", grade: "Grade 1", room: "102", teacher: "Mr. David Lee",     capacity: 25 },
-  { id: 3, name: "Grade 2 � A", grade: "Grade 2", room: "201", teacher: "Ms. Emily Carter",  capacity: 25 },
-  { id: 4, name: "Grade 3 � A", grade: "Grade 3", room: "301", teacher: "Mr. James Miller",  capacity: 25 },
+  { id: 1, name: "Grade 1 — A", grade: "Grade 1", room: "101", teacher: "Ms. Sarah Johnson", capacity: 25 },
+  { id: 2, name: "Grade 1 — B", grade: "Grade 1", room: "102", teacher: "Mr. David Lee",     capacity: 25 },
+  { id: 3, name: "Grade 2 — A", grade: "Grade 2", room: "201", teacher: "Ms. Emily Carter",  capacity: 25 },
+  { id: 4, name: "Grade 3 — A", grade: "Grade 3", room: "301", teacher: "Mr. James Miller",  capacity: 25 },
 ];
 
 const SEED_TEACHERS = [
@@ -155,7 +155,7 @@ function seedAttendance(students) {
   return records;
 }
 
-// --- localStorage helpers -----------------------------------------------------
+// ─── localStorage helpers ─────────────────────────────────────────────────────
 function load(key, fallback) {
   if (typeof window === "undefined") return fallback;
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
@@ -168,7 +168,7 @@ function save(key, value) {
 const EMPTY_STUDENT = { name: "", firstName: "", lastName: "", parentName: "", sid: "", classId: 1, gender: "Male", phone: "", status: "Active", showQuran: true };
 const EMPTY_CLASS   = { name: "", grade: "", room: "", teacher: "", capacity: 25 };
 
-// --- Grades Seed Data ---------------------------------------------------------
+// ─── Grades Seed Data ─────────────────────────────────────────────────────────
 const SUBJECT_TEMPLATES = ["Mathematics", "English", "Science", "Arabic", "Art"];
 
 const SEED_SUBJECTS = SEED_CLASSES.flatMap((cls, ci) =>
@@ -176,7 +176,7 @@ const SEED_SUBJECTS = SEED_CLASSES.flatMap((cls, ci) =>
     id: ci * 10 + si + 1,
     classId: cls.id,
     name,
-    icon: ["??","??","??","??","??"][si],
+    icon: ["📐","📖","🔬","🌙","🎨"][si],
   }))
 );
 
@@ -192,7 +192,7 @@ function calcTotal(g) {
 }
 
 function letterGrade(score) {
-  if (score === null) return "�";
+  if (score === null) return "—";
   if (score >= 90) return "A";
   if (score >= 80) return "B";
   if (score >= 70) return "C";
@@ -206,7 +206,7 @@ const GRADE_COLOR = {
   C: { bg: "#fef3c7", color: "#d97706" },
   D: { bg: "#ffe4e6", color: "#e11d48" },
   F: { bg: "#fee2e2", color: "#dc2626" },
-  "�": { bg: "#f1f5f9", color: "#94a3b8" },
+  "—": { bg: "#f1f5f9", color: "#94a3b8" },
 };
 
 function seedGrades(students, subjects) {
@@ -225,17 +225,17 @@ function seedGrades(students, subjects) {
   return g;
 }
 
-// --- Timetable Constants ------------------------------------------------------
+// ─── Timetable Constants ──────────────────────────────────────────────────────
 const DAYS    = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const PERIODS = [
-  { id: 1, label: "Period 1", time: "07:30 � 08:15" },
-  { id: 2, label: "Period 2", time: "08:15 � 09:00" },
-  { id: 3, label: "Break",    time: "09:00 � 09:20", isBreak: true },
-  { id: 4, label: "Period 3", time: "09:20 � 10:05" },
-  { id: 5, label: "Period 4", time: "10:05 � 10:50" },
-  { id: 6, label: "Break",    time: "10:50 � 11:10", isBreak: true },
-  { id: 7, label: "Period 5", time: "11:10 � 11:55" },
-  { id: 8, label: "Period 6", time: "11:55 � 12:40" },
+  { id: 1, label: "Period 1", time: "07:30 – 08:15" },
+  { id: 2, label: "Period 2", time: "08:15 – 09:00" },
+  { id: 3, label: "Break",    time: "09:00 – 09:20", isBreak: true },
+  { id: 4, label: "Period 3", time: "09:20 – 10:05" },
+  { id: 5, label: "Period 4", time: "10:05 – 10:50" },
+  { id: 6, label: "Break",    time: "10:50 – 11:10", isBreak: true },
+  { id: 7, label: "Period 5", time: "11:10 – 11:55" },
+  { id: 8, label: "Period 6", time: "11:55 – 12:40" },
 ];
 
 // Pastel palette for subjects in timetable
@@ -274,7 +274,7 @@ function seedTimetable(classes, subjects) {
   return tt;
 }
 
-// --- Messaging Constants & Seed -----------------------------------------------
+// ─── Messaging Constants & Seed ───────────────────────────────────────────────
 const MSG_TAGS = {
   general:    { label: "General",          bg: "#dbeafe", color: "#1d4ed8" },
   attendance: { label: "Attendance Alert", bg: "#fef3c7", color: "#b45309" },
@@ -290,7 +290,7 @@ function seedMessages(students) {
   const templates = [
     { tag: "attendance", subject: "Absence Notice", body: "Your child was marked absent today. Please contact the school if this was unplanned.", fromSchool: true },
     { tag: "grades",     subject: "Mid-term Results Available", body: "Mid-term grades have been published. Please log in to view your child's results.", fromSchool: true },
-    { tag: "event",      subject: "School Trip � Permission Slip", body: "We have an upcoming field trip on April 15th. Please sign and return the permission slip by April 10th.", fromSchool: true },
+    { tag: "event",      subject: "School Trip — Permission Slip", body: "We have an upcoming field trip on April 15th. Please sign and return the permission slip by April 10th.", fromSchool: true },
     { tag: "general",    subject: "Thank you", body: "Thank you for the update regarding my child's progress. We will make sure to follow up at home.", fromSchool: false },
     { tag: "behavior",   subject: "Classroom Behavior Report", body: "We wanted to inform you that your child had a minor incident in class today. We have spoken with them and the situation is resolved.", fromSchool: true },
   ];
@@ -315,12 +315,12 @@ function seedMessages(students) {
   return msgs;
 }
 
-// --- Exam Scheduler Constants & Seed -----------------------------------------
+// ─── Exam Scheduler Constants & Seed ─────────────────────────────────────────
 const EXAM_TYPES = {
-  quiz:    { label: "Quiz",         bg: "#dbeafe", color: "#1d4ed8", icon: "??" },
-  test:    { label: "Chapter Test", bg: "#ede9fe", color: "#6d28d9", icon: "??" },
-  midterm: { label: "Midterm",      bg: "#fef3c7", color: "#b45309", icon: "??" },
-  final:   { label: "Final Exam",   bg: "#fee2e2", color: "#b91c1c", icon: "??" },
+  quiz:    { label: "Quiz",         bg: "#dbeafe", color: "#1d4ed8", icon: "📝" },
+  test:    { label: "Chapter Test", bg: "#ede9fe", color: "#6d28d9", icon: "📄" },
+  midterm: { label: "Midterm",      bg: "#fef3c7", color: "#b45309", icon: "📋" },
+  final:   { label: "Final Exam",   bg: "#fee2e2", color: "#b91c1c", icon: "🎓" },
 };
 
 function getExamStatus(dateStr) {
@@ -355,7 +355,7 @@ function seedExams(classes, subjects) {
     if (!cls || !sub) return;
     exams.push({
       id: id++, classId: cls.id, subjectId: sub.id, type,
-      title: `${EXAM_TYPES[type].label} � ${sub.name}`,
+      title: `${EXAM_TYPES[type].label} — ${sub.name}`,
       date: offset(daysOffset), duration, maxScore, room: cls.room, notes: "",
     });
   });
@@ -375,70 +375,70 @@ function seedExamResults(exams, students) {
 }
 
 const NAV = [
-  { id: "dashboard",  icon: "?", label: "Dashboard"  },
-  { id: "students",   icon: "?", label: "Students"   },
-  { id: "teachers", icon: "??", label: "Teachers" },
-  { id: "classes",    icon: "?", label: "Classes"     },
-  { id: "attendance", icon: "?", label: "Attendance"  },
-  { id: "grades",     icon: "?", label: "Grades"      },
-  { id: "timetable",  icon: "?", label: "Timetable"   },
-  { id: "messages",   icon: "??", label: "Messages"   },
-  { id: "exams",      icon: "??", label: "Exams"      },
-  { id: "quizzes",    icon: "??", label: "Quizzes"    },
-  { id: "lessonplans",   icon: "??", label: "Lesson Plans" },
-  { id: "evaluations",   icon: "?", label: "Evaluations"  },
-  { id: "quran",          icon: "??", label: "Quran"         },
-  { id: "settings",   icon: "??", label: "Settings"   },
-  { id: "internal",   icon: "??", label: "Staff Messages" },
-  { id: "subrequests", icon: "??", label: "Sub Requests" },
-  { id: "principals",  icon: "??", label: "Principals"     },
-  { id: "supervisors", icon: "???", label: "Supervisors"    },
+  { id: "dashboard",  icon: "⊞", label: "Dashboard"  },
+  { id: "students",   icon: "◉", label: "Students"   },
+  { id: "teachers", icon: "👤", label: "Teachers" },
+  { id: "classes",    icon: "▦", label: "Classes"     },
+  { id: "attendance", icon: "✓", label: "Attendance"  },
+  { id: "grades",     icon: "★", label: "Grades"      },
+  { id: "timetable",  icon: "▦", label: "Timetable"   },
+  { id: "messages",   icon: "💬", label: "Messages"   },
+  { id: "exams",      icon: "📋", label: "Exams"      },
+  { id: "quizzes",    icon: "📝", label: "Quizzes"    },
+  { id: "lessonplans",   icon: "📚", label: "Lesson Plans" },
+  { id: "evaluations",   icon: "⭐", label: "Evaluations"  },
+  { id: "quran",          icon: "🕌", label: "Quran"         },
+  { id: "settings",   icon: "⚙️", label: "Settings"   },
+  { id: "internal",   icon: "📨", label: "Staff Messages" },
+  { id: "subrequests", icon: "🔄", label: "Sub Requests" },
+  { id: "principals",  icon: "🏫", label: "Principals"     },
+  { id: "supervisors", icon: "👁️", label: "Supervisors"    },
 ];
 
 const NAV_GROUPS = [
-  { id: "dashboard", icon: "?", label: "Dashboard", single: true },
+  { id: "dashboard", icon: "⊞", label: "Dashboard", single: true },
   {
-    id: "staff", icon: "??", label: "School Staff",
+    id: "staff", icon: "👥", label: "School Staff",
     items: [
-      { id: "teachers",    icon: "??", label: "Teachers"    },
-      { id: "principals",  icon: "??", label: "Principals"  },
-      { id: "supervisors", icon: "???", label: "Supervisors" },
+      { id: "teachers",    icon: "👤", label: "Teachers"    },
+      { id: "principals",  icon: "🏫", label: "Principals"  },
+      { id: "supervisors", icon: "👁️", label: "Supervisors" },
     ]
   },
   {
-    id: "academic", icon: "??", label: "Academic",
+    id: "academic", icon: "📊", label: "Academic",
     items: [
-      { id: "attendance", icon: "?",  label: "Attendance"   },
-      { id: "grades",     icon: "?",  label: "Grades"       },
-      { id: "exams",      icon: "??", label: "Exams"        },
-      { id: "quizzes",    icon: "??", label: "Quizzes"      },
+      { id: "attendance", icon: "✓",  label: "Attendance"   },
+      { id: "grades",     icon: "★",  label: "Grades"       },
+      { id: "exams",      icon: "📋", label: "Exams"        },
+      { id: "quizzes",    icon: "📝", label: "Quizzes"      },
     ]
   },
   {
-    id: "communication", icon: "??", label: "Communication",
+    id: "communication", icon: "💬", label: "Communication",
     items: [
-      { id: "messages",    icon: "??", label: "Messages"      },
-      { id: "internal",    icon: "??", label: "Staff Messages"},
-      { id: "subrequests", icon: "??", label: "Sub Requests"  },
+      { id: "messages",    icon: "💬", label: "Messages"      },
+      { id: "internal",    icon: "📨", label: "Staff Messages"},
+      { id: "subrequests", icon: "🔄", label: "Sub Requests"  },
     ]
   },
   {
-    id: "planning", icon: "??", label: "Planning",
+    id: "planning", icon: "📚", label: "Planning",
     items: [
-      { id: "lessonplans", icon: "??", label: "Lesson Plans" },
-      { id: "timetable",   icon: "?",  label: "Timetable"   },
+      { id: "lessonplans", icon: "📚", label: "Lesson Plans" },
+      { id: "timetable",   icon: "▦",  label: "Timetable"   },
     ]
   },
   {
-    id: "management", icon: "??", label: "Management",
+    id: "management", icon: "🏫", label: "Management",
     items: [
-      { id: "students",    icon: "?",  label: "Students"    },
-      { id: "classes",     icon: "?",  label: "Classes"     },
-      { id: "evaluations", icon: "?", label: "Evaluations" },
-      { id: "quran",       icon: "??", label: "Quran"       },
+      { id: "students",    icon: "◉",  label: "Students"    },
+      { id: "classes",     icon: "▦",  label: "Classes"     },
+      { id: "evaluations", icon: "⭐", label: "Evaluations" },
+      { id: "quran",       icon: "🕌", label: "Quran"       },
     ]
   },
-  { id: "settings", icon: "??", label: "Settings", single: true },
+  { id: "settings", icon: "⚙️", label: "Settings", single: true },
 ];
 
 
@@ -516,11 +516,11 @@ function Teachers({ userRole, classes = [] }) {
       {toast && <Toast msg={toast} onDone={() => setToast("")} />}
       <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius, padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", boxShadow: T.cardShadow }}>
         <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-          <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: T.textMuted }}>??</span>
-          <input placeholder="Search name, subject or email�" value={search} onChange={e => setSearch(e.target.value)} style={{ ...inputStyle, paddingRight: 32 }} />
+          <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: T.textMuted }}>🔍</span>
+          <input placeholder="Search name, subject or email…" value={search} onChange={e => setSearch(e.target.value)} style={{ ...inputStyle, paddingRight: 32 }} />
         </div>
         {userRole === "admin" && (
-          <button onClick={() => { setEditing(null); setShowForm(true); }} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", background: T.primary, color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>+ Add Teacher</button>
+          <button onClick={() => { setEditing(null); setShowForm(true); }} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", background: T.primary, color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>＋ Add Teacher</button>
         )}
       </div>
 
@@ -548,15 +548,15 @@ function Teachers({ userRole, classes = [] }) {
                       <Avatar name={t.name} />
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 500, color: T.textMain }}>{t.name}</div>
-                        <div style={{ fontSize: 11, color: T.textMuted }}>{t.username || "�"}</div>
+                        <div style={{ fontSize: 11, color: T.textMuted }}>{t.username || "—"}</div>
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{t.subject || "�"}</td>
-                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{t.email || "�"}</td>
-                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{t.phone || "�"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{t.subject || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{t.email || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{t.phone || "—"}</td>
                   <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 12, color: T.textSub }}>
-                    {(t.classIds||t.class_ids||[]).map(id => (classes.find(c=>c.id===id)||{}).name||id).join(", ") || "�"}
+                    {(t.classIds||t.class_ids||[]).map(id => (classes.find(c=>c.id===id)||{}).name||id).join(", ") || "—"}
                   </td>
                   <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc" }}>
                     <Badge status={t.status === "active" || t.status === "Active" ? "Active" : "Inactive"} />
@@ -594,7 +594,7 @@ function Teachers({ userRole, classes = [] }) {
                 </select>
               </Field>
               <Field label="Username"><input name="username" defaultValue={editing?.username} style={inputStyle} placeholder="jane.doe" /></Field>
-              <Field label="Password"><input name="password" defaultValue={editing?.password} style={inputStyle} placeholder="��������" /></Field>
+              <Field label="Password"><input name="password" defaultValue={editing?.password} style={inputStyle} placeholder="••••••••" /></Field>
               <Field label="Start Date"><input name="startDate" type="date" defaultValue={editing?.startDate} style={inputStyle} /></Field>
             </div>
             {classes.length > 0 && (
@@ -633,7 +633,7 @@ function Teachers({ userRole, classes = [] }) {
   );
 }
 
-// --- Shared Components --------------------------------------------------------
+// ─── Shared Components ────────────────────────────────────────────────────────
 function Avatar({ name, size = 34 }) {
   const initials = name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
   const colors = ["#0d9488", "#7c3aed", "#2563eb", "#db2777", "#ea580c", "#16a34a"];
@@ -681,7 +681,7 @@ function Modal({ title, onClose, children }) {
           <button onClick={onClose} style={{
             border: "none", background: "#f1f5f9", borderRadius: 8,
             width: 30, height: 30, cursor: "pointer", fontSize: 16, color: T.textSub,
-          }}>�</button>
+          }}>×</button>
         </div>
         {children}
       </div>
@@ -694,14 +694,14 @@ function Field({ label, error, children }) {
   return (
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: error ? "#ef4444" : "#475569", marginBottom: 6 }}>
-        {label}{error && <span style={{ marginRight: 6, fontWeight: 400, color: "#ef4444" }}>� {error}</span>}
+        {label}{error && <span style={{ marginRight: 6, fontWeight: 400, color: "#ef4444" }}>— {error}</span>}
       </label>
       {children}
     </div>
   );
 }
 
-// --- Attendance Module --------------------------------------------------------
+// ─── Attendance Module ────────────────────────────────────────────────────────
 function Attendance({ students, classes, attendance, setAttendance, teacherClassIds = null }) {
   const visibleClasses = teacherClassIds ? classes.filter(c => teacherClassIds.includes(c.id)) : classes;
   const visibleStudents = teacherClassIds ? students.filter(s => teacherClassIds.includes(s.classId)) : students;
@@ -827,7 +827,7 @@ function Attendance({ students, classes, attendance, setAttendance, teacherClass
             fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
             display: "flex", alignItems: "center", gap: 7, transition: "all .2s",
           }}>
-            {saved ? "? Saved" : "Save Attendance"}
+            {saved ? "✓ Saved" : "Save Attendance"}
           </button>
         )}
       </div>
@@ -911,7 +911,7 @@ function Attendance({ students, classes, attendance, setAttendance, teacherClass
           <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9" }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: T.textMain }}>Attendance Report</div>
             <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>
-              {classes.find(c => c.id === classId)?.name} � {allDates.length} school days tracked
+              {classes.find(c => c.id === classId)?.name} · {allDates.length} school days tracked
             </div>
           </div>
           <div style={{ overflowX: "auto" }}>
@@ -983,8 +983,8 @@ function Attendance({ students, classes, attendance, setAttendance, teacherClass
           </div>
           <div style={{ padding: "14px 20px", borderTop: "1px solid #f1f5f9", display: "flex", gap: 20, flexWrap: "wrap" }}>
             {[
-              { label: "= 90%  Good", color: "#059669", bg: "#d1fae5" },
-              { label: "75�89%  At Risk", color: "#d97706", bg: "#fef3c7" },
+              { label: "≥ 90%  Good", color: "#059669", bg: "#d1fae5" },
+              { label: "75–89%  At Risk", color: "#d97706", bg: "#fef3c7" },
               { label: "< 75%  Critical", color: "#dc2626", bg: "#fee2e2" },
             ].map(l => (
               <span key={l.label} style={{
@@ -999,10 +999,10 @@ function Attendance({ students, classes, attendance, setAttendance, teacherClass
   );
 }
 
-// --- Dashboard ----------------------------------------------------------------
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 function Dashboard({ students, classes, attendance, grades, subjects, timetable, messages, exams, onNavigate }) {
   const todayStr    = new Date().toISOString().split("T")[0];
-  const todayDayIdx = (new Date().getDay() + 6) % 7; // Mon=0 � Fri=4
+  const todayDayIdx = (new Date().getDay() + 6) % 7; // Mon=0 … Fri=4
   const isWeekend   = new Date().getDay() === 0 || new Date().getDay() === 6;
   const todayRec   = attendance[todayStr] || {};
   const hasToday   = Object.keys(todayRec).length > 0;
@@ -1067,16 +1067,16 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
     <div>
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
         <button onClick={printMonthlyReport} style={{ padding: "10px 20px", background: "#0d9488", color: "white", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-          ??? Monthly Report
+          🖨️ Monthly Report
         </button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 14, marginBottom: 28 }}>
-        <StatCard icon="??" value={students.length} label="Total Students"  sub="Enrolled"        subColor={T.primary} />
-        <StatCard icon="??" value={classes.length}  label="Total Classes"   sub="This semester"   subColor="#7c3aed" />
-        <StatCard icon="?" value={hasToday ? todayPresent : "�"} label="Present Today" sub={hasToday ? `${todayRate}% rate` : "Not taken yet"} subColor="#16a34a" />
-        <StatCard icon="??" value={hasToday ? todayAbsent  : "�"} label="Absent Today"  sub={hasToday ? "Needs follow-up" : "Not taken yet"}   subColor={T.danger} />
-        <StatCard icon="??" value={(messages || []).filter(m => !m.read).length} label="Unread Messages" sub="From parents" subColor="#7c3aed" />
-        <StatCard icon="??" value={(exams || []).filter(e => getExamStatus(e.date) !== "completed").length} label="Upcoming Exams" sub="Scheduled" subColor="#b45309" />
+        <StatCard icon="👥" value={students.length} label="Total Students"  sub="Enrolled"        subColor={T.primary} />
+        <StatCard icon="🏫" value={classes.length}  label="Total Classes"   sub="This semester"   subColor="#7c3aed" />
+        <StatCard icon="✅" value={hasToday ? todayPresent : "—"} label="Present Today" sub={hasToday ? `${todayRate}% rate` : "Not taken yet"} subColor="#16a34a" />
+        <StatCard icon="⚠️" value={hasToday ? todayAbsent  : "—"} label="Absent Today"  sub={hasToday ? "Needs follow-up" : "Not taken yet"}   subColor={T.danger} />
+        <StatCard icon="💬" value={(messages || []).filter(m => !m.read).length} label="Unread Messages" sub="From parents" subColor="#7c3aed" />
+        <StatCard icon="📋" value={(exams || []).filter(e => getExamStatus(e.date) !== "completed").length} label="Upcoming Exams" sub="Scheduled" subColor="#b45309" />
       </div>
       {topStudent && (
         <div style={{
@@ -1084,7 +1084,7 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
           padding: "16px 22px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16,
           boxShadow: "0 4px 16px rgba(13,148,136,.3)",
         }}>
-          <div style={{ fontSize: 28 }}>??</div>
+          <div style={{ fontSize: 28 }}>🏆</div>
           <div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,.6)", fontWeight: 500, marginBottom: 2 }}>TOP PERFORMING STUDENT</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{topStudent.name}</div>
@@ -1170,13 +1170,13 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
 
       {/* Quick Actions */}
       <div style={{ marginTop: 16, background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius, padding: "16px 22px", boxShadow: T.cardShadow, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: T.textMain, marginRight: 4 }}>? Quick Actions</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: T.textMain, marginRight: 4 }}>⚡ Quick Actions</span>
         {[
-          { label: "? Add Student",     page: "students"   },
-          { label: "? Take Attendance",  page: "attendance" },
-          { label: "?? Schedule Exam",    page: "exams"      },
-          { label: "?? New Message",      page: "messages"   },
-          { label: "? Enter Grades",     page: "grades"     },
+          { label: "➕ Add Student",     page: "students"   },
+          { label: "✅ Take Attendance",  page: "attendance" },
+          { label: "📋 Schedule Exam",    page: "exams"      },
+          { label: "💬 New Message",      page: "messages"   },
+          { label: "★ Enter Grades",     page: "grades"     },
         ].map(a => (
           <button key={a.page} onClick={() => onNavigate(a.page)} style={{
             padding: "8px 16px", borderRadius: 8, border: `1px solid ${T.border}`,
@@ -1197,15 +1197,15 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
       }}>
         <div style={{ padding: "14px 22px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: T.textMain }}>?? Today's Schedule</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: T.textMain }}>📅 Today's Schedule</div>
             <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>
-              {isWeekend ? "Weekend � no classes" : DAYS[todayDayIdx]}
+              {isWeekend ? "Weekend — no classes" : DAYS[todayDayIdx]}
             </div>
           </div>
         </div>
         {isWeekend ? (
           <div style={{ padding: "24px 22px", color: T.textMuted, fontSize: 14, textAlign: "center" }}>
-            ?? It's the weekend � enjoy the break!
+            🎉 It's the weekend — enjoy the break!
           </div>
         ) : (
           <div style={{ padding: "14px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1245,7 +1245,7 @@ function Dashboard({ students, classes, attendance, grades, subjects, timetable,
     </div>
   );
 }
-// --- Toast Notification -------------------------------------------------------
+// ─── Toast Notification ───────────────────────────────────────────────────────
 function Toast({ msg, onDone }) {
   useEffect(() => { const t = setTimeout(onDone, 2400); return () => clearTimeout(t); }, [onDone]);
   return (
@@ -1256,7 +1256,7 @@ function Toast({ msg, onDone }) {
       boxShadow: "0 8px 28px rgba(0,0,0,.22)", display: "flex", alignItems: "center", gap: 10,
       animation: "fadeUp .2s ease",
     }}>
-      <span style={{ color: "#5eead4", fontSize: 16 }}>?</span> {msg}
+      <span style={{ color: "#5eead4", fontSize: 16 }}>✓</span> {msg}
     </div>
   );
 }
@@ -1281,7 +1281,7 @@ function exportToCSV(data, filename) {
   URL.revokeObjectURL(url);
 }
 
-// --- Student Profile (Rich Tabbed) -------------------------------------------
+// ─── Student Profile (Rich Tabbed) ───────────────────────────────────────────
 const ALL_PROFILE_TABS = ["Overview", "Attendance", "Grades", "Exams", "Messages", "Schedule", "Hifz", "Quran"];
 const getProfileTabs = (showQuran) => showQuran === false ? ALL_PROFILE_TABS.filter(t => t !== "Hifz" && t !== "Quran") : ALL_PROFILE_TABS;
 
@@ -1346,7 +1346,7 @@ function ParentCompose({ student, messages }) {
 
 
 
-// --- StudentMessages ----------------------------------------------------------
+// ─── StudentMessages ──────────────────────────────────────────────────────────
 function StudentMessages({ student, messages, setMessages }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -1377,26 +1377,26 @@ function StudentMessages({ student, messages, setMessages }) {
     <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:16 }}>
       <div onClick={() => setOpen(!open)} style={{ padding:"14px 18px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", borderBottom: open?"1px solid #e2e8f0":"none" }}>
         <div style={{ fontSize:14, fontWeight:700, color:"#1e293b", display:"flex", alignItems:"center", gap:8 }}>
-          ?? Messages
+          💬 Messages
           {unread > 0 && <span style={{ background:"#ef4444", color:"#fff", borderRadius:20, fontSize:11, padding:"2px 8px" }}>{unread} new</span>}
         </div>
-        <span style={{ fontSize:12, color:"#94a3b8" }}>{open?"?":"?"}</span>
+        <span style={{ fontSize:12, color:"#94a3b8" }}>{open?"▲":"▼"}</span>
       </div>
 
       {open && (
         <div style={{ padding:16 }}>
           {selected && selectedMsg ? (
             <div>
-              <button onClick={() => setSelected(null)} style={{ padding:"6px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:12, marginBottom:12 }}>? Back</button>
+              <button onClick={() => setSelected(null)} style={{ padding:"6px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:12, marginBottom:12 }}>← Back</button>
               <div style={{ fontSize:14, fontWeight:700, color:"#1e293b", marginBottom:12 }}>{selectedMsg.subject}</div>
               <div style={{ background:"#f0fdf9", borderRadius:10, border:"1px solid #99f6e4", padding:14, marginBottom:10 }}>
-                <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:6 }}>?? School � {fmtTime(selectedMsg.timestamp)}</div>
+                <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:6 }}>🏫 School · {fmtTime(selectedMsg.timestamp)}</div>
                 <div style={{ fontSize:13, color:"#334155" }}>{selectedMsg.body}</div>
                 {selectedMsg.image && <img src={selectedMsg.image} style={{ maxWidth:"100%", borderRadius:8, marginTop:8 }} />}
               </div>
               {(selectedMsg.replies||[]).map(r => (
                 <div key={r.id} style={{ background: r.fromSchool?"#f0fdf9":"#f8f4ff", borderRadius:10, border:"1px solid " + (r.fromSchool?"#99f6e4":"#ddd6fe"), padding:12, marginBottom:8 }}>
-                  <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:4 }}>{r.fromSchool?"?? School":"?? You"} � {fmtTime(r.timestamp)}</div>
+                  <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:4 }}>{r.fromSchool?"🏫 School":"🎓 You"} · {fmtTime(r.timestamp)}</div>
                   <div style={{ fontSize:13, color:"#334155" }}>{r.body}</div>
                   {r.image && <img src={r.image} style={{ maxWidth:"100%", borderRadius:8, marginTop:6 }} />}
                 </div>
@@ -1413,7 +1413,7 @@ function StudentMessages({ student, messages, setMessages }) {
               <div key={msg.id} onClick={() => { setSelected(msg.id); if(!msg.read && setMessages) setMessages(prev=>prev.map(m=>m.id===msg.id?{...m,read:true}:m)); }} style={{ padding:"12px 14px", borderRadius:10, border:"1px solid " + (msg.read?"#f1f5f9":"#0d9488"), background: msg.read?"#fff":"#f0fdf9", marginBottom:8, cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:13, fontWeight: msg.read?500:700, color:"#1e293b" }}>{msg.subject}</div>
-                  <div style={{ fontSize:11, color:"#94a3b8", marginTop:2 }}>?? School � {fmtTime(msg.timestamp)} {msg.image?"??":""}</div>
+                  <div style={{ fontSize:11, color:"#94a3b8", marginTop:2 }}>🏫 School · {fmtTime(msg.timestamp)} {msg.image?"📎":""}</div>
                 </div>
                 {!msg.read && <div style={{ width:8, height:8, borderRadius:"50%", background:"#ef4444" }} />}
               </div>
@@ -1425,7 +1425,7 @@ function StudentMessages({ student, messages, setMessages }) {
   );
 }
 
-// --- Student Dashboard --------------------------------------------------------
+// ─── Student Dashboard ────────────────────────────────────────────────────────
 // StudentQuranPlayer
 function StudentQuranPlayer() {
   const [selectedSurah, setSelectedSurah] = useState(1);
@@ -1461,15 +1461,15 @@ function StudentQuranPlayer() {
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden" }}>
         <div style={{ padding:"12px 16px", borderBottom:"1px solid #e2e8f0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div>
-            <div style={{ fontSize:13, fontWeight:700, color:S.text }}>{"???? ??????"}</div>
-            <div style={{ fontSize:11, color:S.sub }}>{"?????? ?? ??????"}</div>
+            <div style={{ fontSize:13, fontWeight:700, color:S.text }}>{"صفحة المصحف"}</div>
+            <div style={{ fontSize:11, color:S.sub }}>{"تتزامن مع السورة"}</div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <button onClick={() => { stopAudio(); setDisplayPage(p => Math.max(1, p-1)); }}
-              style={{ width:30, height:30, borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", fontSize:16 }}>{"�"}</button>
-            <span style={{ fontSize:12, fontWeight:600, color:S.text, minWidth:72, textAlign:"center" }}>{"???? "}{displayPage}</span>
+              style={{ width:30, height:30, borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", fontSize:16 }}>{"›"}</button>
+            <span style={{ fontSize:12, fontWeight:600, color:S.text, minWidth:72, textAlign:"center" }}>{"صفحة "}{displayPage}</span>
             <button onClick={() => { stopAudio(); setDisplayPage(p => Math.min(604, p+1)); }}
-              style={{ width:30, height:30, borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", fontSize:16 }}>{"�"}</button>
+              style={{ width:30, height:30, borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", fontSize:16 }}>{"‹"}</button>
           </div>
         </div>
         <div style={{ minHeight:520, background:"#fdfdf8", overflowY:"auto", padding:"16px 20px" }}>
@@ -1481,7 +1481,7 @@ function StudentQuranPlayer() {
       <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
         {/* Reciter */}
         <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:14 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:S.sub, marginBottom:10 }}>{"??????"}</div>
+          <div style={{ fontSize:11, fontWeight:700, color:S.sub, marginBottom:10 }}>{"القارئ"}</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
             {RECITERS.map(r => (
               <button key={r.id} onClick={() => { setReciter(r.id); stopAudio(); }}
@@ -1495,7 +1495,7 @@ function StudentQuranPlayer() {
 
         {/* Surah */}
         <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:14 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:S.sub, marginBottom:10 }}>{"??????"}</div>
+          <div style={{ fontSize:11, fontWeight:700, color:S.sub, marginBottom:10 }}>{"السورة"}</div>
           <select style={inp} value={selectedSurah} onChange={e => { setSelectedSurah(Number(e.target.value)); stopAudio(); }}>
             {SURAHS.map(s => <option key={s.id} value={s.id}>{s.id}. {s.name} - {s.arabic}</option>)}
           </select>
@@ -1510,7 +1510,7 @@ function StudentQuranPlayer() {
             {SURAHS.find(s=>s.id===selectedSurah)?.name}
           </div>
           <div style={{ fontSize:11, color:"rgba(255,255,255,.35)", marginBottom:16 }}>
-            {SURAHS.find(s=>s.id===selectedSurah)?.verses} {"???"} &middot; {RECITERS.find(r=>r.id===reciter)?.arabic}
+            {SURAHS.find(s=>s.id===selectedSurah)?.verses} {"آية"} &middot; {RECITERS.find(r=>r.id===reciter)?.arabic}
           </div>
           {playing && (
             <div style={{ display:"flex", justifyContent:"center", gap:3, height:20, alignItems:"center" }}>
@@ -1587,7 +1587,7 @@ function StudentDashboard({ student, classes, attendance, grades, subjects, exam
           </div>
           <div>
             <div style={{ fontSize:20, fontWeight:800 }}>{student.name}</div>
-            <div style={{ fontSize:13, color:"rgba(255,255,255,.6)", marginTop:2 }}>{cls?.name || "�"} � ID: {student.sid}</div>
+            <div style={{ fontSize:13, color:"rgba(255,255,255,.6)", marginTop:2 }}>{cls?.name || "—"} · ID: {student.sid}</div>
           </div>
         </div>
         <div style={{ textAlign:"right" }}>
@@ -1599,10 +1599,10 @@ function StudentDashboard({ student, classes, attendance, grades, subjects, exam
       {/* Stats Cards */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
         {[
-          { icon:"??", label:"GPA", value: gradeStats.avg !== null ? gradeStats.avg+"%" : "�", color: gpaColor, bg: gradeStats.avg!==null?(gradeStats.avg>=80?"#d1fae5":gradeStats.avg>=65?"#fef3c7":"#fee2e2"):"#f8fafc" },
-          { icon:"?", label:"Attendance", value: attStats.rate+"%", color: attColor, bg: attBg },
-          { icon:"??", label:"Pending Quizzes", value: pendingQuizzes.length, color:"#0d9488", bg:"#f0fdf9" },
-          { icon:"??", label:"Messages", value: unread > 0 ? unread+" new" : "0", color: unread>0?"#7c3aed":"#64748b", bg: unread>0?"#ede9fe":"#f8fafc" },
+          { icon:"📊", label:"GPA", value: gradeStats.avg !== null ? gradeStats.avg+"%" : "—", color: gpaColor, bg: gradeStats.avg!==null?(gradeStats.avg>=80?"#d1fae5":gradeStats.avg>=65?"#fef3c7":"#fee2e2"):"#f8fafc" },
+          { icon:"✅", label:"Attendance", value: attStats.rate+"%", color: attColor, bg: attBg },
+          { icon:"📝", label:"Pending Quizzes", value: pendingQuizzes.length, color:"#0d9488", bg:"#f0fdf9" },
+          { icon:"💬", label:"Messages", value: unread > 0 ? unread+" new" : "0", color: unread>0?"#7c3aed":"#64748b", bg: unread>0?"#ede9fe":"#f8fafc" },
         ].map((s,i) => (
           <div key={i} style={{ background:s.bg, borderRadius:12, padding:16, border:"1px solid #e2e8f0" }}>
             <div style={{ fontSize:22, marginBottom:6 }}>{s.icon}</div>
@@ -1616,7 +1616,7 @@ function StudentDashboard({ student, classes, attendance, grades, subjects, exam
 
         {/* Grades */}
         <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden" }}>
-          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>?? Grades</div>
+          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>📊 Grades</div>
           {gradeStats.rows.length === 0 ? (
             <div style={{ padding:24, textAlign:"center", color:"#94a3b8", fontSize:13 }}>No grades yet</div>
           ) : gradeStats.rows.map((r,i) => (
@@ -1634,7 +1634,7 @@ function StudentDashboard({ student, classes, attendance, grades, subjects, exam
 
         {/* Attendance */}
         <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden" }}>
-          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>? Attendance</div>
+          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>✅ Attendance</div>
           <div style={{ padding:18 }}>
             <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
               <div style={{ width:90, height:90, borderRadius:"50%", background:"conic-gradient("+attColor+" "+attStats.rate+"%, #f1f5f9 0)", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -1660,7 +1660,7 @@ function StudentDashboard({ student, classes, attendance, grades, subjects, exam
 
         {/* Upcoming Exams */}
         <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden" }}>
-          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>?? Upcoming Exams</div>
+          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>📋 Upcoming Exams</div>
           {upcomingExams.length === 0 ? (
             <div style={{ padding:24, textAlign:"center", color:"#94a3b8", fontSize:13 }}>No upcoming exams</div>
           ) : upcomingExams.map(ex => {
@@ -1681,14 +1681,14 @@ function StudentDashboard({ student, classes, attendance, grades, subjects, exam
 
         {/* Today Timetable */}
         <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", overflow:"hidden" }}>
-          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>??? Today � {todayName}</div>
+          <div style={{ padding:"14px 18px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>🗓️ Today — {todayName}</div>
           {todayClasses.length === 0 ? (
             <div style={{ padding:24, textAlign:"center", color:"#94a3b8", fontSize:13 }}>No classes today</div>
           ) : todayClasses.map((s,i) => (
             <div key={i} style={{ padding:"10px 18px", borderBottom:"1px solid #f1f5f9", display:"flex", gap:12, alignItems:"center" }}>
-              <div style={{ width:44, height:44, borderRadius:10, background:"#f0fdf9", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#0d9488", flexShrink:0 }}>{s.time||"�"}</div>
+              <div style={{ width:44, height:44, borderRadius:10, background:"#f0fdf9", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#0d9488", flexShrink:0 }}>{s.time||"—"}</div>
               <div>
-                <div style={{ fontSize:13, fontWeight:600, color:"#1e293b" }}>{s.subject||"�"}</div>
+                <div style={{ fontSize:13, fontWeight:600, color:"#1e293b" }}>{s.subject||"—"}</div>
                 <div style={{ fontSize:11, color:"#64748b" }}>{s.teacher||""}</div>
               </div>
             </div>
@@ -1740,13 +1740,13 @@ function StudentDashboard({ student, classes, attendance, grades, subjects, exam
       {/* Pending Quizzes */}
       {pendingQuizzes.length > 0 && (
         <div style={{ background:"#f0fdf9", borderRadius:12, border:"1px solid #99f6e4", padding:18, marginBottom:16 }}>
-          <div style={{ fontSize:14, fontWeight:700, color:"#0d9488", marginBottom:12 }}>?? Pending Quizzes ({pendingQuizzes.length})</div>
+          <div style={{ fontSize:14, fontWeight:700, color:"#0d9488", marginBottom:12 }}>📝 Pending Quizzes ({pendingQuizzes.length})</div>
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {pendingQuizzes.map(q => (
               <div key={q.id} style={{ background:"#fff", borderRadius:10, padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <div>
                   <div style={{ fontSize:13, fontWeight:600, color:"#1e293b" }}>{q.title}</div>
-                  <div style={{ fontSize:11, color:"#64748b" }}>{q.questions.length} questions {q.duration?"� "+q.duration+" min":""}</div>
+                  <div style={{ fontSize:11, color:"#64748b" }}>{q.questions.length} questions {q.duration?"· "+q.duration+" min":""}</div>
                 </div>
                 <span style={{ fontSize:11, fontWeight:700, background:"#0d9488", color:"#fff", padding:"4px 12px", borderRadius:20 }}>Pending</span>
               </div>
@@ -1812,7 +1812,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
     [messages, student.id]
   );
 
-  // -- Attendance stats ------------------------------------------------------
+  // ── Attendance stats ──────────────────────────────────────────────────────
   const attStats = useMemo(() => {
     let p = 0, a = 0, l = 0, e = 0, total = 0;
     const history = [];
@@ -1829,7 +1829,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
     return { present: p, absent: a, late: l, excused: e, total, rate: total ? Math.round((p / total) * 100) : 100, history };
   }, [attendance, student.id]);
 
-  // -- Grade stats -----------------------------------------------------------
+  // ── Grade stats ───────────────────────────────────────────────────────────
   const gradeStats = useMemo(() => {
     const rows = stdSubjs.map(sub => {
       const g = stdGrades[sub.id] || {};
@@ -1841,7 +1841,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
     return { rows, gpa, letter: letterGrade(gpa) };
   }, [stdSubjs, stdGrades]);
 
-  // -- Exam stats ------------------------------------------------------------
+  // ── Exam stats ────────────────────────────────────────────────────────────
   const examStats = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
     const list = (exams || []).filter(ex => ex.classId === student.classId).map(ex => {
@@ -1874,7 +1874,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
 
           {/* Hero */}
           <div style={{ background: "#1e1e3a", padding: "28px 28px 0", position: "relative" }}>
-            {onClose && (<button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,.12)", border: "none", borderRadius: 8, width: 32, height: 32, color: "rgba(255,255,255,.8)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>�</button>)}
+            {onClose && (<button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,.12)", border: "none", borderRadius: 8, width: 32, height: 32, color: "rgba(255,255,255,.8)", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>)}
 
             <div style={{ display: "flex", alignItems: "flex-end", gap: 20, flexWrap: "wrap" }}>
               <div style={{ position: "relative" }}>
@@ -1886,12 +1886,12 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                 <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", letterSpacing: "-.02em" }}>{student.name}</div>
                 <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
                   <span style={{ fontSize: 12, color: "rgba(255,255,255,.45)", fontFamily: "monospace" }}>{student.sid}</span>
-                  <span style={{ color: "rgba(255,255,255,.2)" }}>�</span>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>{cls?.name || "�"}</span>
-                  <span style={{ color: "rgba(255,255,255,.2)" }}>�</span>
+                  <span style={{ color: "rgba(255,255,255,.2)" }}>·</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>{cls?.name || "—"}</span>
+                  <span style={{ color: "rgba(255,255,255,.2)" }}>·</span>
                   <span style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>{student.gender}</span>
-                  <span style={{ color: "rgba(255,255,255,.2)" }}>�</span>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>?? {student.phone}</span>
+                  <span style={{ color: "rgba(255,255,255,.2)" }}>·</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>📞 {student.phone}</span>
                   <Pill label={student.status} bg={student.status === "Active" ? "#d1fae5" : "#fee2e2"} color={student.status === "Active" ? "#065f46" : "#991b1b"} />
                 </div>
               </div>
@@ -1899,7 +1899,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
               <div style={{ display: "flex", gap: 2, alignSelf: "flex-end" }}>
                 {[
                   { label: "Attendance", value: attStats.rate + "%", color: attColor },
-                  { label: "GPA",        value: gradeStats.gpa ?? "�", color: gpaColor },
+                  { label: "GPA",        value: gradeStats.gpa ?? "—", color: gpaColor },
                   { label: "Exams",      value: examStats.list.length, color: "#7c3aed" },
                   { label: "Messages",   value: stdMsgs.length, color: "#2563eb" },
                 ].map(k => (
@@ -1928,13 +1928,13 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
           {/* Content */}
           <div style={{ padding: "22px 22px 28px" }}>
 
-            {/* -- OVERVIEW -- */}
+            {/* ── OVERVIEW ── */}
             {tab === "Overview" && (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <ProfileCard title="Student Information">
                   <div>
-                    {[["Full Name", student.name], ["Student ID", student.sid], ["Class", cls?.name || "�"],
-                      ["Teacher", cls?.teacher || "�"], ["Room", cls?.room ? `Room ${cls.room}` : "�"],
+                    {[["Full Name", student.name], ["Student ID", student.sid], ["Class", cls?.name || "—"],
+                      ["Teacher", cls?.teacher || "—"], ["Room", cls?.room ? `Room ${cls.room}` : "—"],
                       ["Gender", student.gender], ["Phone", student.phone], ["Status", student.status]].map(([lbl, val]) => (
                       <div key={lbl} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 18px", borderBottom: "1px solid #f8fafc" }}>
                         <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>{lbl}</span>
@@ -1979,8 +1979,8 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                           <div style={{ fontSize: 22, fontWeight: 800, color: GRADE_COLOR[gradeStats.letter]?.color || "#94a3b8", lineHeight: 1 }}>{gradeStats.letter}</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: 26, fontWeight: 800, color: gpaColor, lineHeight: 1 }}>{gradeStats.gpa ?? "�"}</div>
-                          <div style={{ fontSize: 11, color: "#94a3b8" }}>avg � {gradeStats.rows.length} subjects</div>
+                          <div style={{ fontSize: 26, fontWeight: 800, color: gpaColor, lineHeight: 1 }}>{gradeStats.gpa ?? "—"}</div>
+                          <div style={{ fontSize: 11, color: "#94a3b8" }}>avg · {gradeStats.rows.length} subjects</div>
                         </div>
                       </div>
                       {gradeStats.rows.map(({ sub, total, letter }) => {
@@ -1989,7 +1989,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                           <div key={sub.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                             <span style={{ fontSize: 11, color: "#64748b", flex: 1 }}>{sub.icon} {sub.name}</span>
                             <MiniBar value={total ?? 0} max={100} color={gc?.color || "#94a3b8"} />
-                            <span style={{ fontSize: 11, fontWeight: 600, minWidth: 26, textAlign: "right", color: gc?.color || "#94a3b8" }}>{total ?? "�"}</span>
+                            <span style={{ fontSize: 11, fontWeight: 600, minWidth: 26, textAlign: "right", color: gc?.color || "#94a3b8" }}>{total ?? "—"}</span>
                             <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
                               background: gc?.bg || "#f1f5f9", color: gc?.color || "#94a3b8", minWidth: 20, textAlign: "center" }}>{letter}</span>
                           </div>
@@ -1999,7 +1999,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                   </ProfileCard>
                 </div>
 
-                <ProfileCard title="Recent Attendance" action={<button onClick={() => setTab("Attendance")} style={{ fontSize: 12, color: "#0d9488", background: "none", border: "none", cursor: "pointer" }}>See all ?</button>}>
+                <ProfileCard title="Recent Attendance" action={<button onClick={() => setTab("Attendance")} style={{ fontSize: 12, color: "#0d9488", background: "none", border: "none", cursor: "pointer" }}>See all →</button>}>
                   <div>
                     {attStats.history.slice(-7).reverse().map(({ date, status }) => {
                       const cfg = STATUS_CONFIG[status];
@@ -2014,7 +2014,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                   </div>
                 </ProfileCard>
 
-                <ProfileCard title="Upcoming Exams" action={<button onClick={() => setTab("Exams")} style={{ fontSize: 12, color: "#0d9488", background: "none", border: "none", cursor: "pointer" }}>See all ?</button>}>
+                <ProfileCard title="Upcoming Exams" action={<button onClick={() => setTab("Exams")} style={{ fontSize: 12, color: "#0d9488", background: "none", border: "none", cursor: "pointer" }}>See all →</button>}>
                   <div>
                     {examStats.list.filter(e => e.status === "upcoming").slice(0, 4).map(ex => {
                       const tc = EXAM_TYPES[ex.type];
@@ -2023,7 +2023,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                           <span style={{ fontSize: 18 }}>{tc.icon}</span>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 13, fontWeight: 500, color: "#1e1e3a" }}>{ex.title}</div>
-                            <div style={{ fontSize: 11, color: "#94a3b8" }}>{new Date(ex.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })} � {ex.duration} min</div>
+                            <div style={{ fontSize: 11, color: "#94a3b8" }}>{new Date(ex.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {ex.duration} min</div>
                           </div>
                           <Pill label={tc.label} bg={tc.bg} color={tc.color} />
                         </div>
@@ -2035,7 +2035,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
               </div>
             )}
 
-            {/* -- ATTENDANCE -- */}
+            {/* ── ATTENDANCE ── */}
             {tab === "Attendance" && (
               <div>
                 <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
@@ -2052,7 +2052,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                     </div>
                   ))}
                 </div>
-                <ProfileCard title={`Full History � ${attStats.total} days`}>
+                <ProfileCard title={`Full History — ${attStats.total} days`}>
                   {attStats.history.length === 0
                     ? <div style={{ padding: 40, textAlign: "center", color: "#94a3b8" }}>No records yet</div>
                     : <div style={{ overflowX: "auto" }}>
@@ -2079,7 +2079,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
               </div>
             )}
 
-            {/* -- GRADES -- */}
+            {/* ── GRADES ── */}
             {tab === "Grades" && (
               <div>
                 <div style={{ background: "#fff", border: "1px solid #e8ecf2", borderRadius: 14, padding: "22px 24px", marginBottom: 18, display: "flex", alignItems: "center", gap: 20, boxShadow: "0 1px 4px rgba(0,0,0,.05)", flexWrap: "wrap" }}>
@@ -2087,11 +2087,11 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                     <div style={{ fontSize: 32, fontWeight: 800, color: GRADE_COLOR[gradeStats.letter]?.color || "#94a3b8", lineHeight: 1 }}>{gradeStats.letter}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 34, fontWeight: 800, color: gpaColor, lineHeight: 1 }}>{gradeStats.gpa ?? "�"}</div>
-                    <div style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>Overall Average � {gradeStats.rows.length} subjects</div>
+                    <div style={{ fontSize: 34, fontWeight: 800, color: gpaColor, lineHeight: 1 }}>{gradeStats.gpa ?? "—"}</div>
+                    <div style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>Overall Average · {gradeStats.rows.length} subjects</div>
                   </div>
                   <div style={{ flex: 1, display: "flex", gap: 18, justifyContent: "flex-end", flexWrap: "wrap" }}>
-                    {Object.entries({ A: "=90", B: "80�89", C: "70�79", D: "60�69", F: "<60" }).map(([g, rng]) => {
+                    {Object.entries({ A: "≥90", B: "80–89", C: "70–79", D: "60–69", F: "<60" }).map(([g, rng]) => {
                       const gc = GRADE_COLOR[g];
                       const cnt = gradeStats.rows.filter(r => r.letter === g).length;
                       return (
@@ -2130,11 +2130,11 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                                         <MiniBar value={v} max={100} color="#0d9488" />
                                         <span style={{ fontSize: 12, fontWeight: 600, color: "#1e1e3a", minWidth: 26 }}>{v}</span>
                                       </div>
-                                    : <span style={{ color: "#94a3b8", fontSize: 12 }}>�</span>}
+                                    : <span style={{ color: "#94a3b8", fontSize: 12 }}>—</span>}
                                 </td>
                               ))}
                               <td style={{ padding: "12px 14px", borderBottom: "1px solid #f8fafc" }}>
-                                <span style={{ fontSize: 15, fontWeight: 700, color: gc?.color || "#94a3b8" }}>{total ?? "�"}</span>
+                                <span style={{ fontSize: 15, fontWeight: 700, color: gc?.color || "#94a3b8" }}>{total ?? "—"}</span>
                               </td>
                               <td style={{ padding: "12px 14px", borderBottom: "1px solid #f8fafc" }}>
                                 <span style={{ display: "inline-block", fontWeight: 700, fontSize: 13, padding: "3px 10px", borderRadius: 6, background: gc?.bg || "#f1f5f9", color: gc?.color || "#94a3b8" }}>{letter}</span>
@@ -2149,7 +2149,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
               </div>
             )}
 
-            {/* -- EXAMS -- */}
+            {/* ── EXAMS ── */}
             {tab === "Exams" && (
               <div>
                 <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
@@ -2157,7 +2157,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                     { label: "Total",     value: examStats.list.length,                                   color: "#1d4ed8", bg: "#dbeafe" },
                     { label: "Completed", value: examStats.list.filter(e => e.status === "completed").length, color: "#059669", bg: "#d1fae5" },
                     { label: "Upcoming",  value: examStats.list.filter(e => e.status === "upcoming").length,  color: "#7c3aed", bg: "#ede9fe" },
-                    { label: "Avg Score", value: examStats.avgPct !== null ? examStats.avgPct + "%" : "�",    color: "#d97706", bg: "#fef3c7" },
+                    { label: "Avg Score", value: examStats.avgPct !== null ? examStats.avgPct + "%" : "—",    color: "#d97706", bg: "#fef3c7" },
                   ].map(s => (
                     <div key={s.label} style={{ flex: 1, background: s.bg, borderRadius: 12, padding: "14px 12px", textAlign: "center" }}>
                       <div style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -2176,11 +2176,11 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                           <div style={{ width: 40, height: 40, borderRadius: 10, background: tc.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{tc.icon}</div>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 13, fontWeight: 500, color: "#1e1e3a" }}>{ex.title}</div>
-                            <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{new Date(ex.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} � {ex.duration} min � Room {ex.room}</div>
+                            <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{new Date(ex.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {ex.duration} min · Room {ex.room}</div>
                           </div>
                           {ex.status === "completed"
                             ? <div style={{ textAlign: "right" }}>
-                                <div style={{ fontSize: 17, fontWeight: 700, color: scColor }}>{ex.score !== null ? `${ex.score}/${ex.maxScore}` : "�"}</div>
+                                <div style={{ fontSize: 17, fontWeight: 700, color: scColor }}>{ex.score !== null ? `${ex.score}/${ex.maxScore}` : "—"}</div>
                                 <div style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: scBg, color: scColor, display: "inline-block", marginTop: 2 }}>{ex.pct !== null ? ex.pct + "%" : "Not recorded"}</div>
                               </div>
                             : <Pill label={ex.status.charAt(0).toUpperCase() + ex.status.slice(1)} bg={ex.status === "upcoming" ? "#ede9fe" : "#fef3c7"} color={ex.status === "upcoming" ? "#6d28d9" : "#b45309"} />}
@@ -2193,7 +2193,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
               </div>
             )}
 
-            {/* -- MESSAGES -- */}
+            {/* ── MESSAGES ── */}
 
             {tab === "Schedule" && (
               <div>
@@ -2256,10 +2256,10 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                         <div style={{ padding: "14px 18px 12px" }}>
                           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
-                              <div style={{ width: 30, height: 30, borderRadius: "50%", background: msg.fromSchool ? "#1e1e3a" : "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>{msg.fromSchool ? "??" : "??"}</div>
+                              <div style={{ width: 30, height: 30, borderRadius: "50%", background: msg.fromSchool ? "#1e1e3a" : "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>{msg.fromSchool ? "🏫" : "👤"}</div>
                               <div>
                                 <div style={{ fontSize: 13, fontWeight: 600, color: "#1e1e3a" }}>{msg.subject}</div>
-                                <div style={{ fontSize: 11, color: "#94a3b8" }}>{msg.fromSchool ? "From School" : "From Parent"} � {new Date(msg.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</div>
+                                <div style={{ fontSize: 11, color: "#94a3b8" }}>{msg.fromSchool ? "From School" : "From Parent"} · {new Date(msg.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</div>
                               </div>
                             </div>
                             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -2273,9 +2273,9 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                           <div style={{ borderTop: "1px solid #f1f5f9", background: "#f8fafc" }}>
                             {msg.replies.map(r => (
                               <div key={r.id} style={{ padding: "10px 18px 10px 52px", borderBottom: "1px solid #f1f5f9", display: "flex", gap: 10 }}>
-                                <div style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, background: r.fromSchool ? "#1e1e3a" : "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, marginTop: 1 }}>{r.fromSchool ? "??" : "??"}</div>
+                                <div style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, background: r.fromSchool ? "#1e1e3a" : "#dbeafe", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, marginTop: 1 }}>{r.fromSchool ? "🏫" : "👤"}</div>
                                 <div>
-                                  <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>{r.fromSchool ? "School" : "Parent"} � {new Date(r.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</div>
+                                  <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>{r.fromSchool ? "School" : "Parent"} · {new Date(r.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</div>
                                   <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.55 }}>{r.body}</div>
                                 </div>
                               </div>
@@ -2340,7 +2340,7 @@ function StudentProfile({ student, classes, attendance, grades, subjects, exams,
                             <div key={r.id} style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:"14px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                               <div>
                                 <div style={{ fontSize:18, fontFamily:"serif", color:"#1e293b", fontWeight:700 }}>{r.surahArabic}</div>
-                                <div style={{ fontSize:13, color:"#64748b" }}>{r.surahName} � {r.date}</div>
+                                <div style={{ fontSize:13, color:"#64748b" }}>{r.surahName} · {r.date}</div>
                                 {r.notes && <div style={{ fontSize:12, color:"#94a3b8", marginTop:4, fontStyle:"italic" }}>"{r.notes}"</div>}
                               </div>
                               <div style={{ background:level.bg, color:level.color, borderRadius:8, padding:"6px 12px", fontSize:12, fontWeight:700, flexShrink:0 }}>
@@ -2467,7 +2467,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
   };
 
   const doDelete = (id) => { setStudents(prev => prev.filter(s => s.id !== id)); setDeleteId(null); showToast("Student deleted"); };
-  const cls = id => classes.find(c => String(c.id) === String(id))?.name || "�";
+  const cls = id => classes.find(c => String(c.id) === String(id))?.name || "—";
 
   const allDates = Object.keys(attendance || {}).sort();
   const atRiskIds = useMemo(() => {
@@ -2485,12 +2485,12 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
       {toast && <Toast msg={toast} onDone={() => setToast("")} />}
       <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius, padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", boxShadow: T.cardShadow }}>
         <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-          <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: T.textMuted }}>??</span>
-          <input placeholder="Search name, ID or phone�" value={search} onChange={e => setSearch(e.target.value)} style={{ ...inputStyle, paddingRight: 32 }} />
+          <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: T.textMuted }}>🔍</span>
+          <input placeholder="Search name, ID or phone…" value={search} onChange={e => setSearch(e.target.value)} style={{ ...inputStyle, paddingRight: 32 }} />
         </div>
         <select value={filterYear} onChange={e => setFilterYear(e.target.value)} style={{ ...selectStyle, width: 155, fontWeight: 600 }}>
           <option value="all">All Years</option>
-          {getAcademicYears(students).map(y => <option key={y} value={y}>{y}{y === CURRENT_YEAR ? " ?" : ""}</option>)}
+          {getAcademicYears(students).map(y => <option key={y} value={y}>{y}{y === CURRENT_YEAR ? " ✦" : ""}</option>)}
         </select>
         <select value={filterClass} onChange={e => setFilterClass(e.target.value)} style={{ ...selectStyle, width: 170 }}>
           <option value="all">All Classes</option>
@@ -2498,20 +2498,20 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
         </select>
         {selected.size > 0 && (
           <button onClick={deleteSelected} style={{ padding: "9px 16px", borderRadius: 8, border: "none", background: T.danger, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
-            ?? Delete {selected.size} Selected
+            🗑 Delete {selected.size} Selected
           </button>
         )}
         <button onClick={() => exportToCSV(students.map(s => ({ Name: s.name, ID: s.sid, Class: cls(s.classId), Gender: s.gender, Phone: s.phone, Status: s.status })), "students.csv")}
           style={{ padding: "9px 16px", borderRadius: 8, border: `1px solid ${T.border}`, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit", color: T.textSub }}>
-          ? Export CSV
+          ⬇ Export CSV
         </button>
-        <button onClick={openAdd} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", background: T.primary, color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>+ Add Student</button>
+        <button onClick={openAdd} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", background: T.primary, color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>＋ Add Student</button>
       </div>
 
       {atRiskIds.size > 0 && (
         <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10, direction: "rtl" }}>
-          <span style={{ fontSize: 16 }}>??</span>
-          <span style={{ fontSize: 13, color: "#9a3412", fontWeight: 500 }}>{atRiskIds.size} student{atRiskIds.size > 1 ? "s" : ""} with attendance below 75% � highlighted below</span>
+          <span style={{ fontSize: 16 }}>⚠️</span>
+          <span style={{ fontSize: 13, color: "#9a3412", fontWeight: 500 }}>{atRiskIds.size} student{atRiskIds.size > 1 ? "s" : ""} with attendance below 75% — highlighted below</span>
         </div>
       )}
 
@@ -2549,11 +2549,11 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
                         <button onClick={() => setProfile(s)} style={{ fontSize: 14, fontWeight: 500, color: T.primary, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", textDecoration: "underline dotted" }}>
                           {s.name}
                         </button>
-                        {isAtRisk && <span title="Attendance at risk" style={{ fontSize: 12 }}>??</span>}
+                        {isAtRisk && <span title="Attendance at risk" style={{ fontSize: 12 }}>⚠️</span>}
                       </div>
                     </td>
                     <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub, fontFamily: "monospace" }}>{s.sid}</td>
-                    <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.academicYear || "�"}</td>
+                    <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.academicYear || "—"}</td>
                     <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: "#334155" }}>{cls(s.classId)}</td>
                     <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.gender}</td>
                     <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.phone}</td>
@@ -2617,7 +2617,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
             <div style={{ gridColumn: "1/-1", display:"flex", alignItems:"center", gap:10, padding:"10px 0" }}>
               <input type="checkbox" id="showQuranCheck" checked={form.showQuran !== false} onChange={e => setForm({ ...form, showQuran: e.target.checked })} style={{ width:16, height:16, accentColor:"#0d9488", cursor:"pointer" }} />
               <label htmlFor="showQuranCheck" style={{ fontSize:13, color:T.textMain, cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
-                <span>??</span> Enable Quran tab for student and parent
+                <span>🕌</span> Enable Quran tab for student and parent
               </label>
             </div>
           </div>
@@ -2644,7 +2644,7 @@ function Students({ students, setStudents, classes, attendance, grades, subjects
     </div>
   );
 }
-// --- Classes ------------------------------------------------------------------
+// ─── Classes ──────────────────────────────────────────────────────────────────
 function Classes({ classes, setClasses, students }) {
   // FIX 3: clean modal state
   const [modal, setModal]       = useState(null); // null | { mode: "add"|"edit", data: null|class }
@@ -2677,7 +2677,7 @@ function Classes({ classes, setClasses, students }) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
-        <button onClick={openAdd} style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 20px", background: T.primary, color: "#fff", border: "none", borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>+ Add Class</button>
+        <button onClick={openAdd} style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 20px", background: T.primary, color: "#fff", border: "none", borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>＋ Add Class</button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px,1fr))", gap: 16 }}>
         {classes.map(c => {
@@ -2727,7 +2727,7 @@ function Classes({ classes, setClasses, students }) {
           <Field label="Class Name" error={errors.name}>
             <input style={errors.name ? inputErrorStyle : inputStyle} value={form.name}
               onChange={e => { setForm({ ...form, name: e.target.value }); setErrors(p => ({ ...p, name: "" })); }}
-              placeholder="e.g. Grade 1 � A" />
+              placeholder="e.g. Grade 1 — A" />
           </Field>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
             <Field label="Grade">
@@ -2766,7 +2766,7 @@ function Classes({ classes, setClasses, students }) {
   );
 }
 
-// --- Grades Module -----------------------------------------------------------
+// ─── Grades Module ───────────────────────────────────────────────────────────
 function Grades({ students, classes, subjects, grades, setGrades, teacherClassIds = null }) {
   const visibleClasses = teacherClassIds ? classes.filter(c => teacherClassIds.includes(c.id)) : classes;
   const visibleStudents = teacherClassIds ? students.filter(s => teacherClassIds.includes(s.classId)) : students;
@@ -2823,7 +2823,7 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
     setSaved(true);
   };
 
-  // -- Report helpers -------------------------------------------------------
+  // ── Report helpers ───────────────────────────────────────────────────────
   const reportData = useMemo(() => {
     return classStudents.map(s => {
       const subScores = classSubjects.map(sub => {
@@ -2899,7 +2899,7 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
             fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
             display: "flex", alignItems: "center", gap: 7, transition: "all .2s",
           }}>
-            {saved ? "? Saved" : "Save Grades"}
+            {saved ? "✓ Saved" : "Save Grades"}
           </button>
         )}
       </div>
@@ -2914,7 +2914,7 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
             <span key={lbl} style={{
               fontSize: 11, fontWeight: 500, padding: "3px 10px",
               borderRadius: 20, background: bg, color: col,
-            }}>{lbl} � {pct}</span>
+            }}>{lbl} — {pct}</span>
           ))}
           <span style={{ fontSize: 11, color: T.textMuted, marginRight: 4, alignSelf: "center" }}>
             All scores out of 100
@@ -2922,7 +2922,7 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
         </div>
       )}
 
-      {/* -- Enter Grades View -- */}
+      {/* ── Enter Grades View ── */}
       {view === "enter" && (
         <div style={{
           background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius,
@@ -2932,7 +2932,7 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
             <div>
               <div style={{ fontSize: 15, fontWeight: 600, color: T.textMain }}>
                 {classSubjects.find(s => s.id === subjectId)?.icon}{" "}
-                {classSubjects.find(s => s.id === subjectId)?.name || "�"}
+                {classSubjects.find(s => s.id === subjectId)?.name || "—"}
               </div>
               <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>
                 {classes.find(c => c.id === classId)?.name}
@@ -2980,12 +2980,12 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
                               value={row[field] ?? ""}
                               onChange={e => setField(s.id, field, e.target.value)}
                               style={numInput}
-                              placeholder="�" />
+                              placeholder="—" />
                           </td>
                         ))}
                         <td style={{ padding: "11px 16px", borderBottom: "1px solid #f8fafc", textAlign: "center" }}>
                           <span style={{ fontSize: 14, fontWeight: 700, color: total !== null ? T.textMain : T.textMuted }}>
-                            {total !== null ? total : "�"}
+                            {total !== null ? total : "—"}
                           </span>
                         </td>
                         <td style={{ padding: "11px 16px", borderBottom: "1px solid #f8fafc", textAlign: "center" }}>
@@ -3001,7 +3001,7 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
         </div>
       )}
 
-      {/* -- Report Card View -- */}
+      {/* ── Report Card View ── */}
       {view === "report" && (
         <div style={{
           background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius,
@@ -3011,7 +3011,7 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
             <div>
               <div style={{ fontSize: 15, fontWeight: 600, color: T.textMain }}>Report Card</div>
               <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>
-                {classes.find(c => c.id === classId)?.name} � sorted by GPA
+                {classes.find(c => c.id === classId)?.name} · sorted by GPA
               </div>
             </div>
             {/* Grade distribution summary */}
@@ -3050,7 +3050,7 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
                     onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                     <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", textAlign: "center" }}>
-                      {i === 0 ? "??" : i === 1 ? "??" : i === 2 ? "??" : (
+                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (
                         <span style={{ fontSize: 13, color: T.textMuted, fontWeight: 500 }}>#{i + 1}</span>
                       )}
                     </td>
@@ -3069,7 +3069,7 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
                       </td>
                     ))}
                     <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", textAlign: "center" }}>
-                      <span style={{ fontSize: 16, fontWeight: 700, color: T.textMain }}>{s.gpa ?? "�"}</span>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: T.textMain }}>{s.gpa ?? "—"}</span>
                     </td>
                     <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", textAlign: "center" }}>
                       <GradeChip score={s.gpa} size="lg" />
@@ -3098,13 +3098,13 @@ function Grades({ students, classes, subjects, grades, setGrades, teacherClassId
   );
 }
 
-// --- Timetable Module --------------------------------------------------------
+// ─── Timetable Module ────────────────────────────────────────────────────────
 function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds = null }) {
   const visibleClasses = teacherClassIds ? classes.filter(c => teacherClassIds.includes(c.id)) : classes;
   const [classId,  setClassId]  = useState((teacherClassIds ? classes.filter(c => teacherClassIds.includes(c.id)) : classes)[0]?.id || 1);
   const [modal,    setModal]    = useState(null); // { day, periodId } | null
   const [form,     setForm]     = useState({ subjectId: "", room: "" });
-  const todayDayIdx = (new Date().getDay() + 6) % 7; // 0=Mon � 4=Fri
+  const todayDayIdx = (new Date().getDay() + 6) % 7; // 0=Mon … 4=Fri
 
   const classSubjects = useMemo(
     () => subjects.filter(s => s.classId === classId),
@@ -3165,10 +3165,10 @@ function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds
           {visibleClasses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <div style={{ fontSize: 13, color: T.textSub }}>
-          ?? {currentClass?.teacher} &nbsp;�&nbsp; ?? Room {currentClass?.room}
+          👤 {currentClass?.teacher} &nbsp;·&nbsp; 🚪 Room {currentClass?.room}
         </div>
         <div style={{ marginRight: "auto", fontSize: 12, color: T.textMuted }}>
-          Click any cell to edit � Today highlighted in teal
+          Click any cell to edit · Today highlighted in teal
         </div>
       </div>
 
@@ -3222,7 +3222,7 @@ function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds
                         fontSize: 11, fontWeight: 600, color: T.textMuted,
                         textAlign: "center", letterSpacing: ".08em",
                       }}>
-                        ? {period.label.toUpperCase()} &nbsp; {period.time}
+                        ☕ {period.label.toUpperCase()} &nbsp; {period.time}
                       </td>
                     </tr>
                   );
@@ -3264,7 +3264,7 @@ function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds
                               </div>
                               {slot.room && (
                                 <div style={{ fontSize: 11, color: clr.text, opacity: .7, marginTop: 2 }}>
-                                  ?? Room {slot.room}
+                                  🚪 Room {slot.room}
                                 </div>
                               )}
                               {/* Clear button */}
@@ -3277,14 +3277,14 @@ function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds
                                   color: clr.text, fontSize: 10, cursor: "pointer",
                                   display: "flex", alignItems: "center", justifyContent: "center",
                                   lineHeight: 1, padding: 0, fontWeight: 700,
-                                }}>�</button>
+                                }}>×</button>
                             </div>
                           ) : (
                             <div style={{
                               height: 52, border: `1.5px dashed ${T.border}`, borderRadius: 8,
                               display: "flex", alignItems: "center", justifyContent: "center",
                               color: T.textMuted, fontSize: 18, opacity: .4,
-                            }}>+</div>
+                            }}>＋</div>
                           )}
                         </td>
                       );
@@ -3317,13 +3317,13 @@ function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds
       {/* Edit modal */}
       {modal && (
         <Modal
-          title={`Edit Slot � ${DAYS[modal.dayIdx]}, ${PERIODS.find(p => p.id === modal.periodId)?.label}`}
+          title={`Edit Slot — ${DAYS[modal.dayIdx]}, ${PERIODS.find(p => p.id === modal.periodId)?.label}`}
           onClose={() => setModal(null)}
         >
           <Field label="Subject">
             <select style={selectStyle} value={form.subjectId}
               onChange={e => setForm(f => ({ ...f, subjectId: e.target.value }))}>
-              <option value="">� Free / Empty �</option>
+              <option value="">— Free / Empty —</option>
               {classSubjects.map(s => (
                 <option key={s.id} value={s.id}>{s.icon} {s.name}</option>
               ))}
@@ -3351,9 +3351,9 @@ function Timetable({ classes, subjects, timetable, setTimetable, teacherClassIds
   );
 }
 
-// --- Messaging Module ---------------------------------------------------------
+// ─── Messaging Module ─────────────────────────────────────────────────────────
 
-// --- Enhanced Messaging System -----------------------------------------------
+// ─── Enhanced Messaging System ───────────────────────────────────────────────
 function EnhancedMessaging({ students, classes, messages, setMessages, teachers, userRole, auth }) {
   const [view, setView] = useState("inbox"); // inbox | compose | broadcast | thread
   const [selected, setSelected] = useState(null);
@@ -3429,19 +3429,19 @@ function EnhancedMessaging({ students, classes, messages, setMessages, teachers,
 
   const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
 
-  // -- Compose View ----------------------------------------------------------
+  // ── Compose View ──────────────────────────────────────────────────────────
   if (view === "compose") return (
     <div style={{ maxWidth:640, margin:"0 auto" }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-        <button onClick={() => setView("inbox")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
-        <div style={{ fontSize:16, fontWeight:700, color:"#1e293b" }}>?? New Message</div>
+        <button onClick={() => setView("inbox")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:700, color:"#1e293b" }}>✉️ New Message</div>
       </div>
       <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:24 }}>
         <div style={{ marginBottom:14 }}>
           <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>To (Student) *</label>
           <select style={inp} value={compose.studentId} onChange={e => setCompose({...compose, studentId:e.target.value})}>
             <option value="">Select student...</option>
-            {students.map(s => <option key={s.id} value={s.id}>{s.name} � {(classes.find(c=>c.id===s.classId)||{}).name||""}</option>)}
+            {students.map(s => <option key={s.id} value={s.id}>{s.name} — {(classes.find(c=>c.id===s.classId)||{}).name||""}</option>)}
           </select>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
@@ -3461,7 +3461,7 @@ function EnhancedMessaging({ students, classes, messages, setMessages, teachers,
           <textarea style={{...inp, resize:"vertical"}} rows={5} value={compose.body} onChange={e => setCompose({...compose, body:e.target.value})} placeholder="Write your message..." />
         </div>
         <div style={{ marginBottom:16 }}>
-          <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>?? Attach Image (optional)</label>
+          <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>📎 Attach Image (optional)</label>
           <input type="file" accept="image/*" onChange={e => handleImageUpload(e, img => setCompose(prev => ({...prev, image:img})))} style={{ fontSize:12 }} />
           {compose.image && <img src={compose.image} style={{ maxWidth:"100%", maxHeight:120, borderRadius:8, marginTop:8 }} />}
         </div>
@@ -3473,12 +3473,12 @@ function EnhancedMessaging({ students, classes, messages, setMessages, teachers,
     </div>
   );
 
-  // -- Broadcast View --------------------------------------------------------
+  // ── Broadcast View ────────────────────────────────────────────────────────
   if (view === "broadcast") return (
     <div style={{ maxWidth:640, margin:"0 auto" }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-        <button onClick={() => setView("inbox")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
-        <div style={{ fontSize:16, fontWeight:700, color:"#1e293b" }}>?? Broadcast to Class</div>
+        <button onClick={() => setView("inbox")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:700, color:"#1e293b" }}>📢 Broadcast to Class</div>
       </div>
       <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:24 }}>
         <div style={{ marginBottom:14 }}>
@@ -3505,31 +3505,31 @@ function EnhancedMessaging({ students, classes, messages, setMessages, teachers,
           <textarea style={{...inp, resize:"vertical"}} rows={5} value={bcForm.body} onChange={e => setBcForm({...bcForm, body:e.target.value})} placeholder="Write your announcement..." />
         </div>
         <div style={{ marginBottom:16 }}>
-          <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>?? Attach Image (optional)</label>
+          <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>📎 Attach Image (optional)</label>
           <input type="file" accept="image/*" onChange={e => handleImageUpload(e, img => setBcForm(prev => ({...prev, image:img})))} style={{ fontSize:12 }} />
           {bcForm.image && <img src={bcForm.image} style={{ maxWidth:"100%", maxHeight:120, borderRadius:8, marginTop:8 }} />}
         </div>
         <div style={{ background:"#fef9c3", border:"1px solid #fcd34d", borderRadius:8, padding:"10px 14px", marginBottom:16, fontSize:12, color:"#854d0e" }}>
-          ?? This will send to {bcForm.classId === "all" ? students.length : students.filter(s=>s.classId===parseInt(bcForm.classId)).length} students
+          📢 This will send to {bcForm.classId === "all" ? students.length : students.filter(s=>s.classId===parseInt(bcForm.classId)).length} students
         </div>
         <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
           <button onClick={() => setView("inbox")} style={{ padding:"9px 18px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
-          <button onClick={sendBroadcast} style={{ padding:"9px 20px", borderRadius:8, border:"none", background:"#d97706", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>?? Send Broadcast</button>
+          <button onClick={sendBroadcast} style={{ padding:"9px 20px", borderRadius:8, border:"none", background:"#d97706", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>📢 Send Broadcast</button>
         </div>
       </div>
     </div>
   );
 
-  // -- Thread View -----------------------------------------------------------
+  // ── Thread View ───────────────────────────────────────────────────────────
   if (view === "thread" && selectedMsg) {
     const student = students.find(s => s.id === selectedMsg.studentId);
     return (
       <div style={{ maxWidth:700, margin:"0 auto" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-          <button onClick={() => setView("inbox")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
+          <button onClick={() => setView("inbox")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:15, fontWeight:700, color:"#1e293b" }}>{selectedMsg.subject}</div>
-            <div style={{ fontSize:12, color:"#64748b" }}>{student?.name} � {fmtTime(selectedMsg.timestamp)}</div>
+            <div style={{ fontSize:12, color:"#64748b" }}>{student?.name} · {fmtTime(selectedMsg.timestamp)}</div>
           </div>
           <span style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:20, ...getTagStyle(selectedMsg.tag) }}>{selectedMsg.tag}</span>
         </div>
@@ -3572,8 +3572,8 @@ function EnhancedMessaging({ students, classes, messages, setMessages, teachers,
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <label style={{ fontSize:12, color:"#64748b", cursor:"pointer", display:"flex", alignItems:"center", gap:4 }}>
-                ?? <input type="file" accept="image/*" onChange={e => handleImageUpload(e, setReplyImage)} style={{ display:"none" }} />
-                {replyImage ? "Image attached ?" : "Attach image"}
+                📎 <input type="file" accept="image/*" onChange={e => handleImageUpload(e, setReplyImage)} style={{ display:"none" }} />
+                {replyImage ? "Image attached ✅" : "Attach image"}
               </label>
             </div>
             <button onClick={sendReply} style={{ padding:"8px 20px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Send Reply</button>
@@ -3583,24 +3583,24 @@ function EnhancedMessaging({ students, classes, messages, setMessages, teachers,
     );
   }
 
-  // -- Inbox View ------------------------------------------------------------
+  // ── Inbox View ────────────────────────────────────────────────────────────
   return (
     <div>
       {/* Header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
-          <div style={{ fontSize:18, fontWeight:700, color:"#1e293b" }}>?? Messages {unread > 0 && <span style={{ background:"#ef4444", color:"#fff", borderRadius:20, fontSize:11, padding:"2px 8px", marginLeft:6 }}>{unread}</span>}</div>
+          <div style={{ fontSize:18, fontWeight:700, color:"#1e293b" }}>💬 Messages {unread > 0 && <span style={{ background:"#ef4444", color:"#fff", borderRadius:20, fontSize:11, padding:"2px 8px", marginLeft:6 }}>{unread}</span>}</div>
           <div style={{ fontSize:13, color:"#64748b" }}>Communicate with parents & students</div>
         </div>
         <div style={{ display:"flex", gap:8 }}>
-          {(isAdmin || isTeacher) && <button onClick={() => setView("broadcast")} style={{ padding:"9px 16px", borderRadius:9, border:"none", background:"#d97706", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>?? Broadcast</button>}
-          <button onClick={() => setView("compose")} style={{ padding:"9px 16px", borderRadius:9, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>?? New Message</button>
+          {(isAdmin || isTeacher) && <button onClick={() => setView("broadcast")} style={{ padding:"9px 16px", borderRadius:9, border:"none", background:"#d97706", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>📢 Broadcast</button>}
+          <button onClick={() => setView("compose")} style={{ padding:"9px 16px", borderRadius:9, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>✉️ New Message</button>
         </div>
       </div>
 
       {/* Filters */}
       <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="?? Search messages..." style={{ padding:"8px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", flex:1, minWidth:200 }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search messages..." style={{ padding:"8px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", flex:1, minWidth:200 }} />
         <div style={{ display:"flex", gap:6 }}>
           {["all","general","announcement","urgent","homework","exam"].map(t => (
             <button key={t} onClick={() => setFilterTag(t)} style={{ padding:"7px 12px", borderRadius:7, border:"1px solid #e2e8f0", background: filterTag===t ? "#0d9488" : "#fff", color: filterTag===t ? "#fff" : "#64748b", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
@@ -3613,7 +3613,7 @@ function EnhancedMessaging({ students, classes, messages, setMessages, teachers,
       {/* Message List */}
       {filtered.length === 0 ? (
         <div style={{ textAlign:"center", padding:60, color:"#94a3b8", background:"#fff", borderRadius:12, border:"1px solid #e2e8f0" }}>
-          <div style={{ fontSize:40, marginBottom:12 }}>??</div>
+          <div style={{ fontSize:40, marginBottom:12 }}>💬</div>
           <div style={{ fontSize:15, fontWeight:600 }}>No messages</div>
         </div>
       ) : (
@@ -3635,10 +3635,10 @@ function EnhancedMessaging({ students, classes, messages, setMessages, teachers,
                     <div style={{ fontSize:11, color:"#94a3b8", flexShrink:0, marginLeft:8 }}>{fmtTime(msg.timestamp)}</div>
                   </div>
                   <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-                    <span style={{ fontSize:11, color:"#64748b" }}>{student?.name} � {cls?.name||""}</span>
+                    <span style={{ fontSize:11, color:"#64748b" }}>{student?.name} · {cls?.name||""}</span>
                     {msg.broadcast && <span style={{ fontSize:10, background:"#fef3c7", color:"#854d0e", padding:"1px 6px", borderRadius:10, fontWeight:600 }}>Broadcast</span>}
-                    {msg.image && <span style={{ fontSize:10, color:"#94a3b8" }}>??</span>}
-                    {(msg.replies||[]).length > 0 && <span style={{ fontSize:10, color:"#94a3b8" }}>? {msg.replies.length}</span>}
+                    {msg.image && <span style={{ fontSize:10, color:"#94a3b8" }}>📎</span>}
+                    {(msg.replies||[]).length > 0 && <span style={{ fontSize:10, color:"#94a3b8" }}>↩ {msg.replies.length}</span>}
                   </div>
                 </div>
                 <span style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:20, flexShrink:0, background:tagStyle.background, color:tagStyle.color }}>{msg.tag}</span>
@@ -3668,14 +3668,14 @@ function MessageBubble({ fromSchool, body, time, student }) {
           padding: "11px 15px", fontSize: 13, lineHeight: 1.55,
         }}>{body}</div>
         <div style={{ fontSize: 10, color: T.textMuted, marginTop: 4, textAlign: isRight ? "right" : "left" }}>
-          {isRight ? "School Admin" : `${student?.name}'s Parent`} � {time}
+          {isRight ? "School Admin" : `${student?.name}'s Parent`} · {time}
         </div>
       </div>
     </div>
   );
 }
 
-// --- Exam Scheduler Module ----------------------------------------------------
+// ─── Exam Scheduler Module ────────────────────────────────────────────────────
 function ExamScheduler({ students, classes, subjects, exams, setExams, examResults, setExamResults }) {
   const [view, setView]         = useState("schedule"); // "schedule" | "results"
   const [filterClass, setFilterClass] = useState("all");
@@ -3695,7 +3695,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
     duration: 60, maxScore: 100, room: "", notes: "",
   };
 
-  // -- Filtering --
+  // ── Filtering ──
   const filtered = useMemo(() => exams.filter(e => {
     const matchClass  = filterClass === "all"  || e.classId === parseInt(filterClass);
     const matchType   = filterType  === "all"  || e.type === filterType;
@@ -3705,7 +3705,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
 
   const upcomingCount = useMemo(() => exams.filter(e => getExamStatus(e.date) === "upcoming" || getExamStatus(e.date) === "ongoing").length, [exams]);
 
-  // -- Modal helpers --
+  // ── Modal helpers ──
   const openAdd = () => {
     setForm({ ...EMPTY_EXAM });
     setFormErrors({});
@@ -3720,7 +3720,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
   const autoTitle = (f) => {
     const sub = subjects.find(s => s.id === parseInt(f.subjectId));
     const typ = EXAM_TYPES[f.type];
-    return sub && typ ? `${typ.label} � ${sub.name}` : f.title;
+    return sub && typ ? `${typ.label} — ${sub.name}` : f.title;
   };
 
   const validate = () => {
@@ -3749,7 +3749,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
     setExamResults(prev => { const n = { ...prev }; delete n[id]; return n; });
   };
 
-  // -- Results helpers --
+  // ── Results helpers ──
   const openResults = (exam) => {
     setResultsExamId(exam.id);
     setView("results");
@@ -3774,7 +3774,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
 
   const selectedExam = exams.find(e => e.id === resultsExamId);
 
-  // -- Computed stats for results view --
+  // ── Computed stats for results view ──
   const resultsStats = useMemo(() => {
     if (!selectedExam) return null;
     const scores = Object.values(examResults[selectedExam.id] || {}).filter(v => typeof v === "number");
@@ -3799,7 +3799,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
 
   return (
     <div>
-      {/* -- Toolbar -- */}
+      {/* ── Toolbar ── */}
       <div style={{
         background: "#fff", border: `1px solid ${T.border}`, borderRadius: T.radius,
         padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "center",
@@ -3807,7 +3807,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
       }}>
         {/* View switcher */}
         <div style={{ display: "flex", gap: 4 }}>
-          {[["schedule","?? Schedule"],["results","?? Results"]].map(([id, label]) => (
+          {[["schedule","📋 Schedule"],["results","📊 Results"]].map(([id, label]) => (
             <button key={id} onClick={() => setView(id)} style={{
               padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer",
               fontSize: 13, fontFamily: "inherit", fontWeight: 500,
@@ -3838,7 +3838,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                 display: "flex", alignItems: "center", gap: 7, padding: "9px 18px",
                 background: T.primary, color: "#fff", border: "none", borderRadius: 8,
                 fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
-              }}>+ Schedule Exam</button>
+              }}>＋ Schedule Exam</button>
             </div>
           </>
         )}
@@ -3847,20 +3847,20 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
             <span style={{ fontSize: 13, color: T.textSub }}>Showing results for:</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: T.textMain }}>{selectedExam.title}</span>
-            <span style={{ fontSize: 12, color: T.textMuted }}>� {fmtDate(selectedExam.date)}</span>
+            <span style={{ fontSize: 12, color: T.textMuted }}>· {fmtDate(selectedExam.date)}</span>
             <button onClick={() => { setView("schedule"); setResultsExamId(null); }} style={{
               marginRight: "auto", padding: "7px 14px", borderRadius: 8, border: `1px solid ${T.border}`,
               background: "#fff", fontSize: 12, cursor: "pointer",
-            }}>? Back to Schedule</button>
+            }}>← Back to Schedule</button>
           </div>
         )}
 
         {view === "results" && !selectedExam && (
-          <span style={{ fontSize: 13, color: T.textMuted }}>? Select a completed exam from the Schedule to enter results.</span>
+          <span style={{ fontSize: 13, color: T.textMuted }}>← Select a completed exam from the Schedule to enter results.</span>
         )}
       </div>
 
-      {/* -- Summary pills -- */}
+      {/* ── Summary pills ── */}
       {view === "schedule" && (
         <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
           {[
@@ -3877,7 +3877,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
         </div>
       )}
 
-      {/* -- Schedule View -- */}
+      {/* ── Schedule View ── */}
       {view === "schedule" && (
         <div style={{ background: "#fff", border: `1px solid ${T.border}`, borderRadius: T.radius, overflow: "hidden", boxShadow: T.cardShadow }}>
           <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -3886,7 +3886,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
           </div>
           {filtered.length === 0 ? (
             <div style={{ padding: 56, textAlign: "center", color: T.textMuted }}>
-              <div style={{ fontSize: 36, marginBottom: 10 }}>??</div>
+              <div style={{ fontSize: 36, marginBottom: 10 }}>📋</div>
               <div style={{ fontSize: 14 }}>No exams match the current filters</div>
             </div>
           ) : (
@@ -3916,13 +3916,13 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                         <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textMain, maxWidth: 200 }}>
                           {exam.title}
                         </td>
-                        <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{cls?.name || "�"}</td>
-                        <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{sub ? `${sub.icon} ${sub.name}` : "�"}</td>
+                        <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{cls?.name || "—"}</td>
+                        <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{sub ? `${sub.icon} ${sub.name}` : "—"}</td>
                         <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc" }}>
                           <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 20, background: typ.bg, color: typ.color }}>{typ.icon} {typ.label}</span>
                         </td>
                         <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub, whiteSpace: "nowrap" }}>{exam.duration} min</td>
-                        <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{exam.room || "�"}</td>
+                        <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{exam.room || "—"}</td>
                         <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc" }}><StatusPill dateStr={exam.date} /></td>
                         <td style={{ padding: "13px 16px", borderBottom: "1px solid #f8fafc" }}>
                           <div style={{ display: "flex", gap: 6, flexWrap: "nowrap" }}>
@@ -3932,7 +3932,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                                 background: hasResults ? "#d1fae5" : T.primary,
                                 color: hasResults ? "#065f46" : "#fff",
                                 fontSize: 11, cursor: "pointer", fontWeight: 500,
-                              }}>{hasResults ? "? Results" : "Enter Results"}</button>
+                              }}>{hasResults ? "✓ Results" : "Enter Results"}</button>
                             )}
                             <button onClick={() => openEdit(exam)} style={{ padding: "5px 10px", borderRadius: 6, border: `1px solid ${T.border}`, background: "#fff", fontSize: 11, cursor: "pointer", color: "#334155" }}>Edit</button>
                             <button onClick={() => deleteExam(exam.id)} style={{ padding: "5px 10px", borderRadius: 6, border: "none", background: T.dangerBg, fontSize: 11, cursor: "pointer", color: T.danger }}>Delete</button>
@@ -3948,7 +3948,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
         </div>
       )}
 
-      {/* -- Results View -- */}
+      {/* ── Results View ── */}
       {view === "results" && selectedExam && (
         <>
           {/* Stats row */}
@@ -3978,7 +3978,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: T.textMain }}>{selectedExam.title}</div>
                 <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>
-                  {fmtDate(selectedExam.date)} � {classes.find(c => c.id === selectedExam.classId)?.name} � Max score: <strong>{selectedExam.maxScore}</strong>
+                  {fmtDate(selectedExam.date)} · {classes.find(c => c.id === selectedExam.classId)?.name} · Max score: <strong>{selectedExam.maxScore}</strong>
                 </div>
               </div>
               <button onClick={saveScores} style={{
@@ -3986,7 +3986,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                 background: scoresSaved ? "#d1fae5" : T.primary,
                 color: scoresSaved ? "#059669" : "#fff",
                 fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all .2s",
-              }}>{scoresSaved ? "? Saved" : "Save Scores"}</button>
+              }}>{scoresSaved ? "✓ Saved" : "Save Scores"}</button>
             </div>
             <table style={{ width: "100%", borderCollapse: "collapse", direction: "ltr" }}>
               <thead>
@@ -4002,7 +4002,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                   const num = parseFloat(raw);
                   const valid = !isNaN(num) && raw !== "";
                   const pct  = valid ? Math.round((num / selectedExam.maxScore) * 100) : null;
-                  const gl   = pct !== null ? letterGrade(pct) : "�";
+                  const gl   = pct !== null ? letterGrade(pct) : "—";
                   const gc   = GRADE_COLOR[gl];
                   return (
                     <tr key={s.id}
@@ -4015,11 +4015,11 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                         </div>
                       </td>
                       <td style={{ padding: "12px 18px", borderBottom: i < arr.length-1 ? "1px solid #f8fafc" : "none", fontSize: 12, color: T.textMuted, fontFamily: "monospace" }}>{s.sid}</td>
-                    <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.academicYear || "�"}</td>
+                    <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: T.textSub }}>{s.academicYear || "—"}</td>
                       <td style={{ padding: "12px 18px", borderBottom: i < arr.length-1 ? "1px solid #f8fafc" : "none" }}>
                         <input
                           type="number" min={0} max={selectedExam.maxScore}
-                          value={raw} placeholder="�"
+                          value={raw} placeholder="—"
                           onChange={e => { setScoresDraft(prev => ({ ...prev, [s.id]: e.target.value })); setScoresSaved(false); }}
                           style={{ ...inputStyle, width: 90, textAlign: "center", padding: "7px 10px" }}
                         />
@@ -4033,7 +4033,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
                             </div>
                             <span style={{ fontSize: 12, fontWeight: 600, color: T.textSub, minWidth: 36 }}>{pct}%</span>
                           </div>
-                        ) : <span style={{ color: T.textMuted, fontSize: 12 }}>�</span>}
+                        ) : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
                       </td>
                       <td style={{ padding: "12px 18px", borderBottom: i < arr.length-1 ? "1px solid #f8fafc" : "none" }}>
                         <span style={{ fontSize: 13, fontWeight: 700, padding: "4px 12px", borderRadius: 8, background: gc.bg, color: gc.color }}>{gl}</span>
@@ -4049,16 +4049,16 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
 
       {view === "results" && !selectedExam && (
         <div style={{ background: "#fff", border: `1px solid ${T.border}`, borderRadius: T.radius, padding: 56, textAlign: "center", color: T.textMuted, boxShadow: T.cardShadow }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>??</div>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
           <div style={{ fontSize: 15, fontWeight: 600, color: T.textMain, marginBottom: 8 }}>No Exam Selected</div>
           <div style={{ fontSize: 13 }}>Go to the Schedule tab, find a completed exam, and click "Enter Results".</div>
           <button onClick={() => setView("schedule")} style={{ marginTop: 16, padding: "9px 22px", borderRadius: 8, border: "none", background: T.primary, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Go to Schedule</button>
         </div>
       )}
 
-      {/* -- Add / Edit Modal -- */}
+      {/* ── Add / Edit Modal ── */}
       {modal && (
-        <Modal title={modal.mode === "add" ? "?? Schedule New Exam" : "?? Edit Exam"} onClose={() => setModal(null)}>
+        <Modal title={modal.mode === "add" ? "📋 Schedule New Exam" : "✏️ Edit Exam"} onClose={() => setModal(null)}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
             <Field label="Class" error={formErrors.classId}>
               <select style={formErrors.classId ? { ...selectStyle, border: "1px solid #ef4444" } : selectStyle}
@@ -4071,7 +4071,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
               <select style={formErrors.subjectId ? { ...selectStyle, border: "1px solid #ef4444" } : selectStyle}
                 value={form.subjectId}
                 onChange={e => { setForm(f => ({ ...f, subjectId: e.target.value })); setFormErrors(p => ({ ...p, subjectId: "" })); }}>
-                <option value="">� Select subject �</option>
+                <option value="">— Select subject —</option>
                 {classSubjects.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
               </select>
             </Field>
@@ -4097,7 +4097,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
             </Field>
             <div style={{ gridColumn: "1/-1" }}>
               <Field label="Notes (optional)">
-                <input style={inputStyle} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any additional info�" />
+                <input style={inputStyle} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any additional info…" />
               </Field>
             </div>
           </div>
@@ -4114,7 +4114,7 @@ function ExamScheduler({ students, classes, subjects, exams, setExams, examResul
 }
 
 
-// --- PDF Helpers --------------------------------------------------------------
+// ─── PDF Helpers ──────────────────────────────────────────────────────────────
 function loadJsPDF(cb) {
   if (window.jspdf) { cb(); return; }
   var s1 = document.createElement("script");
@@ -4207,7 +4207,7 @@ function exportStudentReportPDF(student, cls, attendance, grades, subjects, exam
         var m=g.midterm!=null?g.midterm:null, f=g.final!=null?g.final:null;
         var total = (q!==null||h!==null||m!==null||f!==null)
           ? Math.round((q||0)*0.15+(h||0)*0.15+(m||0)*0.30+(f||0)*0.40) : null;
-        var letter = total===null?"�":total>=90?"A":total>=80?"B":total>=70?"C":total>=60?"D":"F";
+        var letter = total===null?"—":total>=90?"A":total>=80?"B":total>=70?"C":total>=60?"D":"F";
         return [sub.name, q!=null?q:"-", h!=null?h:"-", m!=null?m:"-", f!=null?f:"-", total!=null?total:"-", letter];
       });
       doc.autoTable({
@@ -4305,7 +4305,7 @@ function exportExamSchedulePDF(exams, classes, subjects) {
 
 
 
-// --- Quizzes ------------------------------------------------------------------
+// ─── Quizzes ──────────────────────────────────────────────────────────────────
 function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults, setQuizResults, teacherClassIds, userRole }) {
   const [view, setView] = useState("list"); // list | create | results
   const [selected, setSelected] = useState(null);
@@ -4353,7 +4353,7 @@ function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults
     return (
       <div>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-          <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
+          <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
           <div style={{ fontSize:16, fontWeight:700, color:S2.text }}>Results: {quiz?.title}</div>
         </div>
         {results.length === 0 ? (
@@ -4396,7 +4396,7 @@ function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults
   if (view === "create") return (
     <div style={{ maxWidth:720, margin:"0 auto" }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-        <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
+        <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
         <div style={{ fontSize:16, fontWeight:700, color:S2.text }}>Create New Quiz</div>
       </div>
       <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
@@ -4480,7 +4480,7 @@ function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults
               <div>
                 <div style={{ fontSize:13, fontWeight:500 }}>Q{i+1}: {q.text}</div>
                 <div style={{ fontSize:11, color:S2.sub, marginTop:2 }}>
-                  {q.type === "mcq" ? "MCQ � Correct: " + q.answer : q.type === "tf" ? "True/False � Answer: " + q.answer : "Fill � Answer: " + q.answer}
+                  {q.type === "mcq" ? "MCQ · Correct: " + q.answer : q.type === "tf" ? "True/False · Answer: " + q.answer : "Fill · Answer: " + q.answer}
                 </div>
               </div>
               <button onClick={() => setForm(f => ({...f, questions:f.questions.filter((_,j)=>j!==i)}))} style={{ padding:"3px 10px", borderRadius:6, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>Remove</button>
@@ -4490,7 +4490,7 @@ function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults
       )}
 
       <button onClick={saveQuiz} style={{ width:"100%", padding:"13px 0", borderRadius:10, border:"none", background:"#0d9488", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
-        ?? Save Quiz
+        💾 Save Quiz
       </button>
     </div>
   );
@@ -4499,14 +4499,14 @@ function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
-          <div style={{ fontSize:18, fontWeight:700, color:S2.text }}>?? Quizzes</div>
+          <div style={{ fontSize:18, fontWeight:700, color:S2.text }}>📝 Quizzes</div>
           <div style={{ fontSize:13, color:S2.sub }}>Create and manage quizzes for students</div>
         </div>
         <button onClick={() => setView("create")} style={{ padding:"9px 18px", borderRadius:9, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ New Quiz</button>
       </div>
       {(!quizzes || quizzes.length === 0) ? (
         <div style={{ textAlign:"center", padding:60, color:S2.sub, background:"#fff", borderRadius:12, border:"1px solid #e2e8f0" }}>
-          <div style={{ fontSize:40, marginBottom:12 }}>??</div>
+          <div style={{ fontSize:40, marginBottom:12 }}>📝</div>
           <div style={{ fontSize:15, fontWeight:600 }}>No quizzes yet</div>
           <div style={{ fontSize:13, marginTop:4 }}>Click "New Quiz" to create your first quiz</div>
         </div>
@@ -4521,19 +4521,19 @@ function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:14, fontWeight:700, color:S2.text, marginBottom:4 }}>{quiz.title}</div>
                   <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                    <span style={{ fontSize:11, background:"#f0fdf4", color:"#065f46", padding:"2px 8px", borderRadius:20, fontWeight:600 }}>{cls?.name || "�"}</span>
+                    <span style={{ fontSize:11, background:"#f0fdf4", color:"#065f46", padding:"2px 8px", borderRadius:20, fontWeight:600 }}>{cls?.name || "—"}</span>
                     {sub && <span style={{ fontSize:11, background:"#eff6ff", color:"#1d4ed8", padding:"2px 8px", borderRadius:20, fontWeight:600 }}>{sub.name}</span>}
-                    {quiz.duration && <span style={{ fontSize:11, background:"#fefce8", color:"#854d0e", padding:"2px 8px", borderRadius:20, fontWeight:600 }}>? {quiz.duration} min</span>}
+                    {quiz.duration && <span style={{ fontSize:11, background:"#fefce8", color:"#854d0e", padding:"2px 8px", borderRadius:20, fontWeight:600 }}>⏱ {quiz.duration} min</span>}
                     <span style={{ fontSize:11, background:"#f8fafc", color:S2.sub, padding:"2px 8px", borderRadius:20 }}>{quiz.questions.length} questions</span>
                     <span style={{ fontSize:11, background:"#f8fafc", color:S2.sub, padding:"2px 8px", borderRadius:20 }}>{results.length} submissions</span>
                   </div>
                 </div>
                 <div style={{ display:"flex", gap:8, alignItems:"center" }}>
                   <button onClick={() => toggleActive(quiz.id)} style={{ padding:"5px 12px", borderRadius:7, border:"1px solid #e2e8f0", background: quiz.active ? "#d1fae5" : "#fee2e2", color: quiz.active ? "#065f46" : "#dc2626", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
-                    {quiz.active ? "? Active" : "? Inactive"}
+                    {quiz.active ? "✅ Active" : "⏸ Inactive"}
                   </button>
-                  <button onClick={() => { setSelected(quiz.id); setView("results"); }} style={{ padding:"5px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>?? Results</button>
-                  <button onClick={() => deleteQuiz(quiz.id)} style={{ padding:"5px 12px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>???</button>
+                  <button onClick={() => { setSelected(quiz.id); setView("results"); }} style={{ padding:"5px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>📊 Results</button>
+                  <button onClick={() => deleteQuiz(quiz.id)} style={{ padding:"5px 12px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>🗑️</button>
                 </div>
               </div>
             );
@@ -4546,7 +4546,7 @@ function Quizzes({ students, classes, subjects, quizzes, setQuizzes, quizResults
 
 
 
-// --- ParentLessonPlans --------------------------------------------------------
+// ─── ParentLessonPlans ────────────────────────────────────────────────────────
 function ParentLessonPlans({ student, lessonPlans, subjects, classes }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -4560,7 +4560,7 @@ function ParentLessonPlans({ student, lessonPlans, subjects, classes }) {
   };
   const weekStart = getWeekStart(weekOffset);
   const weekKey = weekStart.toISOString().split("T")[0];
-  const weekLabel = weekStart.toLocaleDateString("en-US",{month:"short",day:"numeric"}) + " � " + new Date(new Date(weekStart).setDate(weekStart.getDate()+6)).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  const weekLabel = weekStart.toLocaleDateString("en-US",{month:"short",day:"numeric"}) + " – " + new Date(new Date(weekStart).setDate(weekStart.getDate()+6)).toLocaleDateString("en-US",{month:"short",day:"numeric"});
 
   const myPlans = (lessonPlans||[]).filter(p => String(p.classId) === String(student.classId) && p.week === weekKey);
   const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
@@ -4572,33 +4572,33 @@ function ParentLessonPlans({ student, lessonPlans, subjects, classes }) {
     <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:16 }}>
       <div onClick={() => setOpen(!open)} style={{ padding:"14px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", borderBottom: open?"1px solid #e2e8f0":"none" }}>
         <div style={{ fontSize:14, fontWeight:700, color:"#0f172a", display:"flex", alignItems:"center", gap:8 }}>
-          ?? Lesson Plans
+          📚 Lesson Plans
           {myPlans.length > 0 && <span style={{ background:"#0d9488", color:"#fff", borderRadius:20, fontSize:11, padding:"2px 8px" }}>{myPlans.length}</span>}
         </div>
-        <span style={{ fontSize:12, color:"#94a3b8" }}>{open?"?":"?"}</span>
+        <span style={{ fontSize:12, color:"#94a3b8" }}>{open?"▲":"▼"}</span>
       </div>
 
       {open && (
         <div style={{ padding:16 }}>
           {/* Week Navigator */}
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, background:"#f8fafc", borderRadius:10, padding:"10px 14px" }}>
-            <button onClick={() => { setWeekOffset(w=>w-1); setSelected(null); }} style={{ width:28, height:28, borderRadius:6, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer" }}>�</button>
+            <button onClick={() => { setWeekOffset(w=>w-1); setSelected(null); }} style={{ width:28, height:28, borderRadius:6, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer" }}>‹</button>
             <div style={{ flex:1, textAlign:"center", fontSize:13, fontWeight:600, color:"#0f172a" }}>
               {weekLabel}
-              {weekOffset === 0 && <span style={{ fontSize:10, color:"#0d9488", marginLeft:6 }}>� This week</span>}
+              {weekOffset === 0 && <span style={{ fontSize:10, color:"#0d9488", marginLeft:6 }}>• This week</span>}
             </div>
-            <button onClick={() => { setWeekOffset(w=>w+1); setSelected(null); }} style={{ width:28, height:28, borderRadius:6, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer" }}>�</button>
+            <button onClick={() => { setWeekOffset(w=>w+1); setSelected(null); }} style={{ width:28, height:28, borderRadius:6, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer" }}>›</button>
           </div>
 
           {selected && selectedPlan ? (
             <div>
-              <button onClick={() => setSelected(null)} style={{ padding:"6px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:12, marginBottom:12 }}>? Back</button>
+              <button onClick={() => setSelected(null)} style={{ padding:"6px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:12, marginBottom:12 }}>← Back</button>
               <div style={{ fontSize:15, fontWeight:700, color:"#0f172a", marginBottom:4 }}>{selectedPlan.title}</div>
-              <div style={{ fontSize:12, color:"#64748b", marginBottom:14 }}>{selectedPlan.day} � {(subjects||[]).find(s=>s.id===selectedPlan.subjectId)?.name}</div>
+              <div style={{ fontSize:12, color:"#64748b", marginBottom:14 }}>{selectedPlan.day} · {(subjects||[]).find(s=>s.id===selectedPlan.subjectId)?.name}</div>
 
               {selectedPlan.objectives?.filter(o=>o.trim()).length > 0 && (
                 <div style={{ background:"#eff6ff", borderRadius:10, padding:14, marginBottom:10 }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:"#1d4ed8", marginBottom:8 }}>?? Learning Objectives</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#1d4ed8", marginBottom:8 }}>🎯 Learning Objectives</div>
                   <ul style={{ paddingRight:16, margin:0 }}>
                     {selectedPlan.objectives.filter(o=>o.trim()).map((o,i) => <li key={i} style={{ fontSize:13, color:"#1e40af", marginBottom:4 }}>{o}</li>)}
                   </ul>
@@ -4607,14 +4607,14 @@ function ParentLessonPlans({ student, lessonPlans, subjects, classes }) {
 
               {selectedPlan.homework?.trim() && (
                 <div style={{ background:"#ede9fe", borderRadius:10, padding:14, marginBottom:10 }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:"#6d28d9", marginBottom:6 }}>?? Homework</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#6d28d9", marginBottom:6 }}>📝 Homework</div>
                   <p style={{ fontSize:13, color:"#5b21b6", margin:0, lineHeight:1.6 }}>{selectedPlan.homework}</p>
                 </div>
               )}
 
               {selectedPlan.activities?.filter(a=>a.trim()).length > 0 && (
                 <div style={{ background:"#f0fdf4", borderRadius:10, padding:14, marginBottom:10 }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:"#166534", marginBottom:8 }}>?? Activities</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#166534", marginBottom:8 }}>📋 Activities</div>
                   <ul style={{ paddingRight:16, margin:0 }}>
                     {selectedPlan.activities.filter(a=>a.trim()).map((a,i) => <li key={i} style={{ fontSize:13, color:"#166534", marginBottom:4 }}>{a}</li>)}
                   </ul>
@@ -4623,7 +4623,7 @@ function ParentLessonPlans({ student, lessonPlans, subjects, classes }) {
 
               {(selectedPlan.attachments||[]).length > 0 && (
                 <div style={{ background:"#fffbeb", borderRadius:10, padding:14 }}>
-                  <div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:8 }}>?? Attachments</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:8 }}>📎 Attachments</div>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                     {selectedPlan.attachments.map((att,i) => (
                       att.type.startsWith("image/") ? (
@@ -4632,7 +4632,7 @@ function ParentLessonPlans({ student, lessonPlans, subjects, classes }) {
                         </a>
                       ) : (
                         <a key={i} href={att.data} download={att.name} style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 10px", background:"#fff", borderRadius:8, border:"1px solid #fde68a", textDecoration:"none" }}>
-                          <span style={{ fontSize:16 }}>{att.name.endsWith(".pdf")?"??":"??"}</span>
+                          <span style={{ fontSize:16 }}>{att.name.endsWith(".pdf")?"📄":"📎"}</span>
                           <span style={{ fontSize:11, color:"#854d0e" }}>{att.name}</span>
                         </a>
                       )
@@ -4656,9 +4656,9 @@ function ParentLessonPlans({ student, lessonPlans, subjects, classes }) {
                       onMouseLeave={e => e.currentTarget.style.background="#fff"}>
                       <div>
                         <div style={{ fontSize:13, fontWeight:600, color:"#0f172a" }}>{p.title}</div>
-                        <div style={{ fontSize:11, color:"#64748b", marginTop:2 }}>{day} � {sub?.name} {p.homework?"� ?? Has homework":""}</div>
+                        <div style={{ fontSize:11, color:"#64748b", marginTop:2 }}>{day} · {sub?.name} {p.homework?"· 📝 Has homework":""}</div>
                       </div>
-                      <span style={{ fontSize:12, color:"#0d9488" }}>�</span>
+                      <span style={{ fontSize:12, color:"#0d9488" }}>›</span>
                     </div>
                   );
                 });
@@ -4671,7 +4671,7 @@ function ParentLessonPlans({ student, lessonPlans, subjects, classes }) {
   );
 }
 
-// --- ParentMessages -----------------------------------------------------------
+// ─── ParentMessages ───────────────────────────────────────────────────────────
 function ParentMessages({ student, messages, setMessages }) {
   const [open, setOpen] = useState(false);
   const [compose, setCompose] = useState(false);
@@ -4715,25 +4715,25 @@ function ParentMessages({ student, messages, setMessages }) {
     <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:16 }}>
       <div onClick={() => setOpen(!open)} style={{ padding:"14px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", borderBottom: open ? "1px solid #e2e8f0" : "none" }}>
         <div style={{ fontSize:14, fontWeight:700, color:"#1e293b", display:"flex", alignItems:"center", gap:8 }}>
-          ?? Messages
+          💬 Messages
           {unread > 0 && <span style={{ background:"#ef4444", color:"#fff", borderRadius:20, fontSize:11, padding:"2px 8px", fontWeight:700 }}>{unread} new</span>}
         </div>
-        <span style={{ fontSize:12, color:"#94a3b8" }}>{open ? "?" : "?"}</span>
+        <span style={{ fontSize:12, color:"#94a3b8" }}>{open ? "▲" : "▼"}</span>
       </div>
 
       {open && (
         <div style={{ padding:16 }}>
-          {sent && <div style={{ background:"#d1fae5", color:"#065f46", padding:"10px 14px", borderRadius:8, marginBottom:12, fontSize:13 }}>? Message sent!</div>}
+          {sent && <div style={{ background:"#d1fae5", color:"#065f46", padding:"10px 14px", borderRadius:8, marginBottom:12, fontSize:13 }}>✅ Message sent!</div>}
 
           {/* Thread View */}
           {selected && selectedMsg ? (
             <div>
-              <button onClick={() => setSelected(null)} style={{ padding:"6px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:12, marginBottom:12 }}>? Back</button>
+              <button onClick={() => setSelected(null)} style={{ padding:"6px 12px", borderRadius:7, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:12, marginBottom:12 }}>← Back</button>
               <div style={{ fontSize:14, fontWeight:700, color:"#1e293b", marginBottom:12 }}>{selectedMsg.subject}</div>
 
               {/* Original */}
               <div style={{ background: selectedMsg.fromSchool ? "#f0fdf9" : "#f8f4ff", borderRadius:10, border:"1px solid " + (selectedMsg.fromSchool?"#99f6e4":"#ddd6fe"), padding:14, marginBottom:10 }}>
-                <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:6 }}>{selectedMsg.fromSchool ? "?? School" : "???????? You"} � {fmtTime(selectedMsg.timestamp)}</div>
+                <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:6 }}>{selectedMsg.fromSchool ? "🏫 School" : "👨‍👩‍👧 You"} · {fmtTime(selectedMsg.timestamp)}</div>
                 <div style={{ fontSize:13, color:"#334155" }}>{selectedMsg.body}</div>
                 {selectedMsg.image && <img src={selectedMsg.image} style={{ maxWidth:"100%", borderRadius:8, marginTop:8 }} />}
               </div>
@@ -4741,7 +4741,7 @@ function ParentMessages({ student, messages, setMessages }) {
               {/* Replies */}
               {(selectedMsg.replies||[]).map(r => (
                 <div key={r.id} style={{ background: r.fromSchool ? "#f0fdf9" : "#f8f4ff", borderRadius:10, border:"1px solid " + (r.fromSchool?"#99f6e4":"#ddd6fe"), padding:14, marginBottom:8, marginLeft: r.fromSchool ? 0 : 20 }}>
-                  <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:4 }}>{r.fromSchool ? "?? School" : "???????? You"} � {fmtTime(r.timestamp)}</div>
+                  <div style={{ fontSize:12, fontWeight:600, color:"#64748b", marginBottom:4 }}>{r.fromSchool ? "🏫 School" : "👨‍👩‍👧 You"} · {fmtTime(r.timestamp)}</div>
                   <div style={{ fontSize:13, color:"#334155" }}>{r.body}</div>
                   {r.image && <img src={r.image} style={{ maxWidth:"100%", borderRadius:8, marginTop:6 }} />}
                 </div>
@@ -4766,7 +4766,7 @@ function ParentMessages({ student, messages, setMessages }) {
                   <textarea style={{...inp, resize:"vertical", marginBottom:8}} rows={4} value={body} onChange={e => setBody(e.target.value)} placeholder="Write your message..." />
                   <div style={{ marginBottom:10 }}>
                     <label style={{ fontSize:12, color:"#64748b", cursor:"pointer" }}>
-                      ?? {image ? "Image attached ?" : "Attach image"}
+                      📎 {image ? "Image attached ✅" : "Attach image"}
                       <input type="file" accept="image/*" style={{ display:"none" }} onChange={e => { const f=e.target.files[0]; if(f){const r=new FileReader();r.onload=()=>setImage(r.result);r.readAsDataURL(f);} }} />
                     </label>
                   </div>
@@ -4784,7 +4784,7 @@ function ParentMessages({ student, messages, setMessages }) {
                 <div key={msg.id} onClick={() => { setSelected(msg.id); if(!msg.read && setMessages) setMessages(prev=>prev.map(m=>m.id===msg.id?{...m,read:true}:m)); }} style={{ padding:"12px 14px", borderRadius:10, border:"1px solid " + (msg.read?"#f1f5f9":"#0d9488"), background: msg.read?"#fff":"#f0fdf9", marginBottom:8, cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:13, fontWeight: msg.read?500:700, color:"#1e293b" }}>{msg.subject}</div>
-                    <div style={{ fontSize:11, color:"#94a3b8", marginTop:2 }}>{msg.fromSchool?"?? School":"???????? You"} � {fmtTime(msg.timestamp)} {msg.image?"??":""} {(msg.replies||[]).length>0?"?"+msg.replies.length:""}</div>
+                    <div style={{ fontSize:11, color:"#94a3b8", marginTop:2 }}>{msg.fromSchool?"🏫 School":"👨‍👩‍👧 You"} · {fmtTime(msg.timestamp)} {msg.image?"📎":""} {(msg.replies||[]).length>0?"↩"+msg.replies.length:""}</div>
                   </div>
                   {!msg.read && <div style={{ width:8, height:8, borderRadius:"50%", background:"#0d9488" }} />}
                 </div>
@@ -4797,7 +4797,7 @@ function ParentMessages({ student, messages, setMessages }) {
   );
 }
 
-// --- ParentQuiz ----------------------------------------------------------------
+// ─── ParentQuiz ────────────────────────────────────────────────────────────────
 function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
   const [activeQuiz, setActiveQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -4843,7 +4843,7 @@ function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
         <div style={{ fontSize:16, fontWeight:700, color:"#1e293b" }}>{activeQuiz.title}</div>
         {timeLeft !== null && (
           <div style={{ background: timeLeft < 60 ? "#fee2e2" : "#f0fdf4", color: timeLeft < 60 ? "#dc2626" : "#065f46", padding:"6px 14px", borderRadius:20, fontSize:13, fontWeight:700 }}>
-            ? {Math.floor(timeLeft/60)}:{String(timeLeft%60).padStart(2,"0")}
+            ⏱ {Math.floor(timeLeft/60)}:{String(timeLeft%60).padStart(2,"0")}
           </div>
         )}
       </div>
@@ -4876,13 +4876,13 @@ function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
 
   if (submitted) return (
     <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:32, marginBottom:16, textAlign:"center" }}>
-      <div style={{ fontSize:48, marginBottom:12 }}>{score / activeQuiz.questions.length >= 0.6 ? "??" : "??"}</div>
+      <div style={{ fontSize:48, marginBottom:12 }}>{score / activeQuiz.questions.length >= 0.6 ? "🎉" : "📚"}</div>
       <div style={{ fontSize:20, fontWeight:800, color:"#1e293b", marginBottom:8 }}>Quiz Completed!</div>
       <div style={{ fontSize:32, fontWeight:700, color: score/activeQuiz.questions.length >= 0.6 ? "#0d9488" : "#dc2626", marginBottom:8 }}>
         {score} / {activeQuiz.questions.length}
       </div>
       <div style={{ fontSize:14, color:"#64748b", marginBottom:20 }}>
-        {Math.round(score/activeQuiz.questions.length*100)}% � {score/activeQuiz.questions.length >= 0.8 ? "Excellent!" : score/activeQuiz.questions.length >= 0.6 ? "Good job!" : "Keep practicing!"}
+        {Math.round(score/activeQuiz.questions.length*100)}% — {score/activeQuiz.questions.length >= 0.8 ? "Excellent!" : score/activeQuiz.questions.length >= 0.6 ? "Good job!" : "Keep practicing!"}
       </div>
       <button onClick={() => { setActiveQuiz(null); setAnswers({}); setSubmitted(false); }} style={{ padding:"10px 24px", borderRadius:9, border:"none", background:"#0d9488", color:"#fff", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Back to Quizzes</button>
     </div>
@@ -4890,10 +4890,10 @@ function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
 
   return (
     <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:16 }}>
-      <div style={{ padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>?? Available Quizzes</div>
+      <div style={{ padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:14, fontWeight:700, color:"#1e293b" }}>📝 Available Quizzes</div>
       {pending.length === 0 ? (
         <div style={{ padding:32, textAlign:"center", color:"#64748b" }}>
-          <div style={{ fontSize:32, marginBottom:8 }}>?</div>
+          <div style={{ fontSize:32, marginBottom:8 }}>✅</div>
           <div>All quizzes completed!</div>
         </div>
       ) : pending.map(quiz => (
@@ -4901,15 +4901,15 @@ function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
           <div>
             <div style={{ fontSize:14, fontWeight:600, color:"#1e293b" }}>{quiz.title}</div>
             <div style={{ fontSize:12, color:"#64748b", marginTop:2 }}>
-              {quiz.questions.length} questions {quiz.duration ? "� " + quiz.duration + " min" : ""}
+              {quiz.questions.length} questions {quiz.duration ? "· " + quiz.duration + " min" : ""}
             </div>
           </div>
-          <button onClick={() => { setActiveQuiz(quiz); setAnswers({}); setSubmitted(false); }} style={{ padding:"8px 18px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Start ?</button>
+          <button onClick={() => { setActiveQuiz(quiz); setAnswers({}); setSubmitted(false); }} style={{ padding:"8px 18px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Start →</button>
         </div>
       ))}
       {done.length > 0 && (
         <div style={{ padding:"10px 20px", background:"#f8fafc" }}>
-          <div style={{ fontSize:12, color:"#64748b" }}>? {done.length} quiz{done.length > 1 ? "zes" : ""} completed</div>
+          <div style={{ fontSize:12, color:"#64748b" }}>✅ {done.length} quiz{done.length > 1 ? "zes" : ""} completed</div>
         </div>
       )}
     </div>
@@ -4917,7 +4917,7 @@ function ParentQuiz({ student, quizzes, quizResults, setQuizResults }) {
 }
 
 
-// --- LessonPlans --------------------------------------------------------------
+// ─── LessonPlans ──────────────────────────────────────────────────────────────
 function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherClassIds, userRole, auth, teachers }) {
   const [view, setView] = useState("list"); // list | create | detail
   const [selected, setSelected] = useState(null);
@@ -4931,7 +4931,7 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
     ? (classes||[])
     : (classes||[]).filter(c => (teacherClassIds||[]).includes(c.id));
 
-  // ???? ??????? ??????
+  // حساب الأسبوع الحالي
   const getWeekStart = (offset = 0) => {
     const d = new Date();
     const day = d.getDay();
@@ -4940,7 +4940,7 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
   };
   const weekStart = getWeekStart(weekOffset);
   const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
-  const weekLabel = weekStart.toLocaleDateString("en-US",{month:"short",day:"numeric"}) + " � " + weekEnd.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  const weekLabel = weekStart.toLocaleDateString("en-US",{month:"short",day:"numeric"}) + " – " + weekEnd.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
 
   const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
   const weekKey = weekStart.toISOString().split("T")[0];
@@ -4973,7 +4973,7 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
   const S = { border:"#e2e8f0", primary:"#0d9488", text:"#0f172a", sub:"#64748b" };
   const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
 
-  // -- Detail View -----------------------------------------------------------
+  // ── Detail View ───────────────────────────────────────────────────────────
   if (view === "detail" && selected) {
     const plan = (lessonPlans||[]).find(p => p.id === selected);
     if (!plan) { setView("list"); return null; }
@@ -4982,19 +4982,19 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
     return (
       <div style={{ maxWidth:700, margin:"0 auto" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-          <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
+          <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:18, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>{plan.title}</div>
-            <div style={{ fontSize:12, color:S.sub, marginTop:2 }}>{cls?.name} � {sub?.name} � {plan.day} � {plan.week}</div>
+            <div style={{ fontSize:12, color:S.sub, marginTop:2 }}>{cls?.name} · {sub?.name} · {plan.day} · {plan.week}</div>
           </div>
-          <button onClick={() => deletePlan(plan.id)} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>??? Delete</button>
+          <button onClick={() => deletePlan(plan.id)} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>🗑️ Delete</button>
         </div>
 
         <div style={{ display:"grid", gap:16 }}>
           {plan.objectives?.filter(o=>o.trim()).length > 0 && (
             <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
               <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12, display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ background:"#dbeafe", color:"#1d4ed8", borderRadius:8, padding:"3px 10px", fontSize:11 }}>?? Objectives</span>
+                <span style={{ background:"#dbeafe", color:"#1d4ed8", borderRadius:8, padding:"3px 10px", fontSize:11 }}>🎯 Objectives</span>
               </div>
               <ul style={{ paddingRight:20, margin:0 }}>
                 {plan.objectives.filter(o=>o.trim()).map((o,i) => (
@@ -5007,7 +5007,7 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
           {plan.activities?.filter(a=>a.trim()).length > 0 && (
             <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
               <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>
-                <span style={{ background:"#d1fae5", color:"#065f46", borderRadius:8, padding:"3px 10px", fontSize:11 }}>?? Activities</span>
+                <span style={{ background:"#d1fae5", color:"#065f46", borderRadius:8, padding:"3px 10px", fontSize:11 }}>📋 Activities</span>
               </div>
               <ul style={{ paddingRight:20, margin:0 }}>
                 {plan.activities.filter(a=>a.trim()).map((a,i) => (
@@ -5021,7 +5021,7 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
             {plan.resources?.filter(r=>r.trim()).length > 0 && (
               <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
                 <div style={{ fontSize:12, fontWeight:700, color:S.text, marginBottom:10 }}>
-                  <span style={{ background:"#fef3c7", color:"#854d0e", borderRadius:8, padding:"3px 10px", fontSize:11 }}>?? Resources</span>
+                  <span style={{ background:"#fef3c7", color:"#854d0e", borderRadius:8, padding:"3px 10px", fontSize:11 }}>📎 Resources</span>
                 </div>
                 <ul style={{ paddingRight:16, margin:0 }}>
                   {plan.resources.filter(r=>r.trim()).map((r,i) => <li key={i} style={{ fontSize:12, color:"#334155", marginBottom:4 }}>{r}</li>)}
@@ -5032,7 +5032,7 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
             {plan.homework?.trim() && (
               <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
                 <div style={{ fontSize:12, fontWeight:700, color:S.text, marginBottom:10 }}>
-                  <span style={{ background:"#ede9fe", color:"#6d28d9", borderRadius:8, padding:"3px 10px", fontSize:11 }}>?? Homework</span>
+                  <span style={{ background:"#ede9fe", color:"#6d28d9", borderRadius:8, padding:"3px 10px", fontSize:11 }}>📝 Homework</span>
                 </div>
                 <p style={{ fontSize:13, color:"#334155", lineHeight:1.6, margin:0 }}>{plan.homework}</p>
               </div>
@@ -5042,7 +5042,7 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
           {plan.assessment?.trim() && (
             <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
               <div style={{ fontSize:12, fontWeight:700, color:S.text, marginBottom:10 }}>
-                <span style={{ background:"#fee2e2", color:"#dc2626", borderRadius:8, padding:"3px 10px", fontSize:11 }}>?? Assessment</span>
+                <span style={{ background:"#fee2e2", color:"#dc2626", borderRadius:8, padding:"3px 10px", fontSize:11 }}>📊 Assessment</span>
               </div>
               <p style={{ fontSize:13, color:"#334155", lineHeight:1.6, margin:0 }}>{plan.assessment}</p>
             </div>
@@ -5050,13 +5050,13 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
 
           {plan.notes?.trim() && (
             <div style={{ background:"#fffbeb", borderRadius:12, border:"1px solid #fde68a", padding:20 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:8 }}>?? Notes</div>
+              <div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:8 }}>💡 Notes</div>
               <p style={{ fontSize:13, color:"#78350f", lineHeight:1.6, margin:0 }}>{plan.notes}</p>
             </div>
           )}
           {(plan.attachments||[]).length > 0 && (
             <div style={{ background:"#fff", borderRadius:12, border:"1px solid #e2e8f0", padding:20 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:"#0f172a", marginBottom:12 }}>?? Attachments</div>
+              <div style={{ fontSize:12, fontWeight:700, color:"#0f172a", marginBottom:12 }}>📎 Attachments</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
                 {plan.attachments.map((att,i) => (
                   <div key={i} style={{ border:"1px solid #e2e8f0", borderRadius:10, overflow:"hidden", width:120 }}>
@@ -5068,7 +5068,7 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
                     ) : (
                       <a href={att.data} download={att.name} style={{ textDecoration:"none" }}>
                         <div style={{ height:80, background:"#f8fafc", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>
-                          {att.name.endsWith(".pdf")?"??":att.name.endsWith(".ppt")||att.name.endsWith(".pptx")?"??":att.name.endsWith(".doc")||att.name.endsWith(".docx")?"??":"??"}
+                          {att.name.endsWith(".pdf")?"📄":att.name.endsWith(".ppt")||att.name.endsWith(".pptx")?"📊":att.name.endsWith(".doc")||att.name.endsWith(".docx")?"📝":"📎"}
                         </div>
                         <div style={{ padding:"6px 8px", fontSize:10, color:"#64748b", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{att.name}</div>
                       </a>
@@ -5083,18 +5083,18 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
     );
   }
 
-  // -- Create View -----------------------------------------------------------
+  // ── Create View ───────────────────────────────────────────────────────────
   if (view === "create") return (
     <div style={{ maxWidth:680, margin:"0 auto" }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-        <button onClick={() => { setView("list"); setForm(emptyForm); }} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
-        <div style={{ fontSize:16, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>?? New Lesson Plan</div>
+        <button onClick={() => { setView("list"); setForm(emptyForm); }} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>📚 New Lesson Plan</div>
         <div style={{ marginLeft:"auto", fontSize:12, color:S.sub, background:"#f0fdf9", border:"1px solid #99f6e4", borderRadius:8, padding:"4px 12px" }}>Week of {weekLabel}</div>
       </div>
 
       {/* Basic Info */}
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
-        <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:16 }}>?? Basic Information</div>
+        <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:16 }}>📋 Basic Information</div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
           <div style={{ gridColumn:"1/-1" }}>
             <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Lesson Title *</label>
@@ -5126,13 +5126,13 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
       {/* Objectives */}
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:S.text }}>?? Learning Objectives</div>
+          <div style={{ fontSize:13, fontWeight:700, color:S.text }}>🎯 Learning Objectives</div>
           <button onClick={()=>addItem("objectives")} style={{ padding:"5px 12px", borderRadius:7, border:"none", background:"#0d9488", color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
         </div>
         {form.objectives.map((o,i) => (
           <div key={i} style={{ display:"flex", gap:8, marginBottom:8 }}>
             <input style={{...inp,flex:1}} value={o} onChange={e=>updateItem("objectives",i,e.target.value)} placeholder={"Objective " + (i+1) + "..."} />
-            {form.objectives.length > 1 && <button onClick={()=>removeItem("objectives",i)} style={{ padding:"0 10px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:13, cursor:"pointer" }}>�</button>}
+            {form.objectives.length > 1 && <button onClick={()=>removeItem("objectives",i)} style={{ padding:"0 10px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:13, cursor:"pointer" }}>×</button>}
           </div>
         ))}
       </div>
@@ -5140,13 +5140,13 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
       {/* Activities */}
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:S.text }}>?? Classroom Activities</div>
+          <div style={{ fontSize:13, fontWeight:700, color:S.text }}>📋 Classroom Activities</div>
           <button onClick={()=>addItem("activities")} style={{ padding:"5px 12px", borderRadius:7, border:"none", background:"#0d9488", color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
         </div>
         {form.activities.map((a,i) => (
           <div key={i} style={{ display:"flex", gap:8, marginBottom:8 }}>
             <input style={{...inp,flex:1}} value={a} onChange={e=>updateItem("activities",i,e.target.value)} placeholder={"Activity " + (i+1) + "..."} />
-            {form.activities.length > 1 && <button onClick={()=>removeItem("activities",i)} style={{ padding:"0 10px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:13, cursor:"pointer" }}>�</button>}
+            {form.activities.length > 1 && <button onClick={()=>removeItem("activities",i)} style={{ padding:"0 10px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:13, cursor:"pointer" }}>×</button>}
           </div>
         ))}
       </div>
@@ -5154,13 +5154,13 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
       {/* Resources */}
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:S.text }}>?? Resources & Materials</div>
+          <div style={{ fontSize:13, fontWeight:700, color:S.text }}>📎 Resources & Materials</div>
           <button onClick={()=>addItem("resources")} style={{ padding:"5px 12px", borderRadius:7, border:"none", background:"#0d9488", color:"#fff", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ Add</button>
         </div>
         {form.resources.map((r,i) => (
           <div key={i} style={{ display:"flex", gap:8, marginBottom:8 }}>
             <input style={{...inp,flex:1}} value={r} onChange={e=>updateItem("resources",i,e.target.value)} placeholder={"Resource " + (i+1) + "..."} />
-            {form.resources.length > 1 && <button onClick={()=>removeItem("resources",i)} style={{ padding:"0 10px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:13, cursor:"pointer" }}>�</button>}
+            {form.resources.length > 1 && <button onClick={()=>removeItem("resources",i)} style={{ padding:"0 10px", borderRadius:7, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:13, cursor:"pointer" }}>×</button>}
           </div>
         ))}
       </div>
@@ -5168,24 +5168,24 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
       {/* Homework + Assessment */}
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
         <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>?? Homework</div>
+          <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>📝 Homework</div>
           <textarea style={{...inp,resize:"vertical"}} rows={3} value={form.homework} onChange={e=>setForm({...form,homework:e.target.value})} placeholder="Homework assignment..." />
         </div>
         <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>?? Assessment Method</div>
+          <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:12 }}>📊 Assessment Method</div>
           <textarea style={{...inp,resize:"vertical"}} rows={3} value={form.assessment} onChange={e=>setForm({...form,assessment:e.target.value})} placeholder="How will you assess learning?" />
         </div>
       </div>
 
       {/* Notes + Attachments */}
       <div style={{ background:"#fffbeb", borderRadius:14, border:"1px solid #fde68a", padding:20, marginBottom:20 }}>
-        <div style={{ fontSize:13, fontWeight:700, color:"#854d0e", marginBottom:10 }}>?? Additional Notes</div>
+        <div style={{ fontSize:13, fontWeight:700, color:"#854d0e", marginBottom:10 }}>💡 Additional Notes</div>
         <textarea style={{...inp,resize:"vertical",background:"transparent",border:"1px solid #fcd34d"}} rows={2} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Any additional notes..." />
         
         <div style={{ marginTop:14 }}>
-          <div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:8 }}>?? Attachments (Images or Files)</div>
+          <div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:8 }}>📎 Attachments (Images or Files)</div>
           <label style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"8px 16px", borderRadius:8, border:"2px dashed #fcd34d", background:"rgba(253,230,138,.2)", cursor:"pointer", fontSize:12, color:"#854d0e", fontWeight:600 }}>
-            ?? Choose Image or File
+            📁 Choose Image or File
             <input type="file" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" multiple style={{ display:"none" }} onChange={e => {
               const files = Array.from(e.target.files);
               files.forEach(f => {
@@ -5209,14 +5209,14 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
                     <img src={att.data} style={{ width:40, height:40, borderRadius:6, objectFit:"cover", flexShrink:0 }} />
                   ) : (
                     <div style={{ width:40, height:40, borderRadius:6, background:"#fef3c7", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>
-                      {att.name.endsWith(".pdf") ? "??" : att.name.endsWith(".ppt")||att.name.endsWith(".pptx") ? "??" : att.name.endsWith(".doc")||att.name.endsWith(".docx") ? "??" : "??"}
+                      {att.name.endsWith(".pdf") ? "📄" : att.name.endsWith(".ppt")||att.name.endsWith(".pptx") ? "📊" : att.name.endsWith(".doc")||att.name.endsWith(".docx") ? "📝" : "📎"}
                     </div>
                   )}
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontSize:11, fontWeight:600, color:"#854d0e", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{att.name}</div>
                     <div style={{ fontSize:10, color:"#a16207" }}>{(att.size/1024).toFixed(1)} KB</div>
                   </div>
-                  <button onClick={() => setForm(prev => ({...prev, attachments: prev.attachments.filter((_,j)=>j!==i)}))} style={{ background:"none", border:"none", cursor:"pointer", color:"#dc2626", fontSize:14, flexShrink:0 }}>�</button>
+                  <button onClick={() => setForm(prev => ({...prev, attachments: prev.attachments.filter((_,j)=>j!==i)}))} style={{ background:"none", border:"none", cursor:"pointer", color:"#dc2626", fontSize:14, flexShrink:0 }}>×</button>
                 </div>
               ))}
             </div>
@@ -5225,18 +5225,18 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
       </div>
 
       <button onClick={save} style={{ width:"100%", padding:"14px 0", borderRadius:12, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 16px rgba(13,148,136,.3)" }}>
-        ?? Save Lesson Plan
+        💾 Save Lesson Plan
       </button>
     </div>
   );
 
-  // -- List View -------------------------------------------------------------
+  // ── List View ─────────────────────────────────────────────────────────────
   return (
     <div>
       {/* Header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
-          <div style={{ fontSize:20, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>?? Lesson Plans</div>
+          <div style={{ fontSize:20, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>📚 Lesson Plans</div>
           <div style={{ fontSize:13, color:S.sub, marginTop:2 }}>Weekly lesson planning</div>
         </div>
         <button onClick={() => setView("create")} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 12px rgba(13,148,136,.3)" }}>+ New Lesson Plan</button>
@@ -5244,12 +5244,12 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
 
       {/* Week Navigator */}
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:"14px 20px", marginBottom:16, display:"flex", alignItems:"center", gap:12 }}>
-        <button onClick={() => setWeekOffset(w=>w-1)} style={{ width:34, height:34, borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:16 }}>�</button>
+        <button onClick={() => setWeekOffset(w=>w-1)} style={{ width:34, height:34, borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:16 }}>‹</button>
         <div style={{ flex:1, textAlign:"center" }}>
           <div style={{ fontSize:14, fontWeight:700, color:S.text }}>Week of {weekLabel}</div>
           {weekOffset === 0 && <div style={{ fontSize:11, color:"#0d9488", fontWeight:600, marginTop:2 }}>Current Week</div>}
         </div>
-        <button onClick={() => setWeekOffset(w=>w+1)} style={{ width:34, height:34, borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:16 }}>�</button>
+        <button onClick={() => setWeekOffset(w=>w+1)} style={{ width:34, height:34, borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:16 }}>›</button>
         {weekOffset !== 0 && <button onClick={() => setWeekOffset(0)} style={{ padding:"6px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#f8fafc", cursor:"pointer", fontSize:12, fontFamily:"inherit" }}>Today</button>}
       </div>
 
@@ -5284,8 +5284,8 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
                 return (
                   <div key={p.id} onClick={() => { setSelected(p.id); setView("detail"); }} style={{ background:"#0d9488", borderRadius:8, padding:"8px 10px", marginBottom:6, cursor:"pointer" }}>
                     <div style={{ fontSize:11, fontWeight:700, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.title}</div>
-                    <div style={{ fontSize:10, color:"rgba(255,255,255,.7)", marginTop:2 }}>{cls?.name} � {sub?.name}</div>
-                    {userRole === "admin" && p.createdBy && <div style={{ fontSize:9, color:"rgba(255,255,255,.55)", marginTop:1 }}>?? {p.createdBy}</div>}
+                    <div style={{ fontSize:10, color:"rgba(255,255,255,.7)", marginTop:2 }}>{cls?.name} · {sub?.name}</div>
+                    {userRole === "admin" && p.createdBy && <div style={{ fontSize:9, color:"rgba(255,255,255,.55)", marginTop:1 }}>👤 {p.createdBy}</div>}
                   </div>
                 );
               })}
@@ -5297,7 +5297,7 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
       {/* List */}
       {filtered.length === 0 && (
         <div style={{ textAlign:"center", padding:60, background:"#fff", borderRadius:14, border:"1px solid #e2e8f0" }}>
-          <div style={{ fontSize:40, marginBottom:12 }}>??</div>
+          <div style={{ fontSize:40, marginBottom:12 }}>📚</div>
           <div style={{ fontSize:15, fontWeight:700, color:S.text }}>No lesson plans this week</div>
           <div style={{ fontSize:13, color:S.sub, marginTop:4 }}>Click "New Lesson Plan" to create one</div>
         </div>
@@ -5308,82 +5308,82 @@ function LessonPlans({ classes, subjects, lessonPlans, setLessonPlans, teacherCl
 
 
 
-// --- Quran Data ---------------------------------------------------------------
+// ─── Quran Data ───────────────────────────────────────────────────────────────
 const SURAHS = [
-  {id:1,name:"Al-Fatihah",arabic:"???????",verses:7,pages:1},{id:2,name:"Al-Baqarah",arabic:"??????",verses:286,pages:49},
-  {id:3,name:"Ali 'Imran",arabic:"?? ?????",verses:200,pages:20},{id:4,name:"An-Nisa",arabic:"??????",verses:176,pages:24},
-  {id:5,name:"Al-Ma'idah",arabic:"???????",verses:120,pages:16},{id:6,name:"Al-An'am",arabic:"???????",verses:165,pages:21},
-  {id:7,name:"Al-A'raf",arabic:"???????",verses:206,pages:24},{id:8,name:"Al-Anfal",arabic:"???????",verses:75,pages:9},
-  {id:9,name:"At-Tawbah",arabic:"??????",verses:129,pages:16},{id:10,name:"Yunus",arabic:"????",verses:109,pages:11},
-  {id:11,name:"Hud",arabic:"???",verses:123,pages:10},{id:12,name:"Yusuf",arabic:"????",verses:111,pages:12},
-  {id:13,name:"Ar-Ra'd",arabic:"?????",verses:43,pages:6},{id:14,name:"Ibrahim",arabic:"???????",verses:52,pages:6},
-  {id:15,name:"Al-Hijr",arabic:"?????",verses:99,pages:6},{id:16,name:"An-Nahl",arabic:"?????",verses:128,pages:13},
-  {id:17,name:"Al-Isra",arabic:"???????",verses:111,pages:12},{id:18,name:"Al-Kahf",arabic:"?????",verses:110,pages:12},
-  {id:19,name:"Maryam",arabic:"????",verses:98,pages:6},{id:20,name:"Ta-Ha",arabic:"??",verses:135,pages:8},
-  {id:21,name:"Al-Anbiya",arabic:"????????",verses:112,pages:7},{id:22,name:"Al-Hajj",arabic:"????",verses:78,pages:10},
-  {id:23,name:"Al-Mu'minun",arabic:"????????",verses:118,pages:7},{id:24,name:"An-Nur",arabic:"?????",verses:64,pages:9},
-  {id:25,name:"Al-Furqan",arabic:"???????",verses:77,pages:6},{id:26,name:"Ash-Shu'ara",arabic:"???????",verses:227,pages:11},
-  {id:27,name:"An-Naml",arabic:"?????",verses:93,pages:8},{id:28,name:"Al-Qasas",arabic:"?????",verses:88,pages:9},
-  {id:29,name:"Al-'Ankabut",arabic:"????????",verses:69,pages:7},{id:30,name:"Ar-Rum",arabic:"?????",verses:60,pages:6},
-  {id:31,name:"Luqman",arabic:"?????",verses:34,pages:4},{id:32,name:"As-Sajdah",arabic:"??????",verses:30,pages:3},
-  {id:33,name:"Al-Ahzab",arabic:"???????",verses:73,pages:9},{id:34,name:"Saba",arabic:"???",verses:54,pages:6},
-  {id:35,name:"Fatir",arabic:"????",verses:45,pages:5},{id:36,name:"Ya-Sin",arabic:"??",verses:83,pages:4},
-  {id:37,name:"As-Saffat",arabic:"???????",verses:182,pages:7},{id:38,name:"Sad",arabic:"?",verses:88,pages:5},
-  {id:39,name:"Az-Zumar",arabic:"?????",verses:75,pages:8},{id:40,name:"Ghafir",arabic:"????",verses:85,pages:9},
-  {id:41,name:"Fussilat",arabic:"????",verses:54,pages:8},{id:42,name:"Ash-Shuraa",arabic:"??????",verses:53,pages:5},
-  {id:43,name:"Az-Zukhruf",arabic:"??????",verses:89,pages:7},{id:44,name:"Ad-Dukhan",arabic:"??????",verses:59,pages:3},
-  {id:45,name:"Al-Jathiyah",arabic:"???????",verses:37,pages:4},{id:46,name:"Al-Ahqaf",arabic:"???????",verses:35,pages:4},
-  {id:47,name:"Muhammad",arabic:"????",verses:38,pages:4},{id:48,name:"Al-Fath",arabic:"?????",verses:29,pages:4},
-  {id:49,name:"Al-Hujurat",arabic:"???????",verses:18,pages:2},{id:50,name:"Qaf",arabic:"?",verses:45,pages:3},
-  {id:51,name:"Adh-Dhariyat",arabic:"????????",verses:60,pages:3},{id:52,name:"At-Tur",arabic:"?????",verses:49,pages:3},
-  {id:53,name:"An-Najm",arabic:"?????",verses:62,pages:3},{id:54,name:"Al-Qamar",arabic:"?????",verses:55,pages:3},
-  {id:55,name:"Ar-Rahman",arabic:"??????",verses:78,pages:3},{id:56,name:"Al-Waqi'ah",arabic:"???????",verses:96,pages:3},
-  {id:57,name:"Al-Hadid",arabic:"??????",verses:29,pages:5},{id:58,name:"Al-Mujadila",arabic:"????????",verses:22,pages:3},
-  {id:59,name:"Al-Hashr",arabic:"?????",verses:24,pages:3},{id:60,name:"Al-Mumtahanah",arabic:"????????",verses:13,pages:3},
-  {id:61,name:"As-Saf",arabic:"????",verses:14,pages:2},{id:62,name:"Al-Jumu'ah",arabic:"??????",verses:11,pages:2},
-  {id:63,name:"Al-Munafiqun",arabic:"?????????",verses:11,pages:2},{id:64,name:"At-Taghabun",arabic:"???????",verses:18,pages:2},
-  {id:65,name:"At-Talaq",arabic:"??????",verses:12,pages:2},{id:66,name:"At-Tahrim",arabic:"???????",verses:12,pages:2},
-  {id:67,name:"Al-Mulk",arabic:"?????",verses:30,pages:2},{id:68,name:"Al-Qalam",arabic:"?????",verses:52,pages:2},
-  {id:69,name:"Al-Haqqah",arabic:"??????",verses:52,pages:2},{id:70,name:"Al-Ma'arij",arabic:"???????",verses:44,pages:2},
-  {id:71,name:"Nuh",arabic:"???",verses:28,pages:2},{id:72,name:"Al-Jinn",arabic:"????",verses:28,pages:2},
-  {id:73,name:"Al-Muzzammil",arabic:"??????",verses:20,pages:1},{id:74,name:"Al-Muddaththir",arabic:"??????",verses:56,pages:2},
-  {id:75,name:"Al-Qiyamah",arabic:"???????",verses:40,pages:1},{id:76,name:"Al-Insan",arabic:"???????",verses:31,pages:2},
-  {id:77,name:"Al-Mursalat",arabic:"????????",verses:50,pages:1},{id:78,name:"An-Naba",arabic:"?????",verses:40,pages:1},
-  {id:79,name:"An-Nazi'at",arabic:"????????",verses:46,pages:1},{id:80,name:"'Abasa",arabic:"???",verses:42,pages:1},
-  {id:81,name:"At-Takwir",arabic:"???????",verses:29,pages:1},{id:82,name:"Al-Infitar",arabic:"????????",verses:19,pages:1},
-  {id:83,name:"Al-Mutaffifin",arabic:"????????",verses:36,pages:1},{id:84,name:"Al-Inshiqaq",arabic:"????????",verses:25,pages:1},
-  {id:85,name:"Al-Buruj",arabic:"??????",verses:22,pages:1},{id:86,name:"At-Tariq",arabic:"??????",verses:17,pages:1},
-  {id:87,name:"Al-A'la",arabic:"??????",verses:19,pages:1},{id:88,name:"Al-Ghashiyah",arabic:"???????",verses:26,pages:1},
-  {id:89,name:"Al-Fajr",arabic:"?????",verses:30,pages:1},{id:90,name:"Al-Balad",arabic:"?????",verses:20,pages:1},
-  {id:91,name:"Ash-Shams",arabic:"?????",verses:15,pages:1},{id:92,name:"Al-Layl",arabic:"?????",verses:21,pages:1},
-  {id:93,name:"Ad-Duhaa",arabic:"?????",verses:11,pages:1},{id:94,name:"Ash-Sharh",arabic:"?????",verses:8,pages:1},
-  {id:95,name:"At-Tin",arabic:"?????",verses:8,pages:1},{id:96,name:"Al-'Alaq",arabic:"?????",verses:19,pages:1},
-  {id:97,name:"Al-Qadr",arabic:"?????",verses:5,pages:1},{id:98,name:"Al-Bayyinah",arabic:"??????",verses:8,pages:1},
-  {id:99,name:"Az-Zalzalah",arabic:"???????",verses:8,pages:1},{id:100,name:"Al-'Adiyat",arabic:"????????",verses:11,pages:1},
-  {id:101,name:"Al-Qari'ah",arabic:"???????",verses:11,pages:1},{id:102,name:"At-Takathur",arabic:"???????",verses:8,pages:1},
-  {id:103,name:"Al-'Asr",arabic:"?????",verses:3,pages:1},{id:104,name:"Al-Humazah",arabic:"??????",verses:9,pages:1},
-  {id:105,name:"Al-Fil",arabic:"?????",verses:5,pages:1},{id:106,name:"Quraysh",arabic:"????",verses:4,pages:1},
-  {id:107,name:"Al-Ma'un",arabic:"???????",verses:7,pages:1},{id:108,name:"Al-Kawthar",arabic:"??????",verses:3,pages:1},
-  {id:109,name:"Al-Kafirun",arabic:"????????",verses:6,pages:1},{id:110,name:"An-Nasr",arabic:"?????",verses:3,pages:1},
-  {id:111,name:"Al-Masad",arabic:"?????",verses:5,pages:1},{id:112,name:"Al-Ikhlas",arabic:"???????",verses:4,pages:1},
-  {id:113,name:"Al-Falaq",arabic:"?????",verses:5,pages:1},{id:114,name:"An-Nas",arabic:"?????",verses:6,pages:1},
+  {id:1,name:"Al-Fatihah",arabic:"الفاتحة",verses:7,pages:1},{id:2,name:"Al-Baqarah",arabic:"البقرة",verses:286,pages:49},
+  {id:3,name:"Ali 'Imran",arabic:"آل عمران",verses:200,pages:20},{id:4,name:"An-Nisa",arabic:"النساء",verses:176,pages:24},
+  {id:5,name:"Al-Ma'idah",arabic:"المائدة",verses:120,pages:16},{id:6,name:"Al-An'am",arabic:"الأنعام",verses:165,pages:21},
+  {id:7,name:"Al-A'raf",arabic:"الأعراف",verses:206,pages:24},{id:8,name:"Al-Anfal",arabic:"الأنفال",verses:75,pages:9},
+  {id:9,name:"At-Tawbah",arabic:"التوبة",verses:129,pages:16},{id:10,name:"Yunus",arabic:"يونس",verses:109,pages:11},
+  {id:11,name:"Hud",arabic:"هود",verses:123,pages:10},{id:12,name:"Yusuf",arabic:"يوسف",verses:111,pages:12},
+  {id:13,name:"Ar-Ra'd",arabic:"الرعد",verses:43,pages:6},{id:14,name:"Ibrahim",arabic:"إبراهيم",verses:52,pages:6},
+  {id:15,name:"Al-Hijr",arabic:"الحجر",verses:99,pages:6},{id:16,name:"An-Nahl",arabic:"النحل",verses:128,pages:13},
+  {id:17,name:"Al-Isra",arabic:"الإسراء",verses:111,pages:12},{id:18,name:"Al-Kahf",arabic:"الكهف",verses:110,pages:12},
+  {id:19,name:"Maryam",arabic:"مريم",verses:98,pages:6},{id:20,name:"Ta-Ha",arabic:"طه",verses:135,pages:8},
+  {id:21,name:"Al-Anbiya",arabic:"الأنبياء",verses:112,pages:7},{id:22,name:"Al-Hajj",arabic:"الحج",verses:78,pages:10},
+  {id:23,name:"Al-Mu'minun",arabic:"المؤمنون",verses:118,pages:7},{id:24,name:"An-Nur",arabic:"النور",verses:64,pages:9},
+  {id:25,name:"Al-Furqan",arabic:"الفرقان",verses:77,pages:6},{id:26,name:"Ash-Shu'ara",arabic:"الشعراء",verses:227,pages:11},
+  {id:27,name:"An-Naml",arabic:"النمل",verses:93,pages:8},{id:28,name:"Al-Qasas",arabic:"القصص",verses:88,pages:9},
+  {id:29,name:"Al-'Ankabut",arabic:"العنكبوت",verses:69,pages:7},{id:30,name:"Ar-Rum",arabic:"الروم",verses:60,pages:6},
+  {id:31,name:"Luqman",arabic:"لقمان",verses:34,pages:4},{id:32,name:"As-Sajdah",arabic:"السجدة",verses:30,pages:3},
+  {id:33,name:"Al-Ahzab",arabic:"الأحزاب",verses:73,pages:9},{id:34,name:"Saba",arabic:"سبأ",verses:54,pages:6},
+  {id:35,name:"Fatir",arabic:"فاطر",verses:45,pages:5},{id:36,name:"Ya-Sin",arabic:"يس",verses:83,pages:4},
+  {id:37,name:"As-Saffat",arabic:"الصافات",verses:182,pages:7},{id:38,name:"Sad",arabic:"ص",verses:88,pages:5},
+  {id:39,name:"Az-Zumar",arabic:"الزمر",verses:75,pages:8},{id:40,name:"Ghafir",arabic:"غافر",verses:85,pages:9},
+  {id:41,name:"Fussilat",arabic:"فصلت",verses:54,pages:8},{id:42,name:"Ash-Shuraa",arabic:"الشورى",verses:53,pages:5},
+  {id:43,name:"Az-Zukhruf",arabic:"الزخرف",verses:89,pages:7},{id:44,name:"Ad-Dukhan",arabic:"الدخان",verses:59,pages:3},
+  {id:45,name:"Al-Jathiyah",arabic:"الجاثية",verses:37,pages:4},{id:46,name:"Al-Ahqaf",arabic:"الأحقاف",verses:35,pages:4},
+  {id:47,name:"Muhammad",arabic:"محمد",verses:38,pages:4},{id:48,name:"Al-Fath",arabic:"الفتح",verses:29,pages:4},
+  {id:49,name:"Al-Hujurat",arabic:"الحجرات",verses:18,pages:2},{id:50,name:"Qaf",arabic:"ق",verses:45,pages:3},
+  {id:51,name:"Adh-Dhariyat",arabic:"الذاريات",verses:60,pages:3},{id:52,name:"At-Tur",arabic:"الطور",verses:49,pages:3},
+  {id:53,name:"An-Najm",arabic:"النجم",verses:62,pages:3},{id:54,name:"Al-Qamar",arabic:"القمر",verses:55,pages:3},
+  {id:55,name:"Ar-Rahman",arabic:"الرحمن",verses:78,pages:3},{id:56,name:"Al-Waqi'ah",arabic:"الواقعة",verses:96,pages:3},
+  {id:57,name:"Al-Hadid",arabic:"الحديد",verses:29,pages:5},{id:58,name:"Al-Mujadila",arabic:"المجادلة",verses:22,pages:3},
+  {id:59,name:"Al-Hashr",arabic:"الحشر",verses:24,pages:3},{id:60,name:"Al-Mumtahanah",arabic:"الممتحنة",verses:13,pages:3},
+  {id:61,name:"As-Saf",arabic:"الصف",verses:14,pages:2},{id:62,name:"Al-Jumu'ah",arabic:"الجمعة",verses:11,pages:2},
+  {id:63,name:"Al-Munafiqun",arabic:"المنافقون",verses:11,pages:2},{id:64,name:"At-Taghabun",arabic:"التغابن",verses:18,pages:2},
+  {id:65,name:"At-Talaq",arabic:"الطلاق",verses:12,pages:2},{id:66,name:"At-Tahrim",arabic:"التحريم",verses:12,pages:2},
+  {id:67,name:"Al-Mulk",arabic:"الملك",verses:30,pages:2},{id:68,name:"Al-Qalam",arabic:"القلم",verses:52,pages:2},
+  {id:69,name:"Al-Haqqah",arabic:"الحاقة",verses:52,pages:2},{id:70,name:"Al-Ma'arij",arabic:"المعارج",verses:44,pages:2},
+  {id:71,name:"Nuh",arabic:"نوح",verses:28,pages:2},{id:72,name:"Al-Jinn",arabic:"الجن",verses:28,pages:2},
+  {id:73,name:"Al-Muzzammil",arabic:"المزمل",verses:20,pages:1},{id:74,name:"Al-Muddaththir",arabic:"المدثر",verses:56,pages:2},
+  {id:75,name:"Al-Qiyamah",arabic:"القيامة",verses:40,pages:1},{id:76,name:"Al-Insan",arabic:"الإنسان",verses:31,pages:2},
+  {id:77,name:"Al-Mursalat",arabic:"المرسلات",verses:50,pages:1},{id:78,name:"An-Naba",arabic:"النبأ",verses:40,pages:1},
+  {id:79,name:"An-Nazi'at",arabic:"النازعات",verses:46,pages:1},{id:80,name:"'Abasa",arabic:"عبس",verses:42,pages:1},
+  {id:81,name:"At-Takwir",arabic:"التكوير",verses:29,pages:1},{id:82,name:"Al-Infitar",arabic:"الانفطار",verses:19,pages:1},
+  {id:83,name:"Al-Mutaffifin",arabic:"المطففين",verses:36,pages:1},{id:84,name:"Al-Inshiqaq",arabic:"الانشقاق",verses:25,pages:1},
+  {id:85,name:"Al-Buruj",arabic:"البروج",verses:22,pages:1},{id:86,name:"At-Tariq",arabic:"الطارق",verses:17,pages:1},
+  {id:87,name:"Al-A'la",arabic:"الأعلى",verses:19,pages:1},{id:88,name:"Al-Ghashiyah",arabic:"الغاشية",verses:26,pages:1},
+  {id:89,name:"Al-Fajr",arabic:"الفجر",verses:30,pages:1},{id:90,name:"Al-Balad",arabic:"البلد",verses:20,pages:1},
+  {id:91,name:"Ash-Shams",arabic:"الشمس",verses:15,pages:1},{id:92,name:"Al-Layl",arabic:"الليل",verses:21,pages:1},
+  {id:93,name:"Ad-Duhaa",arabic:"الضحى",verses:11,pages:1},{id:94,name:"Ash-Sharh",arabic:"الشرح",verses:8,pages:1},
+  {id:95,name:"At-Tin",arabic:"التين",verses:8,pages:1},{id:96,name:"Al-'Alaq",arabic:"العلق",verses:19,pages:1},
+  {id:97,name:"Al-Qadr",arabic:"القدر",verses:5,pages:1},{id:98,name:"Al-Bayyinah",arabic:"البينة",verses:8,pages:1},
+  {id:99,name:"Az-Zalzalah",arabic:"الزلزلة",verses:8,pages:1},{id:100,name:"Al-'Adiyat",arabic:"العاديات",verses:11,pages:1},
+  {id:101,name:"Al-Qari'ah",arabic:"القارعة",verses:11,pages:1},{id:102,name:"At-Takathur",arabic:"التكاثر",verses:8,pages:1},
+  {id:103,name:"Al-'Asr",arabic:"العصر",verses:3,pages:1},{id:104,name:"Al-Humazah",arabic:"الهمزة",verses:9,pages:1},
+  {id:105,name:"Al-Fil",arabic:"الفيل",verses:5,pages:1},{id:106,name:"Quraysh",arabic:"قريش",verses:4,pages:1},
+  {id:107,name:"Al-Ma'un",arabic:"الماعون",verses:7,pages:1},{id:108,name:"Al-Kawthar",arabic:"الكوثر",verses:3,pages:1},
+  {id:109,name:"Al-Kafirun",arabic:"الكافرون",verses:6,pages:1},{id:110,name:"An-Nasr",arabic:"النصر",verses:3,pages:1},
+  {id:111,name:"Al-Masad",arabic:"المسد",verses:5,pages:1},{id:112,name:"Al-Ikhlas",arabic:"الإخلاص",verses:4,pages:1},
+  {id:113,name:"Al-Falaq",arabic:"الفلق",verses:5,pages:1},{id:114,name:"An-Nas",arabic:"الناس",verses:6,pages:1},
 ];
 
 const RECITERS = [
-  { id: "ar.alafasy",       name: "Mishary Alafasy",    arabic: "????? ???????" },
-  { id: "ar.abdurrahmaansudais", name: "Abdurrahman As-Sudais", arabic: "??? ?????? ??????" },
-  { id: "ar.husary",        name: "Mahmoud Khalil Al-Husary", arabic: "????? ???? ??????" },
-  { id: "ar.minshawi",      name: "Mohamed Siddiq Al-Minshawi", arabic: "???? ???? ????????" },
+  { id: "ar.alafasy",       name: "Mishary Alafasy",    arabic: "مشاري العفاسي" },
+  { id: "ar.abdurrahmaansudais", name: "Abdurrahman As-Sudais", arabic: "عبد الرحمن السديس" },
+  { id: "ar.husary",        name: "Mahmoud Khalil Al-Husary", arabic: "محمود خليل الحصري" },
+  { id: "ar.minshawi",      name: "Mohamed Siddiq Al-Minshawi", arabic: "محمد صديق المنشاوي" },
 ];
 
 const MEMORIZATION_LEVELS = [
-  { value: "excellent", label: "Excellent", arabic: "?????", color: "#059669", bg: "#d1fae5", icon: "??" },
-  { value: "good",      label: "Good",      arabic: "???",   color: "#0284c7", bg: "#dbeafe", icon: "?" },
-  { value: "average",   label: "Average",   arabic: "?????", color: "#d97706", bg: "#fef3c7", icon: "??" },
-  { value: "weak",      label: "Weak",      arabic: "????",  color: "#dc2626", bg: "#fee2e2", icon: "??" },
+  { value: "excellent", label: "Excellent", arabic: "ممتاز", color: "#059669", bg: "#d1fae5", icon: "🌟" },
+  { value: "good",      label: "Good",      arabic: "جيد",   color: "#0284c7", bg: "#dbeafe", icon: "✅" },
+  { value: "average",   label: "Average",   arabic: "متوسط", color: "#d97706", bg: "#fef3c7", icon: "📖" },
+  { value: "weak",      label: "Weak",      arabic: "ضعيف",  color: "#dc2626", bg: "#fee2e2", icon: "⚠️" },
 ];
 
-// ── QuranPageText Component (synchronized player) ────────────────────────────
+// â”€â”€ QuranPageText Component (synchronized player) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Global audio controller - persists across re-renders
 const _QAudio = {
   el: null,
@@ -5480,7 +5480,7 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
   if (loading) return (
     <div style={{ display:"flex", justifyContent:"center", alignItems:"center", height:400 }}>
       <div style={{ textAlign:"center" }}>
-        <div style={{ fontSize:24, marginBottom:8 }}>⏳</div>
+        <div style={{ fontSize:24, marginBottom:8 }}>â³</div>
         <div style={{ fontSize:12, color:"#94a3b8" }}>Loading page {page}...</div>
       </div>
     </div>
@@ -5509,7 +5509,7 @@ function QuranPageText({ page, reciter, playing, setPlaying, externalAudio, setE
         <button
           onClick={togglePagePlay}
           style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 20px", borderRadius:20, border:"none", background: pageAudioPlay?"#ef4444":"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 12px rgba(13,148,136,.3)" }}>
-          {pageAudioPlay ? "⏹ Stop" : "\u25b6 Play Page"}
+          {pageAudioPlay ? "â¹ Stop" : "\u25b6 Play Page"}
         </button>
         {pageAudioPlay && (
           <div style={{ display:"flex", alignItems:"center", gap:3, marginRight:12 }}>
@@ -5696,8 +5696,8 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
 
       <div style={{ maxWidth:600, margin:"0 auto" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-          <button onClick={() => setHifzView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
-          <div style={{ fontSize:16, fontWeight:800, color:S.text }}>?? Record Hifz Session</div>
+          <button onClick={() => setHifzView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+          <div style={{ fontSize:16, fontWeight:800, color:S.text }}>📗 Record Hifz Session</div>
         </div>
         <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24 }}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
@@ -5705,7 +5705,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
               <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Student *</label>
               <select style={inp} value={hifzForm.studentId} onChange={e=>setHifzForm({...hifzForm,studentId:e.target.value})}>
                 <option value="">Select student...</option>
-                {visibleStudents.map(s=><option key={s.id} value={s.id}>{s.name} � {(classes.find(c=>c.id===s.classId)||{}).name||""}</option>)}
+                {visibleStudents.map(s=><option key={s.id} value={s.id}>{s.name} — {(classes.find(c=>c.id===s.classId)||{}).name||""}</option>)}
               </select>
             </div>
             <div>
@@ -5721,7 +5721,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
             <div>
               <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Level</label>
               <select style={inp} value={hifzForm.level} onChange={e=>setHifzForm({...hifzForm,level:e.target.value})}>
-                {HIFZ_LEVELS.map(l=><option key={l.value} value={l.value}>{l.icon} {l.label} � {l.arabic}</option>)}
+                {HIFZ_LEVELS.map(l=><option key={l.value} value={l.value}>{l.icon} {l.label} — {l.arabic}</option>)}
               </select>
             </div>
             <div style={{ gridColumn:"1/-1" }}>
@@ -5730,7 +5730,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
             </div>
           </div>
           <button onClick={saveHifz} style={{ width:"100%", padding:"13px 0", borderRadius:12, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
-            ?? Save Record
+            💾 Save Record
           </button>
         </div>
       </div>
@@ -5741,11 +5741,11 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
         {/* Header */}
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
           <div>
-            <div style={{ fontSize:20, fontWeight:800, color:S.text }}>?? Hifz Tracker</div>
+            <div style={{ fontSize:20, fontWeight:800, color:S.text }}>📗 Hifz Tracker</div>
             <div style={{ fontSize:13, color:S.sub, marginTop:2 }}>Quran memorization progress</div>
           </div>
           <div style={{ display:"flex", gap:8 }}>
-            <button onClick={() => setView("dashboard")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>? Back</button>
+            <button onClick={() => setView("dashboard")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
             <button onClick={() => setHifzView("add")} style={{ padding:"9px 18px", borderRadius:9, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>+ Record Session</button>
           </div>
         </div>
@@ -5753,10 +5753,10 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
         {/* Stats */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
           {[
-            { icon:"??", label:"Total Students", value: visibleStudents.length, dark:true },
-            { icon:"??", label:"Memorized Surahs", value: hifzRecords.filter(r=>r.level==="memorized").length, color:"#059669" },
-            { icon:"??", label:"Reviewing", value: hifzRecords.filter(r=>r.level==="reviewing").length, color:"#0284c7" },
-            { icon:"??", label:"Needs Work", value: hifzRecords.filter(r=>r.level==="weak").length, color:"#dc2626" },
+            { icon:"👥", label:"Total Students", value: visibleStudents.length, dark:true },
+            { icon:"🌟", label:"Memorized Surahs", value: hifzRecords.filter(r=>r.level==="memorized").length, color:"#059669" },
+            { icon:"📖", label:"Reviewing", value: hifzRecords.filter(r=>r.level==="reviewing").length, color:"#0284c7" },
+            { icon:"⚠️", label:"Needs Work", value: hifzRecords.filter(r=>r.level==="weak").length, color:"#dc2626" },
           ].map((s,i)=>(
             <div key={i} style={{ background: s.dark?"linear-gradient(135deg,#0f172a,#1e293b)":"#fff", borderRadius:14, border: s.dark?"none":"1px solid #e2e8f0", padding:"18px 20px" }}>
               <div style={{ fontSize:22, marginBottom:8 }}>{s.icon}</div>
@@ -5817,7 +5817,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
                 {/* Last session */}
                 {lastRecord && (
                   <div style={{ fontSize:11, color:S.sub, borderTop:"1px solid #f1f5f9", paddingTop:8 }}>
-                    Last: <span style={{ fontFamily:"serif", color:S.text }}>{lastRecord.surahArabic}</span> � {lastRecord.date}
+                    Last: <span style={{ fontFamily:"serif", color:S.text }}>{lastRecord.surahArabic}</span> · {lastRecord.date}
                   </div>
                 )}
               </div>
@@ -5936,7 +5936,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
     </div>
   );
 
-  // -- Student Detail View ---------------------------------------------------
+  // ── Student Detail View ───────────────────────────────────────────────────
   if (view === "student" && selectedStudent) {
     const student = students.find(s=>s.id===selectedStudent);
     const records = getStudentRecord(selectedStudent);
@@ -5944,17 +5944,17 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
     return (
       <div style={{ maxWidth:700, margin:"0 auto" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-          <button onClick={() => setView("dashboard")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
+          <button onClick={() => setView("dashboard")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:18, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>{student?.name}</div>
-            <div style={{ fontSize:12, color:S.sub }}>{cls?.name} � {records.length} session{records.length!==1?"s":""}</div>
+            <div style={{ fontSize:12, color:S.sub }}>{cls?.name} · {records.length} session{records.length!==1?"s":""}</div>
           </div>
           <button onClick={() => { setForm({...form, studentId:String(selectedStudent)}); setView("record"); }} style={{ padding:"9px 18px", borderRadius:9, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>+ Add Session</button>
         </div>
 
         {records.length === 0 ? (
           <div style={{ textAlign:"center", padding:60, background:"#fff", borderRadius:14, border:"1px solid #e2e8f0" }}>
-            <div style={{ fontSize:40, marginBottom:12 }}>??</div>
+            <div style={{ fontSize:40, marginBottom:12 }}>📖</div>
             <div style={{ fontSize:15, color:S.sub }}>No memorization sessions recorded yet</div>
           </div>
         ) : records.map(r => {
@@ -5966,7 +5966,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:18, fontWeight:700, color:"#1e293b", fontFamily:"'Amiri Quran','Amiri Quran','Scheherazade New',serif" }}>{surah?.arabic || r.surahArabic}</div>
                   <div style={{ fontSize:13, fontWeight:600, color:S.text }}>{surah?.name || r.surahName}</div>
-                  <div style={{ fontSize:12, color:S.sub, marginTop:4 }}>Pages {r.fromPage} � {r.toPage} � {r.date}</div>
+                  <div style={{ fontSize:12, color:S.sub, marginTop:4 }}>Pages {r.fromPage} – {r.toPage} · {r.date}</div>
                   {r.notes && <div style={{ fontSize:12, color:S.sub, marginTop:6, fontStyle:"italic" }}>"{r.notes}"</div>}
                 </div>
                 <div style={{ background:level.bg, color:level.color, borderRadius:10, padding:"6px 14px", fontSize:13, fontWeight:700, flexShrink:0 }}>
@@ -5974,7 +5974,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
                 </div>
               </div>
               <div style={{ marginTop:10, background:"#f0fdf9", borderRadius:8, padding:"6px 12px", display:"inline-flex", alignItems:"center", gap:8, cursor:"pointer" }} onClick={() => { setSelectedSurah(Number(r.surahId)); setView("player"); }}>
-                <span style={{ fontSize:14 }}>??</span>
+                <span style={{ fontSize:14 }}>🎧</span>
                 <span style={{ fontSize:12, color:"#0d9488", fontWeight:600 }}>Listen to {surah?.name}</span>
               </div>
             </div>
@@ -5984,28 +5984,28 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
     );
   }
 
-  // -- Dashboard -------------------------------------------------------------
+  // ── Dashboard ─────────────────────────────────────────────────────────────
   return (
     <div>
       {/* Header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
-          <div style={{ fontSize:20, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>?? Quran Program</div>
+          <div style={{ fontSize:20, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>🕌 Quran Program</div>
           <div style={{ fontSize:13, color:S.sub, marginTop:2 }}>Memorization tracking & recitation</div>
         </div>
         <div style={{ display:"flex", gap:8 }}>
-          <button onClick={() => setView("player")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:6 }}>?? Quran Player</button>
-          <button onClick={() => setView("hifz")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:6 }}>?? Hifz Tracker</button>
+          <button onClick={() => setView("player")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:6 }}>🎧 Quran Player</button>
+          <button onClick={() => setView("hifz")} style={{ padding:"9px 18px", borderRadius:9, border:"1px solid #e2e8f0", background:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:6 }}>📗 Hifz Tracker</button>
         </div>
       </div>
 
       {/* Stats */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
         {[
-          { icon:"??", label:"Total Students", value: visibleStudents.length, color:"#0f172a", dark:true },
-          { icon:"??", label:"Total Sessions", value: (quranRecords||[]).length, color:"#0d9488" },
-          { icon:"??", label:"Excellent", value: (quranRecords||[]).filter(r=>r.level==="excellent").length, color:"#059669" },
-          { icon:"??", label:"Need Support", value: (quranRecords||[]).filter(r=>r.level==="weak").length, color:"#dc2626" },
+          { icon:"👥", label:"Total Students", value: visibleStudents.length, color:"#0f172a", dark:true },
+          { icon:"📖", label:"Total Sessions", value: (quranRecords||[]).length, color:"#0d9488" },
+          { icon:"🌟", label:"Excellent", value: (quranRecords||[]).filter(r=>r.level==="excellent").length, color:"#059669" },
+          { icon:"⚠️", label:"Need Support", value: (quranRecords||[]).filter(r=>r.level==="weak").length, color:"#dc2626" },
         ].map((s,i)=>(
           <div key={i} style={{ background: s.dark?"linear-gradient(135deg,#0f172a,#1e293b)":"#fff", borderRadius:14, border: s.dark?"none":"1px solid #e2e8f0", padding:"18px 20px", boxShadow: s.dark?"0 4px 16px rgba(0,0,0,.15)":"none" }}>
             <div style={{ fontSize:22, marginBottom:8 }}>{s.icon}</div>
@@ -6046,7 +6046,7 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
               {latest ? (
                 <div>
                   <div style={{ fontSize:16, fontWeight:700, color:"#1e293b", fontFamily:"'Amiri Quran','Amiri Quran','Scheherazade New',serif", marginBottom:2 }}>{surah?.arabic}</div>
-                  <div style={{ fontSize:11, color:S.sub, marginBottom:8 }}>Pages {latest.fromPage}�{latest.toPage} � {latest.date}</div>
+                  <div style={{ fontSize:11, color:S.sub, marginBottom:8 }}>Pages {latest.fromPage}–{latest.toPage} · {latest.date}</div>
                   <div style={{ background:level?.bg, color:level?.color, borderRadius:8, padding:"4px 10px", fontSize:11, fontWeight:700, display:"inline-block" }}>
                     {level?.icon} {level?.label}
                   </div>
@@ -6062,10 +6062,10 @@ function QuranProgram({ students, classes, quranRecords, setQuranRecords, hifzRe
   );
 }
 
-// --- TeacherEvaluations -------------------------------------------------------
+// ─── TeacherEvaluations ───────────────────────────────────────────────────────
 const EVAL_SECTIONS = [
   {
-    id: "planning", title: "Planning and Preparation", icon: "??", color: "#3b82f6",
+    id: "planning", title: "Planning and Preparation", icon: "📋", color: "#3b82f6",
     criteria: [
       "Clarity of educational objectives and measurability",
       "Variety in activities and teaching strategies",
@@ -6074,7 +6074,7 @@ const EVAL_SECTIONS = [
     ]
   },
   {
-    id: "implementation", title: "Lesson Implementation", icon: "??", color: "#0d9488",
+    id: "implementation", title: "Lesson Implementation", icon: "🎯", color: "#0d9488",
     criteria: [
       "Clarity of presentation and logical sequence of ideas",
       "Effective use of technology and educational aids",
@@ -6084,7 +6084,7 @@ const EVAL_SECTIONS = [
     ]
   },
   {
-    id: "management", title: "Classroom Management", icon: "??", color: "#7c3aed",
+    id: "management", title: "Classroom Management", icon: "🏫", color: "#7c3aed",
     criteria: [
       "Maintaining order and classroom discipline",
       "Creating a positive and motivating learning environment",
@@ -6092,7 +6092,7 @@ const EVAL_SECTIONS = [
     ]
   },
   {
-    id: "assessment", title: "Assessment and Feedback", icon: "??", color: "#f59e0b",
+    id: "assessment", title: "Assessment and Feedback", icon: "📊", color: "#f59e0b",
     criteria: [
       "Variety of assessment methods (diagnostic, formative, summative)",
       "Providing constructive and immediate feedback",
@@ -6100,7 +6100,7 @@ const EVAL_SECTIONS = [
     ]
   },
   {
-    id: "professional", title: "Personal and Professional Qualities", icon: "?", color: "#ec4899",
+    id: "professional", title: "Personal and Professional Qualities", icon: "⭐", color: "#ec4899",
     criteria: [
       "Professional appearance and punctuality",
       "Communication skills with students and colleagues",
@@ -6180,7 +6180,7 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
   const S = { border:"#e2e8f0", primary:"#0d9488", text:"#0f172a", sub:"#64748b" };
   const inp = { width:"100%", padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
 
-  // -- Detail View -----------------------------------------------------------
+  // ── Detail View ───────────────────────────────────────────────────────────
   if (view === "detail" && selected) {
     const ev = (evaluations||[]).find(e => e.id === selected);
     if (!ev) { setView("list"); return null; }
@@ -6188,12 +6188,12 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
     return (
       <div style={{ maxWidth:780, margin:"0 auto" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-          <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
+          <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:18, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>Teacher Evaluation Report</div>
-            <div style={{ fontSize:12, color:S.sub }}>{ev.teacherName} � {ev.visitDate} � {ev.visitType}</div>
+            <div style={{ fontSize:12, color:S.sub }}>{ev.teacherName} · {ev.visitDate} · {ev.visitType}</div>
           </div>
-          {isAdmin && <button onClick={() => deleteEval(ev.id)} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:12, cursor:"pointer" }}>??? Delete</button>}
+          {isAdmin && <button onClick={() => deleteEval(ev.id)} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #fca5a5", background:"#fee2e2", color:"#dc2626", fontSize:12, cursor:"pointer" }}>🗑️ Delete</button>}
         </div>
 
         {/* Score Banner */}
@@ -6201,7 +6201,7 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
           <div style={{ flex:1 }}>
             <div style={{ fontSize:11, color:"rgba(255,255,255,.5)", fontWeight:600, letterSpacing:1, marginBottom:4 }}>OVERALL PERFORMANCE</div>
             <div style={{ fontSize:20, fontWeight:800, fontFamily:"'Plus Jakarta Sans',system-ui" }}>{ev.teacherName}</div>
-            <div style={{ fontSize:13, color:"rgba(255,255,255,.5)", marginTop:2 }}>{ev.visitType} � {ev.lessonTopic || "�"} � {ev.studentCount ? ev.studentCount + " students" : ""}</div>
+            <div style={{ fontSize:13, color:"rgba(255,255,255,.5)", marginTop:2 }}>{ev.visitType} · {ev.lessonTopic || "—"} · {ev.studentCount ? ev.studentCount + " students" : ""}</div>
             <div style={{ fontSize:12, color:"rgba(255,255,255,.4)", marginTop:4 }}>Evaluated by: {ev.evaluatorName}</div>
           </div>
           <div style={{ textAlign:"center", background:"rgba(255,255,255,.08)", borderRadius:14, padding:"16px 24px" }}>
@@ -6227,7 +6227,7 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
                     <div style={{ fontSize:20, fontWeight:800, color:perf2?.color }}>{result.pct}%</div>
                     <div style={{ fontSize:10, color:S.sub }}>{result.score}/{result.max}</div>
                   </>
-                ) : <div style={{ fontSize:12, color:"#94a3b8" }}>�</div>}
+                ) : <div style={{ fontSize:12, color:"#94a3b8" }}>—</div>}
               </div>
             );
           })}
@@ -6276,19 +6276,19 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
             {ev.strengths && (
               <div style={{ background:"#f0fdf4", borderRadius:12, border:"1px solid #bbf7d0", padding:16 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:"#166534", marginBottom:8 }}>? Strengths</div>
+                <div style={{ fontSize:13, fontWeight:700, color:"#166534", marginBottom:8 }}>✨ Strengths</div>
                 <p style={{ fontSize:13, color:"#166534", margin:0, lineHeight:1.6 }}>{ev.strengths}</p>
               </div>
             )}
             {ev.improvements && (
               <div style={{ background:"#eff6ff", borderRadius:12, border:"1px solid #bfdbfe", padding:16 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:"#1d4ed8", marginBottom:8 }}>?? Areas for Improvement</div>
+                <div style={{ fontSize:13, fontWeight:700, color:"#1d4ed8", marginBottom:8 }}>📈 Areas for Improvement</div>
                 <p style={{ fontSize:13, color:"#1d4ed8", margin:0, lineHeight:1.6 }}>{ev.improvements}</p>
               </div>
             )}
             {ev.observations && (
               <div style={{ gridColumn:"1/-1", background:"#fffbeb", borderRadius:12, border:"1px solid #fde68a", padding:16 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:"#854d0e", marginBottom:8 }}>?? Observations & Recommendations</div>
+                <div style={{ fontSize:13, fontWeight:700, color:"#854d0e", marginBottom:8 }}>💬 Observations & Recommendations</div>
                 <p style={{ fontSize:13, color:"#78350f", margin:0, lineHeight:1.6 }}>{ev.observations}</p>
               </div>
             )}
@@ -6298,17 +6298,17 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
     );
   }
 
-  // -- Create View -----------------------------------------------------------
+  // ── Create View ───────────────────────────────────────────────────────────
   if (view === "create") return (
     <div style={{ maxWidth:740, margin:"0 auto" }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-        <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>? Back</button>
-        <div style={{ fontSize:16, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>? New Teacher Evaluation</div>
+        <button onClick={() => setView("list")} style={{ padding:"7px 14px", borderRadius:8, border:"1px solid #e2e8f0", background:"#fff", cursor:"pointer", fontSize:13 }}>← Back</button>
+        <div style={{ fontSize:16, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>⭐ New Teacher Evaluation</div>
       </div>
 
       {/* Basic Info */}
       <div style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24, marginBottom:16 }}>
-        <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:16 }}>?? Evaluation Information</div>
+        <div style={{ fontSize:13, fontWeight:700, color:S.text, marginBottom:16 }}>📋 Evaluation Information</div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
           <div>
             <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Teacher *</label>
@@ -6389,26 +6389,26 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
       {/* Observations */}
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
         <div style={{ background:"#f0fdf4", borderRadius:14, border:"1px solid #bbf7d0", padding:20 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:"#166534", marginBottom:10 }}>? Strengths</div>
+          <div style={{ fontSize:13, fontWeight:700, color:"#166534", marginBottom:10 }}>✨ Strengths</div>
           <textarea style={{...inp,resize:"vertical",background:"transparent",border:"1px solid #86efac"}} rows={3} value={form.strengths} onChange={e=>setForm({...form,strengths:e.target.value})} placeholder="Teacher's strengths..." />
         </div>
         <div style={{ background:"#eff6ff", borderRadius:14, border:"1px solid #bfdbfe", padding:20 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:"#1d4ed8", marginBottom:10 }}>?? Areas for Improvement</div>
+          <div style={{ fontSize:13, fontWeight:700, color:"#1d4ed8", marginBottom:10 }}>📈 Areas for Improvement</div>
           <textarea style={{...inp,resize:"vertical",background:"transparent",border:"1px solid #93c5fd"}} rows={3} value={form.improvements} onChange={e=>setForm({...form,improvements:e.target.value})} placeholder="Areas that need development..." />
         </div>
         <div style={{ gridColumn:"1/-1", background:"#fffbeb", borderRadius:14, border:"1px solid #fde68a", padding:20 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:"#854d0e", marginBottom:10 }}>?? Observations & Recommendations</div>
+          <div style={{ fontSize:13, fontWeight:700, color:"#854d0e", marginBottom:10 }}>💬 Observations & Recommendations</div>
           <textarea style={{...inp,resize:"vertical",background:"transparent",border:"1px solid #fcd34d"}} rows={3} value={form.observations} onChange={e=>setForm({...form,observations:e.target.value})} placeholder="General observations and recommendations..." />
         </div>
       </div>
 
       <button onClick={saveEval} style={{ width:"100%", padding:"14px 0", borderRadius:12, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 16px rgba(13,148,136,.3)" }}>
-        ?? Save Evaluation
+        💾 Save Evaluation
       </button>
     </div>
   );
 
-  // -- List View -------------------------------------------------------------
+  // ── List View ─────────────────────────────────────────────────────────────
   const filtered = filterTeacher === "all" ? (evaluations||[]) : (evaluations||[]).filter(e=>String(e.teacherId)===String(filterTeacher));
   const sorted = [...filtered].sort((a,b)=>b.createdAt?.localeCompare(a.createdAt||"")||0);
 
@@ -6416,7 +6416,7 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
-          <div style={{ fontSize:20, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>? Teacher Evaluations</div>
+          <div style={{ fontSize:20, fontWeight:800, color:S.text, fontFamily:"'Plus Jakarta Sans',system-ui" }}>⭐ Teacher Evaluations</div>
           <div style={{ fontSize:13, color:S.sub, marginTop:2 }}>Performance evaluation records</div>
         </div>
         {isAdmin && <button onClick={() => setView("create")} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 12px rgba(13,148,136,.3)" }}>+ New Evaluation</button>}
@@ -6463,7 +6463,7 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
       {/* Evaluations List */}
       {sorted.length === 0 ? (
         <div style={{ textAlign:"center", padding:60, background:"#fff", borderRadius:14, border:"1px solid #e2e8f0" }}>
-          <div style={{ fontSize:40, marginBottom:12 }}>?</div>
+          <div style={{ fontSize:40, marginBottom:12 }}>⭐</div>
           <div style={{ fontSize:15, fontWeight:700, color:S.text }}>No evaluations yet</div>
           {isAdmin && <div style={{ fontSize:13, color:S.sub, marginTop:4 }}>Click "New Evaluation" to start</div>}
         </div>
@@ -6480,7 +6480,7 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
                 </div>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:14, fontWeight:700, color:S.text }}>{ev.teacherName}</div>
-                  <div style={{ fontSize:12, color:S.sub, marginTop:2 }}>{ev.visitType} � {ev.visitDate} {ev.lessonTopic?"� "+ev.lessonTopic:""}</div>
+                  <div style={{ fontSize:12, color:S.sub, marginTop:2 }}>{ev.visitType} · {ev.visitDate} {ev.lessonTopic?"· "+ev.lessonTopic:""}</div>
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                   <div style={{ textAlign:"right" }}>
@@ -6489,7 +6489,7 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
                   </div>
                   <div style={{ background:perf.bg, color:perf.color, borderRadius:8, padding:"4px 12px", fontSize:12, fontWeight:700, flexShrink:0 }}>{perf.label}</div>
                 </div>
-                <span style={{ fontSize:16, color:"#94a3b8" }}>�</span>
+                <span style={{ fontSize:16, color:"#94a3b8" }}>›</span>
               </div>
             );
           })}
@@ -6502,9 +6502,9 @@ function TeacherEvaluations({ teachers, evaluations, setEvaluations, userRole, a
 
 function StaffPasswords() {
   const accounts = [
-    { label: "Admin",      pwdKey: "edu_admin_password",      defPwd: "admin123",      defUser: "admin",      icon: "??" },
-    { label: "Principal",  pwdKey: "edu_principal_password",  defPwd: "principal123",  defUser: "principal",  icon: "??" },
-    { label: "Supervisor", pwdKey: "edu_supervisor_password", defPwd: "supervisor123", defUser: "supervisor", icon: "???" },
+    { label: "Admin",      pwdKey: "edu_admin_password",      defPwd: "admin123",      defUser: "admin",      icon: "⚙️" },
+    { label: "Principal",  pwdKey: "edu_principal_password",  defPwd: "principal123",  defUser: "principal",  icon: "🏫" },
+    { label: "Supervisor", pwdKey: "edu_supervisor_password", defPwd: "supervisor123", defUser: "supervisor", icon: "👁️" },
   ];
   const [vals, setVals] = useState(() => {
     const obj = {};
@@ -6547,7 +6547,7 @@ function StaffPasswords() {
                   style={{ ...inp, flex: 1 }} />
                 <button onClick={() => setShow(prev => ({ ...prev, [pwdKey]: !prev[pwdKey] }))}
                   style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #e2e8f0", background: "#fff", cursor: "pointer", fontSize: 13 }}>
-                  {show[pwdKey] ? "??" : "??"}
+                  {show[pwdKey] ? "🙈" : "👁"}
                 </button>
               </div>
             </div>
@@ -6555,7 +6555,7 @@ function StaffPasswords() {
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <button onClick={() => save(pwdKey)}
               style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: saved[pwdKey] ? "#d1fae5" : "#0d9488", color: saved[pwdKey] ? "#065f46" : "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-              {saved[pwdKey] ? "? Saved" : "?? Save"}
+              {saved[pwdKey] ? "✓ Saved" : "💾 Save"}
             </button>
           </div>
         </div>
@@ -6564,7 +6564,7 @@ function StaffPasswords() {
   );
 }
 
-// --- Settings ----------------------------------------------------------------
+// ─── Settings ────────────────────────────────────────────────────────────────
 function Settings({ teachers, setTeachers, students, setStudents, classes, subjects, setSubjects }) {
   const [parentEditId, setParentEditId] = useState(null);
   const [parentForm, setParentForm] = useState({ username: "", password: "" });
@@ -6662,20 +6662,20 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
   return (
     <div style={{ maxWidth: 820, margin: "0 auto" }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
-        {[["school","??","School"],["subjects","??","Subjects"],["teachers","?????","Teachers"],["parents","????????","Parents"],["students-pwd","??","Students"],["staff-pwd","??","Staff Access"],["appearance","??","Appearance"],["data","??","Data"]].map(([id,icon,label]) => (
+        {[["school","🏫","School"],["subjects","📚","Subjects"],["teachers","👨‍🏫","Teachers"],["parents","👨‍👩‍👧","Parents"],["students-pwd","🎓","Students"],["staff-pwd","🔐","Staff Access"],["appearance","🎨","Appearance"],["data","📦","Data"]].map(([id,icon,label]) => (
           <button key={id} style={tabStyle(id)} onClick={() => setTab(id)}>{icon} {label}</button>
         ))}
       </div>
 
       {saved && (
         <div style={{ background: saved.startsWith("ERROR") ? S.dangerBg : "#d1fae5", color: saved.startsWith("ERROR") ? S.danger : "#065f46", padding: "10px 16px", borderRadius: 8, marginBottom: 16, fontSize: 13, fontWeight: 500 }}>
-          {saved.startsWith("ERROR") ? "?" : "?"} {saved}
+          {saved.startsWith("ERROR") ? "❌" : "✅"} {saved}
         </div>
       )}
 
       {tab === "school" && (
         <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, padding: 24 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: S.textMain, marginBottom: 20 }}>?? School Information</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: S.textMain, marginBottom: 20 }}>🏫 School Information</div>
           {[["School Name","name","text"],["Slogan","sub","text"],["Email","email","email"],["Academic Year","year","text"]].map(([label,key,type]) => (
             <div key={key}>
               <label style={{ fontSize: 12, fontWeight: 600, color: S.textSub, display: "block", marginBottom: 4 }}>{label}</label>
@@ -6683,9 +6683,9 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
             </div>
           ))}
           <div style={{ borderTop: `1px solid ${S.border}`, paddingTop: 16, marginTop: 4 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: S.textMain, marginBottom: 12 }}>?? Admin Password</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: S.textMain, marginBottom: 12 }}>🔐 Admin Password</div>
             <label style={{ fontSize: 12, fontWeight: 600, color: S.textSub, display: "block", marginBottom: 4 }}>New Password (leave blank to keep current)</label>
-            <input type="password" style={inputStyle} placeholder="��������" value={schoolForm.adminPassword} onChange={e => setSchoolForm({...schoolForm, adminPassword: e.target.value})} />
+            <input type="password" style={inputStyle} placeholder="••••••••" value={schoolForm.adminPassword} onChange={e => setSchoolForm({...schoolForm, adminPassword: e.target.value})} />
           </div>
                     <div style={{ borderTop: "1px solid " + S.border, paddingTop: 16, marginTop: 4, marginBottom: 16 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: S.textMain, marginBottom: 12 }}>School Logo</div>
@@ -6707,13 +6707,13 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
               </div>
             </div>
           </div>
-          <button onClick={saveSchoolInfo} style={{ padding: "10px 24px", borderRadius: 8, border: "none", background: S.primary, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>?? Save Settings</button>
+          <button onClick={saveSchoolInfo} style={{ padding: "10px 24px", borderRadius: 8, border: "none", background: S.primary, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>💾 Save Settings</button>
         </div>
       )}
 
       {tab === "teachers" && (
         <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, overflow: "hidden" }}>
-          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>????? Teacher Login Credentials</div>
+          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>👨‍🏫 Teacher Login Credentials</div>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#f8fafc" }}>
@@ -6730,13 +6730,13 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
                   <td style={{ padding: "12px 16px" }}>
                     {editId === t.id
                       ? <input value={form.username} onChange={e => setForm({...form, username: e.target.value})} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "inherit", width: 130 }} />
-                      : <span style={{ fontSize: 13, fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4 }}>{t.username || "�"}</span>
+                      : <span style={{ fontSize: 13, fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4 }}>{t.username || "—"}</span>
                     }
                   </td>
                   <td style={{ padding: "12px 16px" }}>
                     {editId === t.id
                       ? <input value={form.password} onChange={e => setForm({...form, password: e.target.value})} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "inherit", width: 130 }} />
-                      : <span style={{ fontSize: 13, fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4 }}>{t.password ? "��������" : "�"}</span>
+                      : <span style={{ fontSize: 13, fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4 }}>{t.password ? "••••••••" : "—"}</span>
                     }
                   </td>
                   <td style={{ padding: "12px 16px" }}>
@@ -6745,7 +6745,7 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
                           <button onClick={saveTeacher} style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: S.primary, color: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Save</button>
                           <button onClick={() => setEditId(null)} style={{ padding: "6px 14px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
                         </div>
-                      : <button onClick={() => openEdit(t)} style={{ padding: "6px 14px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit", color: S.textMain }}>?? Edit</button>
+                      : <button onClick={() => openEdit(t)} style={{ padding: "6px 14px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit", color: S.textMain }}>✏️ Edit</button>
                     }
                   </td>
                 </tr>
@@ -6757,9 +6757,9 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
 
       {tab === "students-pwd" && (
         <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, overflow: "hidden" }}>
-          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>?? Student Passwords</div>
+          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>🎓 Student Passwords</div>
           <div style={{ padding: "12px 20px", background: "#f0fdf4", borderBottom: `1px solid ${S.border}`, fontSize: 13, color: "#065f46" }}>
-            ?? Students log in using their <b>Student ID</b> + password below. Default: <b>student123</b>
+            ℹ️ Students log in using their <b>Student ID</b> + password below. Default: <b>student123</b>
           </div>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
@@ -6781,13 +6781,13 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
                     <td style={{ padding: "12px 16px", fontSize: 13 }}>
                       {isEditing
                         ? <input value={parentForm.username} onChange={e => setParentForm({...parentForm, username: e.target.value})} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "monospace", width: 100 }} placeholder="New SID" />
-                        : <span style={{ color: "#94a3b8", fontSize: 12 }}>�</span>
+                        : <span style={{ color: "#94a3b8", fontSize: 12 }}>—</span>
                       }
                     </td>
                     <td style={{ padding: "12px 16px", fontSize: 13 }}>
                       {isEditing
                         ? <input value={parentForm.password} onChange={e => setParentForm({...parentForm, password: e.target.value})} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "inherit", width: 140 }} />
-                        : <span style={{ fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4, fontSize: 12 }}>��������</span>
+                        : <span style={{ fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4, fontSize: 12 }}>••••••••</span>
                       }
                     </td>
                     <td style={{ padding: "12px 16px" }}>
@@ -6803,7 +6803,7 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
                           <button onClick={() => setParentEditId(null)} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
                         </div>
                       ) : (
-                        <button onClick={() => { setParentEditId(s.id + "_spwd"); setParentForm({ username: s.sid, password: pwd }); }} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>?? Edit</button>
+                        <button onClick={() => { setParentEditId(s.id + "_spwd"); setParentForm({ username: s.sid, password: pwd }); }} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>✏️ Edit</button>
                       )}
                     </td>
                   </tr>
@@ -6815,9 +6815,9 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
       )}
       {tab === "parents" && (
         <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, overflow: "hidden" }}>
-          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>???????? Parent Access</div>
+          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${S.border}`, fontSize: 14, fontWeight: 600, color: S.textMain }}>👨‍👩‍👧 Parent Access</div>
           <div style={{ padding: "12px 20px", background: "#f0fdf4", borderBottom: `1px solid ${S.border}`, fontSize: 13, color: "#065f46" }}>
-            ?? Parents log in using <b>Username</b> + <b>Password</b>. Default: Student ID + Phone Number.
+            ℹ️ Parents log in using <b>Username</b> + <b>Password</b>. Default: Student ID + Phone Number.
           </div>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
@@ -6844,13 +6844,13 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
                     <td style={{ padding: "12px 16px", fontSize: 13 }}>
                       {isEditing
                         ? <input value={parentForm.password} onChange={e => setParentForm({...parentForm, password: e.target.value})} style={{ padding: "6px 10px", borderRadius: 6, border: `1px solid ${S.border}`, fontSize: 13, fontFamily: "inherit", width: 120 }} />
-                        : <span style={{ fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4, fontSize: 12 }}>��������</span>
+                        : <span style={{ fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: 4, fontSize: 12 }}>••••••••</span>
                       }
                     </td>
                     <td style={{ padding: "12px 16px" }}>
                       {acc.password
-                        ? <span style={{ background: "#d1fae5", color: "#065f46", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>? Active</span>
-                        : <span style={{ background: S.dangerBg, color: S.danger, padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>? No Access</span>
+                        ? <span style={{ background: "#d1fae5", color: "#065f46", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>✅ Active</span>
+                        : <span style={{ background: S.dangerBg, color: S.danger, padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>❌ No Access</span>
                       }
                     </td>
                     <td style={{ padding: "12px 16px" }}>
@@ -6865,7 +6865,7 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
                           <button onClick={() => setParentEditId(null)} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
                         </div>
                       ) : (
-                        <button onClick={() => { setParentEditId(s.id); setParentForm({ username: acc.username, password: acc.password }); }} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>?? Edit</button>
+                        <button onClick={() => { setParentEditId(s.id); setParentForm({ username: acc.username, password: acc.password }); }} style={{ padding: "5px 12px", borderRadius: 6, border: `1px solid ${S.border}`, background: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>✏️ Edit</button>
                       )}
                     </td>
                   </tr>
@@ -6932,14 +6932,14 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
 
       {tab === "appearance" && (
         <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, padding: 24 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: S.textMain, marginBottom: 20 }}>?? Appearance</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: S.textMain, marginBottom: 20 }}>🎨 Appearance</div>
           <div style={{ fontSize: 13, fontWeight: 600, color: S.textSub, marginBottom: 12 }}>Theme Mode</div>
           <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
-            {[["light","??","Light Mode"],["dark","??","Dark Mode"]].map(([id,icon,label]) => (
+            {[["light","☀️","Light Mode"],["dark","🌙","Dark Mode"]].map(([id,icon,label]) => (
               <div key={id} onClick={() => saveTheme(id)} style={{ flex: 1, padding: 20, borderRadius: 10, border: `2px solid ${theme === id ? S.primary : S.border}`, cursor: "pointer", textAlign: "center", background: theme === id ? "#f0fdfa" : "#f8fafc" }}>
                 <div style={{ fontSize: 32, marginBottom: 8 }}>{icon}</div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: theme === id ? S.primary : S.textMain }}>{label}</div>
-                {theme === id && <div style={{ fontSize: 11, color: S.primary, marginTop: 4, fontWeight: 600 }}>? Active</div>}
+                {theme === id && <div style={{ fontSize: 11, color: S.primary, marginTop: 4, fontWeight: 600 }}>✓ Active</div>}
               </div>
             ))}
           </div>
@@ -6949,36 +6949,36 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
 
       {tab === "staff-pwd" && (
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: 24 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#1e293b", marginBottom: 20 }}>?? Staff Access Passwords</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#1e293b", marginBottom: 20 }}>🔐 Staff Access Passwords</div>
           <StaffPasswords />
         </div>
       )}
       {tab === "data" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, padding: 24 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: S.textMain, marginBottom: 6 }}>?? Export Data</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: S.textMain, marginBottom: 6 }}>📤 Export Data</div>
             <div style={{ fontSize: 13, color: S.textSub, marginBottom: 16 }}>Download all school data as a JSON backup file.</div>
-            <button onClick={exportData} style={{ padding: "10px 24px", borderRadius: 8, border: "none", background: S.primary, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>?? Download Backup</button>
+            <button onClick={exportData} style={{ padding: "10px 24px", borderRadius: 8, border: "none", background: S.primary, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>📥 Download Backup</button>
           </div>
           <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${S.border}`, padding: 24 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: S.textMain, marginBottom: 6 }}>?? Import Data</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: S.textMain, marginBottom: 6 }}>📥 Import Data</div>
             <div style={{ fontSize: 13, color: S.textSub, marginBottom: 16 }}>Restore data from a previously exported backup file.</div>
             <label style={{ display: "inline-block", padding: "10px 24px", borderRadius: 8, border: `1px solid ${S.border}`, background: "#f8fafc", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", color: S.textMain }}>
-              ?? Choose Backup File
+              📂 Choose Backup File
               <input type="file" accept=".json" onChange={importData} style={{ display: "none" }} />
             </label>
           </div>
           <div style={{ background: "#fff", borderRadius: 12, border: `2px solid ${confirmReset ? S.danger : S.border}`, padding: 24 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: S.danger, marginBottom: 6 }}>??? Reset All Data</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: S.danger, marginBottom: 6 }}>🗑️ Reset All Data</div>
             <div style={{ fontSize: 13, color: S.textSub, marginBottom: 16 }}>Permanently delete all students, teachers, grades, attendance, and messages. This cannot be undone.</div>
             {confirmReset && (
               <div style={{ background: S.dangerBg, border: `1px solid ${S.danger}`, borderRadius: 8, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: S.danger, fontWeight: 600 }}>
-                ?? WARNING: This will permanently delete ALL data! Click the button again to confirm.
+                ⚠️ WARNING: This will permanently delete ALL data! Click the button again to confirm.
               </div>
             )}
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={resetAllData} style={{ padding: "10px 24px", borderRadius: 8, border: "none", background: S.danger, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-                {confirmReset ? "?? Confirm � Delete Everything" : "??? Reset All Data"}
+                {confirmReset ? "⚠️ Confirm — Delete Everything" : "🗑️ Reset All Data"}
               </button>
               {confirmReset && <button onClick={() => setConfirmReset(false)} style={{ padding: "10px 24px", borderRadius: 8, border: `1px solid ${S.border}`, background: "#fff", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>}
             </div>
@@ -6989,7 +6989,7 @@ function Settings({ teachers, setTeachers, students, setStudents, classes, subje
   );
 }
 
-// --- App Root -----------------------------------------------------------------
+// ─── App Root ─────────────────────────────────────────────────────────────────
 function LogoutButton() {
   const handleLogout = () => {
     try { localStorage.removeItem("edu_auth") } catch {}
@@ -7005,17 +7005,17 @@ function LogoutButton() {
     onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,.3)"}
     onMouseLeave={e => e.currentTarget.style.background = "rgba(239,68,68,.15)"}
     >
-      ? Sign Out
+      ← Sign Out
     </button>
   )
 }
-// --- Sub Request System -------------------------------------------------------
+// ─── Sub Request System ───────────────────────────────────────────────────────
 const SUB_STATUS = {
-  pending:   { label: "Pending",   bg: "#fef3c7", color: "#b45309", icon: "?" },
-  approved:  { label: "Approved",  bg: "#dbeafe", color: "#1d4ed8", icon: "?" },
-  filled:    { label: "Filled",    bg: "#d1fae5", color: "#065f46", icon: "??" },
-  rejected:  { label: "Rejected",  bg: "#fee2e2", color: "#dc2626", icon: "?" },
-  cancelled: { label: "Cancelled", bg: "#f1f5f9", color: "#64748b", icon: "??" },
+  pending:   { label: "Pending",   bg: "#fef3c7", color: "#b45309", icon: "⏳" },
+  approved:  { label: "Approved",  bg: "#dbeafe", color: "#1d4ed8", icon: "✅" },
+  filled:    { label: "Filled",    bg: "#d1fae5", color: "#065f46", icon: "🎯" },
+  rejected:  { label: "Rejected",  bg: "#fee2e2", color: "#dc2626", icon: "❌" },
+  cancelled: { label: "Cancelled", bg: "#f1f5f9", color: "#64748b", icon: "🚫" },
 };
 
 function SubBadge({ status }) {
@@ -7028,7 +7028,7 @@ function SubBadge({ status }) {
 }
 
 function fmtSubDate(d) {
-  if (!d) return "�";
+  if (!d) return "—";
   return new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric", year:"numeric" });
 }
 
@@ -7051,7 +7051,7 @@ function TeacherSubRequests({ auth, classes }) {
     const req = {
       id: uid(), teacherName: auth.name,
       classId: parseInt(form.classId),
-      className: classes.find(c => c.id === parseInt(form.classId))?.name || "�",
+      className: classes.find(c => c.id === parseInt(form.classId))?.name || "—",
       date: form.date, endDate: form.isMultiDay ? form.endDate : form.date,
       isMultiDay: form.isMultiDay, reason: form.reason,
       notes: form.notes, lessonPlan: form.lessonPlan,
@@ -7072,7 +7072,7 @@ function TeacherSubRequests({ auth, classes }) {
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
-          <div style={{ fontSize:20, fontWeight:700, color:S.text }}>?? Sub Requests</div>
+          <div style={{ fontSize:20, fontWeight:700, color:S.text }}>🔄 Sub Requests</div>
           <div style={{ fontSize:13, color:"#94a3b8", marginTop:2 }}>Request absence coverage or accept sub jobs</div>
         </div>
         <button onClick={() => setModal(true)} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
@@ -7090,22 +7090,22 @@ function TeacherSubRequests({ auth, classes }) {
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {myRequests.length === 0 ? (
             <div style={{ textAlign:"center", padding:60, background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", color:"#94a3b8" }}>
-              <div style={{ fontSize:40, marginBottom:12 }}>??</div>
+              <div style={{ fontSize:40, marginBottom:12 }}>📋</div>
               <div style={{ fontSize:15, fontWeight:600 }}>No absence requests yet</div>
             </div>
           ) : myRequests.map(req => (
             <div key={req.id} style={{ background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:20 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
                 <div>
-                  <div style={{ fontSize:15, fontWeight:700, color:S.text }}>{fmtSubDate(req.date)}{req.isMultiDay && req.endDate !== req.date ? ` ? ${fmtSubDate(req.endDate)}` : ""}</div>
+                  <div style={{ fontSize:15, fontWeight:700, color:S.text }}>{fmtSubDate(req.date)}{req.isMultiDay && req.endDate !== req.date ? ` → ${fmtSubDate(req.endDate)}` : ""}</div>
                   <div style={{ fontSize:12, color:"#94a3b8", marginTop:2 }}>{req.className}</div>
                 </div>
                 <SubBadge status={req.status} />
               </div>
               <div style={{ fontSize:13, color:S.sub, marginBottom:8 }}><strong>Reason:</strong> {req.reason}</div>
-              {req.lessonPlan && <div style={{ fontSize:13, color:S.sub, background:"#f0fdf9", borderRadius:8, padding:"8px 12px", marginBottom:8 }}><strong>?? Lesson Plan:</strong> {req.lessonPlan}</div>}
+              {req.lessonPlan && <div style={{ fontSize:13, color:S.sub, background:"#f0fdf9", borderRadius:8, padding:"8px 12px", marginBottom:8 }}><strong>📚 Lesson Plan:</strong> {req.lessonPlan}</div>}
               {req.supervisorNote && <div style={{ fontSize:12, background:"#fef3c7", borderRadius:8, padding:"8px 12px", color:"#92400e", marginBottom:8 }}><strong>Supervisor Note:</strong> {req.supervisorNote}</div>}
-              {req.filledBy && <div style={{ fontSize:12, background:"#d1fae5", borderRadius:8, padding:"8px 12px", color:"#065f46" }}>? Covered by <strong>{req.filledBy}</strong></div>}
+              {req.filledBy && <div style={{ fontSize:12, background:"#d1fae5", borderRadius:8, padding:"8px 12px", color:"#065f46" }}>✅ Covered by <strong>{req.filledBy}</strong></div>}
               {req.status === "pending" && (
                 <div style={{ marginTop:12, display:"flex", justifyContent:"flex-end" }}>
                   <button onClick={() => cancelRequest(req.id)} style={{ padding:"6px 14px", borderRadius:8, border:"none", background:"#fee2e2", color:"#dc2626", fontSize:12, fontWeight:600, cursor:"pointer" }}>Cancel</button>
@@ -7120,22 +7120,22 @@ function TeacherSubRequests({ auth, classes }) {
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {availableJobs.length === 0 ? (
             <div style={{ textAlign:"center", padding:60, background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", color:"#94a3b8" }}>
-              <div style={{ fontSize:40, marginBottom:12 }}>??</div>
+              <div style={{ fontSize:40, marginBottom:12 }}>🎯</div>
               <div style={{ fontSize:15, fontWeight:600 }}>No available jobs right now</div>
             </div>
           ) : availableJobs.map(req => (
             <div key={req.id} style={{ background:"#fff", borderRadius:14, border:"2px solid #0d9488", padding:20 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
                 <div>
-                  <div style={{ fontSize:15, fontWeight:700, color:S.text }}>?? {fmtSubDate(req.date)}{req.isMultiDay && req.endDate !== req.date ? ` ? ${fmtSubDate(req.endDate)}` : ""}</div>
-                  <div style={{ fontSize:12, color:"#94a3b8", marginTop:2 }}>{req.className} � {req.teacherName}</div>
+                  <div style={{ fontSize:15, fontWeight:700, color:S.text }}>📅 {fmtSubDate(req.date)}{req.isMultiDay && req.endDate !== req.date ? ` → ${fmtSubDate(req.endDate)}` : ""}</div>
+                  <div style={{ fontSize:12, color:"#94a3b8", marginTop:2 }}>{req.className} · {req.teacherName}</div>
                 </div>
                 <span style={{ background:"#d1fae5", color:"#065f46", borderRadius:20, padding:"4px 12px", fontSize:12, fontWeight:700 }}>Available</span>
               </div>
-              {req.lessonPlan && <div style={{ fontSize:13, color:S.sub, background:"#f0fdf9", borderRadius:8, padding:"8px 12px", marginBottom:12 }}><strong>?? Lesson Plan:</strong> {req.lessonPlan}</div>}
+              {req.lessonPlan && <div style={{ fontSize:13, color:S.sub, background:"#f0fdf9", borderRadius:8, padding:"8px 12px", marginBottom:12 }}><strong>📚 Lesson Plan:</strong> {req.lessonPlan}</div>}
               {req.notes && <div style={{ fontSize:13, color:S.sub, marginBottom:12 }}><strong>Notes:</strong> {req.notes}</div>}
               <div style={{ display:"flex", justifyContent:"flex-end" }}>
-                <button onClick={() => acceptJob(req.id)} style={{ padding:"9px 22px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>? Accept This Job</button>
+                <button onClick={() => acceptJob(req.id)} style={{ padding:"9px 22px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#0d9488,#14b8a6)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>✋ Accept This Job</button>
               </div>
             </div>
           ))}
@@ -7143,7 +7143,7 @@ function TeacherSubRequests({ auth, classes }) {
       )}
 
       {modal && (
-        <Modal title="?? Request Absence Coverage" onClose={() => setModal(false)}>
+        <Modal title="📋 Request Absence Coverage" onClose={() => setModal(false)}>
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
             <div>
               <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>Class *</label>
@@ -7176,7 +7176,7 @@ function TeacherSubRequests({ auth, classes }) {
               </select>
             </div>
             <div>
-              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>?? Lesson Plan for Sub</label>
+              <label style={{ fontSize:12, fontWeight:600, color:S.sub, display:"block", marginBottom:4 }}>📚 Lesson Plan for Sub</label>
               <textarea style={{...inp2, resize:"vertical"}} rows={3} value={form.lessonPlan} onChange={e => setForm({...form, lessonPlan:e.target.value})} placeholder="Describe what the substitute should teach..." />
             </div>
             <div>
@@ -7216,12 +7216,12 @@ function SubManagement({ auth, classes, teachers }) {
   return (
     <div>
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:20, fontWeight:700, color:"#1e293b" }}>?? Sub Request Management</div>
+        <div style={{ fontSize:20, fontWeight:700, color:"#1e293b" }}>🔄 Sub Request Management</div>
         <div style={{ fontSize:13, color:"#94a3b8", marginTop:2 }}>Review and approve teacher absence requests</div>
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:24 }}>
-        {[["pending","?","Pending","#fef3c7","#b45309"],["approved","?","Approved","#dbeafe","#1d4ed8"],["filled","??","Filled","#d1fae5","#065f46"],["rejected","?","Rejected","#fee2e2","#dc2626"]].map(([key,icon,label,bg,color]) => (
+        {[["pending","⏳","Pending","#fef3c7","#b45309"],["approved","✅","Approved","#dbeafe","#1d4ed8"],["filled","🎯","Filled","#d1fae5","#065f46"],["rejected","❌","Rejected","#fee2e2","#dc2626"]].map(([key,icon,label,bg,color]) => (
           <div key={key} style={{ background:bg, borderRadius:12, padding:"16px 18px", border:"1px solid #e2e8f0" }}>
             <div style={{ fontSize:26, fontWeight:800, color }}>{stats[key]}</div>
             <div style={{ fontSize:12, color, marginTop:4, fontWeight:600 }}>{icon} {label}</div>
@@ -7251,10 +7251,10 @@ function SubManagement({ auth, classes, teachers }) {
               <tr key={req.id} onMouseEnter={e=>e.currentTarget.style.background="#f8fafc"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                 <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:13, fontWeight:600 }}>{req.teacherName}</td>
                 <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:13, color:"#64748b" }}>{req.className}</td>
-                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:12, color:"#64748b", whiteSpace:"nowrap" }}>{fmtSubDate(req.date)}{req.isMultiDay && req.endDate !== req.date ? ` ? ${fmtSubDate(req.endDate)}` : ""}</td>
+                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:12, color:"#64748b", whiteSpace:"nowrap" }}>{fmtSubDate(req.date)}{req.isMultiDay && req.endDate !== req.date ? ` → ${fmtSubDate(req.endDate)}` : ""}</td>
                 <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:13, color:"#64748b" }}>{req.reason}</td>
                 <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc" }}><SubBadge status={req.status} /></td>
-                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:12, color:req.filledBy?"#059669":"#94a3b8" }}>{req.filledBy||"�"}</td>
+                <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc", fontSize:12, color:req.filledBy?"#059669":"#94a3b8" }}>{req.filledBy||"—"}</td>
                 <td style={{ padding:"12px 16px", borderBottom:"1px solid #f8fafc" }}>
                   <button onClick={() => { setSelected(req.id); setNote(req.supervisorNote||""); }}
                     style={{ padding:"5px 12px", borderRadius:6, border:"1px solid #e2e8f0", background:"#fff", fontSize:12, cursor:"pointer", marginRight:6 }}>View</button>
@@ -7272,24 +7272,24 @@ function SubManagement({ auth, classes, teachers }) {
       </div>
 
       {selected && selectedReq && (
-        <Modal title={`?? Request � ${selectedReq.teacherName}`} onClose={() => { setSelected(null); setNote(""); }}>
+        <Modal title={`📋 Request — ${selectedReq.teacherName}`} onClose={() => { setSelected(null); setNote(""); }}>
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
             <div style={{ background:"#f8fafc", borderRadius:10, padding:16, display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, fontSize:13 }}>
               {[["Teacher",selectedReq.teacherName],["Class",selectedReq.className],["Date",fmtSubDate(selectedReq.date)],["Reason",selectedReq.reason]].map(([label,val]) => (
                 <div key={label}><div style={{ fontSize:11, color:"#94a3b8", fontWeight:600, marginBottom:2 }}>{label}</div><div style={{ color:"#1e293b", fontWeight:500 }}>{val}</div></div>
               ))}
             </div>
-            {selectedReq.lessonPlan && <div style={{ background:"#f0fdf9", borderRadius:10, padding:14, border:"1px solid #99f6e4" }}><div style={{ fontSize:12, fontWeight:700, color:"#065f46", marginBottom:6 }}>?? Lesson Plan</div><div style={{ fontSize:13, color:"#134e4a" }}>{selectedReq.lessonPlan}</div></div>}
-            {selectedReq.notes && <div style={{ background:"#fef9c3", borderRadius:10, padding:14 }}><div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:6 }}>?? Notes</div><div style={{ fontSize:13, color:"#78350f" }}>{selectedReq.notes}</div></div>}
-            {selectedReq.filledBy && <div style={{ background:"#d1fae5", borderRadius:10, padding:14 }}><div style={{ fontSize:13, fontWeight:700, color:"#065f46" }}>? Covered by: {selectedReq.filledBy}</div></div>}
+            {selectedReq.lessonPlan && <div style={{ background:"#f0fdf9", borderRadius:10, padding:14, border:"1px solid #99f6e4" }}><div style={{ fontSize:12, fontWeight:700, color:"#065f46", marginBottom:6 }}>📚 Lesson Plan</div><div style={{ fontSize:13, color:"#134e4a" }}>{selectedReq.lessonPlan}</div></div>}
+            {selectedReq.notes && <div style={{ background:"#fef9c3", borderRadius:10, padding:14 }}><div style={{ fontSize:12, fontWeight:700, color:"#854d0e", marginBottom:6 }}>📝 Notes</div><div style={{ fontSize:13, color:"#78350f" }}>{selectedReq.notes}</div></div>}
+            {selectedReq.filledBy && <div style={{ background:"#d1fae5", borderRadius:10, padding:14 }}><div style={{ fontSize:13, fontWeight:700, color:"#065f46" }}>✅ Covered by: {selectedReq.filledBy}</div></div>}
             <div>
               <label style={{ fontSize:12, fontWeight:600, color:"#64748b", display:"block", marginBottom:4 }}>Note to Teacher</label>
               <textarea style={{...inp2, resize:"vertical"}} rows={2} value={note} onChange={e=>setNote(e.target.value)} placeholder="Add a note..." />
             </div>
             {selectedReq.status === "pending" && (
               <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
-                <button onClick={() => updateStatus(selected,"rejected")} style={{ padding:"9px 18px", borderRadius:8, border:"none", background:"#fee2e2", color:"#dc2626", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>? Reject</button>
-                <button onClick={() => updateStatus(selected,"approved")} style={{ padding:"9px 22px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>? Approve</button>
+                <button onClick={() => updateStatus(selected,"rejected")} style={{ padding:"9px 18px", borderRadius:8, border:"none", background:"#fee2e2", color:"#dc2626", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>❌ Reject</button>
+                <button onClick={() => updateStatus(selected,"approved")} style={{ padding:"9px 22px", borderRadius:8, border:"none", background:"#0d9488", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>✅ Approve</button>
               </div>
             )}
             {selectedReq.status !== "pending" && (
@@ -7305,7 +7305,7 @@ function SubManagement({ auth, classes, teachers }) {
 }
 
 
-// --- Grouped Nav Component ----------------------------------------------------
+// ─── Grouped Nav Component ────────────────────────────────────────────────────
 function GroupedNav({ page, setPage, setSidebarOpen, allowedPages, messages }) {
   const unreadCount = messages.filter(m => !m.read).length;
   const [openGroups, setOpenGroups] = useState(() => {
@@ -7389,7 +7389,7 @@ function GroupedNav({ page, setPage, setSidebarOpen, allowedPages, messages }) {
             >
               <span style={{ fontSize: 14 }}>{group.icon}</span>
               <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
-              <span style={{ fontSize: 10, transition: "transform .2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>?</span>
+              <span style={{ fontSize: 10, transition: "transform .2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
             </button>
             {isOpen && (
               <div style={{ marginBottom: 4 }}>
@@ -7439,7 +7439,7 @@ export default function App() {
   const teacherClassIds = auth?.classIds || (teacherClassId ? [teacherClassId] : null); // all classIds for teacher
   const teacherName    = auth?.name    || "";
 
-  // --- Teacher: pages allowed -----------------------------------------------
+  // ─── Teacher: pages allowed ───────────────────────────────────────────────
   const TEACHER_PAGES = ["attendance", "grades", "timetable", "messages", "quizzes", "lessonplans", "quran", "internal", "subrequests"];
   const PARENT_PAGES  = ["dashboard"];
   const STUDENT_PAGES = ["dashboard"];
@@ -7454,7 +7454,7 @@ export default function App() {
     : page;
   const initialPage = userRole === "teacher" ? "attendance" : "dashboard";
 
-  // localStorage persistence � load on mount, save on change
+  // localStorage persistence — load on mount, save on change
   const [students, setStudents]     = useState(() => load("edu_students", SEED_STUDENTS));
   const [teachers, setTeachers]     = useState(() => load("edu_teachers",   SEED_TEACHERS));
   const [classes,  setClasses]      = useState(() => load("edu_classes", SEED_CLASSES));
@@ -7691,7 +7691,7 @@ function exportParentReportPDF(student, cls, attendance, grades, subjects, exams
 }
 
 
-// --- Staff Management (Principals & Supervisors) -----------------------------
+// ─── Staff Management (Principals & Supervisors) ─────────────────────────────
 function StaffManagement({ role, title, icon, storageKey }) {
   const EMPTY = { name: "", username: "", password: "", email: "", phone: "", startDate: "", endDate: "", status: "Active", notes: "" };
   const [staff, setStaff] = useState(() => { try { return JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch { return []; } });
@@ -7729,13 +7729,13 @@ function StaffManagement({ role, title, icon, storageKey }) {
       {/* Toolbar */}
       <div style={{ background: "#fff", border: "1px solid #e8ecf2", borderRadius: 14, padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10, boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
         <div style={{ position: "relative", flex: 1 }}>
-          <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#94a3b8" }}>??</span>
+          <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#94a3b8" }}>🔍</span>
           <input placeholder={"Search " + title.toLowerCase() + "..."} value={search} onChange={e => setSearch(e.target.value)}
             style={{ ...inp, paddingLeft: 34 }} />
         </div>
         <button onClick={() => { setForm(EMPTY); setModal("add"); }}
           style={{ padding: "9px 18px", background: "#0d9488", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-          + Add {title.slice(0,-1)}
+          ＋ Add {title.slice(0,-1)}
         </button>
       </div>
 
@@ -7756,7 +7756,7 @@ function StaffManagement({ role, title, icon, storageKey }) {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding: 48, textAlign: "center", color: "#94a3b8" }}>No {title.toLowerCase()} yet � click Add to create one</td></tr>
+                <tr><td colSpan={8} style={{ padding: 48, textAlign: "center", color: "#94a3b8" }}>No {title.toLowerCase()} yet — click Add to create one</td></tr>
               ) : filtered.map(s => (
                 <tr key={s.id} onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                   <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc" }}>
@@ -7768,11 +7768,11 @@ function StaffManagement({ role, title, icon, storageKey }) {
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 12, color: "#64748b", fontFamily: "monospace" }}>{s.username || "�"}</td>
-                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: "#64748b" }}>{s.email || "�"}</td>
-                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: "#64748b" }}>{s.phone || "�"}</td>
-                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 12, color: "#64748b" }}>{s.startDate || "�"}</td>
-                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 12, color: "#64748b" }}>{s.endDate || "�"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 12, color: "#64748b", fontFamily: "monospace" }}>{s.username || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: "#64748b" }}>{s.email || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 13, color: "#64748b" }}>{s.phone || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 12, color: "#64748b" }}>{s.startDate || "—"}</td>
+                  <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc", fontSize: 12, color: "#64748b" }}>{s.endDate || "—"}</td>
                   <td style={{ padding: "12px 16px", borderBottom: "1px solid #f8fafc" }}>
                     <Badge status={s.status === "Active" ? "Active" : "Inactive"} />
                   </td>
@@ -7804,7 +7804,7 @@ function StaffManagement({ role, title, icon, storageKey }) {
               <input style={inp} value={form.username} onChange={e => setForm({...form, username: e.target.value})} placeholder={role} />
             </Field>
             <Field label="Password">
-              <input style={inp} value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="��������" />
+              <input style={inp} value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="••••••••" />
             </Field>
             <Field label="Email">
               <input style={inp} type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="name@school.edu" />
@@ -7859,7 +7859,7 @@ function StaffManagement({ role, title, icon, storageKey }) {
 }
 
 
-// --- Internal Messaging System -----------------------------------------------
+// ─── Internal Messaging System ───────────────────────────────────────────────
 function InternalMessaging({ auth, teachers }) {
   const [messages, setMessages] = useState(() => { try { return JSON.parse(localStorage.getItem("edu_internal_messages")||"[]"); } catch{return[];} });
   const [view, setView] = useState("inbox"); // inbox | compose | thread
@@ -7923,8 +7923,8 @@ function InternalMessaging({ auth, teachers }) {
   if (view === "compose") return (
     <div style={{maxWidth:600,margin:"0 auto"}}>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
-        <button onClick={()=>setView("inbox")} style={{padding:"7px 14px",borderRadius:8,border:"1px solid #e2e8f0",background:"#fff",cursor:"pointer",fontSize:13}}>? Back</button>
-        <div style={{fontSize:16,fontWeight:700,color:S.text}}>?? New Message</div>
+        <button onClick={()=>setView("inbox")} style={{padding:"7px 14px",borderRadius:8,border:"1px solid #e2e8f0",background:"#fff",cursor:"pointer",fontSize:13}}>← Back</button>
+        <div style={{fontSize:16,fontWeight:700,color:S.text}}>✉️ New Message</div>
       </div>
       <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:24}}>
         <div style={{marginBottom:12}}>
@@ -7953,10 +7953,10 @@ function InternalMessaging({ auth, teachers }) {
   if (view === "thread" && selectedMsg) return (
     <div style={{maxWidth:680,margin:"0 auto"}}>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
-        <button onClick={()=>setView("inbox")} style={{padding:"7px 14px",borderRadius:8,border:"1px solid #e2e8f0",background:"#fff",cursor:"pointer",fontSize:13}}>? Back</button>
+        <button onClick={()=>setView("inbox")} style={{padding:"7px 14px",borderRadius:8,border:"1px solid #e2e8f0",background:"#fff",cursor:"pointer",fontSize:13}}>← Back</button>
         <div style={{flex:1}}>
           <div style={{fontSize:15,fontWeight:700,color:S.text}}>{selectedMsg.subject}</div>
-          <div style={{fontSize:12,color:S.sub}}>{selectedMsg.fromLabel} ? {selectedMsg.toLabel} � {fmtTime(selectedMsg.timestamp)}</div>
+          <div style={{fontSize:12,color:S.sub}}>{selectedMsg.fromLabel} → {selectedMsg.toLabel} · {fmtTime(selectedMsg.timestamp)}</div>
         </div>
       </div>
       <div style={{background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",padding:20,marginBottom:12}}>
@@ -7964,7 +7964,7 @@ function InternalMessaging({ auth, teachers }) {
       </div>
       {(selectedMsg.replies||[]).map(r=>(
         <div key={r.id} style={{background: r.from===myId?"#f0fdf9":"#f8f4ff",borderRadius:12,border:"1px solid "+(r.from===myId?"#99f6e4":"#ddd6fe"),padding:16,marginBottom:8}}>
-          <div style={{fontSize:12,fontWeight:600,color:S.sub,marginBottom:6}}>{r.fromLabel} � {fmtTime(r.timestamp)}</div>
+          <div style={{fontSize:12,fontWeight:600,color:S.sub,marginBottom:6}}>{r.fromLabel} · {fmtTime(r.timestamp)}</div>
           <div style={{fontSize:13,color:"#334155"}}>{r.body}</div>
         </div>
       ))}
@@ -7980,8 +7980,8 @@ function InternalMessaging({ auth, teachers }) {
   return (
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-        <div style={{fontSize:18,fontWeight:700,color:S.text}}>?? Internal Messages {unread>0 && <span style={{background:"#ef4444",color:"#fff",borderRadius:20,fontSize:11,padding:"2px 8px",marginLeft:6}}>{unread}</span>}</div>
-        <button onClick={()=>setView("compose")} style={{padding:"9px 18px",borderRadius:9,border:"none",background:"#0d9488",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>?? New Message</button>
+        <div style={{fontSize:18,fontWeight:700,color:S.text}}>💬 Internal Messages {unread>0 && <span style={{background:"#ef4444",color:"#fff",borderRadius:20,fontSize:11,padding:"2px 8px",marginLeft:6}}>{unread}</span>}</div>
+        <button onClick={()=>setView("compose")} style={{padding:"9px 18px",borderRadius:9,border:"none",background:"#0d9488",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>✉️ New Message</button>
       </div>
       <div style={{display:"flex",gap:8,marginBottom:16}}>
         {[["inbox","Inbox"],["sent","Sent"]].map(([id,label])=>(
@@ -7990,7 +7990,7 @@ function InternalMessaging({ auth, teachers }) {
       </div>
       {list.length === 0 ? (
         <div style={{textAlign:"center",padding:60,background:"#fff",borderRadius:12,border:"1px solid #e2e8f0",color:"#94a3b8"}}>
-          <div style={{fontSize:36,marginBottom:12}}>??</div>
+          <div style={{fontSize:36,marginBottom:12}}>💬</div>
           <div style={{fontSize:14}}>{tab==="inbox"?"No messages yet":"No sent messages"}</div>
         </div>
       ) : list.map(msg=>(
@@ -8002,7 +8002,7 @@ function InternalMessaging({ auth, teachers }) {
           </div>
           <div style={{flex:1}}>
             <div style={{fontSize:13,fontWeight:(!msg.read&&msg.to===myId)?700:500,color:S.text}}>{msg.subject}</div>
-            <div style={{fontSize:11,color:S.sub,marginTop:2}}>{tab==="inbox"?`From: ${msg.fromLabel}`:`To: ${msg.toLabel}`} � {fmtTime(msg.timestamp)}</div>
+            <div style={{fontSize:11,color:S.sub,marginTop:2}}>{tab==="inbox"?`From: ${msg.fromLabel}`:`To: ${msg.toLabel}`} · {fmtTime(msg.timestamp)}</div>
           </div>
           {!msg.read && msg.to===myId && <div style={{width:8,height:8,borderRadius:"50%",background:"#0d9488"}} />}
         </div>
@@ -8011,7 +8011,7 @@ function InternalMessaging({ auth, teachers }) {
   );
 }
 
-// --- Principal & Supervisor PDF Reports --------------------------------------
+// ─── Principal & Supervisor PDF Reports ──────────────────────────────────────
 function printPrincipalMonthlyReport({ students, teachers, classes, attendance, evaluations, exams }) {
   const today = new Date();
   const monthName = today.toLocaleDateString("en-US", { month: "long", year: "numeric" });
@@ -8071,7 +8071,7 @@ function printPrincipalMonthlyReport({ students, teachers, classes, attendance, 
     </div>
   </div>
 
-  <div class="report-title">?? Monthly School Performance Report � ${monthName}</div>
+  <div class="report-title">📊 Monthly School Performance Report — ${monthName}</div>
 
   <div class="stats-grid">
     <div class="stat-box"><div class="stat-val">${students.length}</div><div class="stat-label">Total Students</div></div>
@@ -8112,7 +8112,7 @@ function printPrincipalMonthlyReport({ students, teachers, classes, attendance, 
   </table>` : ""}
 
   <div class="footer">Al-Huffath Academy | Generated by EduManage | ${todayStr}</div>
-  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">??? Print Report</button></div>
+  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">🖨️ Print Report</button></div>
   </body></html>`);
   w.document.close();
 }
@@ -8157,12 +8157,12 @@ function printTeacherPerformanceReport({ teachers, evaluations }) {
       const avg = tEvals.length ? Math.round(tEvals.reduce((s,e)=>s+e.pct,0)/tEvals.length) : null;
       const level = avg===null?"N/A":avg>=90?"Excellent":avg>=75?"Very Good":avg>=60?"Good":"Needs Improvement";
       const cls = avg===null?"needs":avg>=90?"excellent":avg>=75?"verygood":avg>=60?"good":"needs";
-      const lastVisit = tEvals.sort((a,b)=>b.visitDate?.localeCompare(a.visitDate||"")||0)[0]?.visitDate || "�";
+      const lastVisit = tEvals.sort((a,b)=>b.visitDate?.localeCompare(a.visitDate||"")||0)[0]?.visitDate || "—";
       return `<tr>
         <td><b>${t.name}</b></td>
         <td>${t.subject||"-"}</td>
         <td style="text-align:center">${tEvals.length}</td>
-        <td>${avg!==null?`<div class="progress-bar"><div class="progress-fill" style="width:${avg}%;background:${avg>=90?"#059669":avg>=75?"#0284c7":avg>=60?"#d97706":"#dc2626"}"></div></div><b>${avg}%</b>`:"�"}</td>
+        <td>${avg!==null?`<div class="progress-bar"><div class="progress-fill" style="width:${avg}%;background:${avg>=90?"#059669":avg>=75?"#0284c7":avg>=60?"#d97706":"#dc2626"}"></div></div><b>${avg}%</b>`:"—"}</td>
         <td><span class="badge ${cls}">${level}</span></td>
         <td>${lastVisit}</td>
       </tr>`;
@@ -8176,12 +8176,12 @@ function printTeacherPerformanceReport({ teachers, evaluations }) {
     ${[...(evaluations||[])].sort((a,b)=>b.visitDate?.localeCompare(a.visitDate||"")||0).map(ev => {
       const cls = ev.pct>=90?"excellent":ev.pct>=75?"verygood":ev.pct>=60?"good":"needs";
       const level = ev.pct>=90?"Excellent":ev.pct>=75?"Very Good":ev.pct>=60?"Good":"Needs Improvement";
-      return `<tr><td>${ev.teacherName}</td><td>${ev.visitDate}</td><td>${ev.visitType}</td><td>${ev.lessonTopic||"-"}</td><td><span class="badge ${cls}">${ev.pct}% � ${level}</span></td><td>${ev.evaluatorName||"-"}</td></tr>`;
+      return `<tr><td>${ev.teacherName}</td><td>${ev.visitDate}</td><td>${ev.visitType}</td><td>${ev.lessonTopic||"-"}</td><td><span class="badge ${cls}">${ev.pct}% — ${level}</span></td><td>${ev.evaluatorName||"-"}</td></tr>`;
     }).join("")}
   </table>` : ""}
 
   <div class="footer">Al-Huffath Academy | Generated by EduManage | ${today}</div>
-  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">??? Print Report</button></div>
+  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">🖨️ Print Report</button></div>
   </body></html>`);
   w.document.close();
 }
@@ -8246,11 +8246,11 @@ function printAttendanceReport({ students, classes, attendance }) {
       const cls = classes.find(c=>c.id===s.classId);
       if (rate >= 75) return "";
       return `<tr><td><b>${s.name}</b></td><td>${cls?.name||"-"}</td><td>${p}</td><td>${a}</td><td><span class="badge bad">${rate}%</span></td></tr>`;
-    }).filter(Boolean).join("") || "<tr><td colspan='5' style='text-align:center;color:#64748b'>All students have good attendance ?</td></tr>"}
+    }).filter(Boolean).join("") || "<tr><td colspan='5' style='text-align:center;color:#64748b'>All students have good attendance ✅</td></tr>"}
   </table>
 
   <div class="footer">Al-Huffath Academy | Generated by EduManage | ${today}</div>
-  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#059669;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">??? Print Report</button></div>
+  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#059669;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">🖨️ Print Report</button></div>
   </body></html>`);
   w.document.close();
 }
@@ -8314,7 +8314,7 @@ function printSupervisorEvalReport({ teachers, evaluations }) {
   </table>
 
   <div class="footer">Al-Huffath Academy | Generated by EduManage | ${today}</div>
-  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">??? Print Report</button></div>
+  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">🖨️ Print Report</button></div>
   </body></html>`);
   w.document.close();
 }
@@ -8357,13 +8357,13 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
         <td>${sub?.name||"-"}</td>
         <td>${p.day||"-"}</td>
         <td>${p.week||"-"}</td>
-        <td>${p.homework?"? Yes":"�"}</td>
+        <td>${p.homework?"✅ Yes":"—"}</td>
       </tr>`;
     }).join("") || "<tr><td colspan='7' style='text-align:center;color:#64748b'>No lesson plans yet</td></tr>"}
   </table>
 
   <div class="footer">Al-Huffath Academy | Generated by EduManage | ${today}</div>
-  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">??? Print Report</button></div>
+  <div style="margin-top:20px"><button onclick="window.print()" style="padding:10px 28px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">🖨️ Print Report</button></div>
   </body></html>`);
   w.document.close();
 }
@@ -8373,19 +8373,19 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
     const isPrincipal = auth.role === "principal";
 
     const principalTabs = [
-      { id: "overview",     icon: "??", label: "Overview"     },
-      { id: "evaluations",  icon: "?", label: "Evaluations"  },
-      { id: "attendance",   icon: "?", label: "Attendance"   },
-      { id: "messages",     icon: "??", label: "Messages"     },
-      { id: "reports",      icon: "??", label: "Reports"      },
+      { id: "overview",     icon: "📊", label: "Overview"     },
+      { id: "evaluations",  icon: "⭐", label: "Evaluations"  },
+      { id: "attendance",   icon: "✅", label: "Attendance"   },
+      { id: "messages",     icon: "💬", label: "Messages"     },
+      { id: "reports",      icon: "📄", label: "Reports"      },
     ];
 
     const supervisorTabs = [
-      { id: "evaluations",  icon: "?", label: "Evaluations"  },
-      { id: "subrequests",  icon: "??", label: "Sub Requests" },
-      { id: "lessonplans",  icon: "??", label: "Lesson Plans" },
-      { id: "messages",     icon: "??", label: "Messages"     },
-      { id: "reports",      icon: "??", label: "Reports"      },
+      { id: "evaluations",  icon: "⭐", label: "Evaluations"  },
+      { id: "subrequests",  icon: "🔄", label: "Sub Requests" },
+      { id: "lessonplans",  icon: "📚", label: "Lesson Plans" },
+      { id: "messages",     icon: "💬", label: "Messages"     },
+      { id: "reports",      icon: "📄", label: "Reports"      },
     ];
 
     const tabs = isPrincipal ? principalTabs : supervisorTabs;
@@ -8394,7 +8394,7 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
       <div style={{minHeight:"100vh", background:"#f1f5f9", fontFamily:"system-ui,sans-serif"}}>
         {/* Top Bar */}
         <div style={{background:"#1e1e3a", padding:"0 24px", display:"flex", alignItems:"center", gap:12, height:52}}>
-          <div style={{fontSize:14, fontWeight:700, color:"#5eead4"}}>{isPrincipal ? "?? Principal Dashboard" : "??? Supervisor Dashboard"}</div>
+          <div style={{fontSize:14, fontWeight:700, color:"#5eead4"}}>{isPrincipal ? "🏫 Principal Dashboard" : "👁️ Supervisor Dashboard"}</div>
           <div style={{flex:1}} />
           <span style={{fontSize:12, color:"rgba(255,255,255,.6)"}}>{auth.name}</span>
           <button onClick={() => {localStorage.removeItem("edu_auth"); window.location.href="/school/login";}}
@@ -8421,15 +8421,15 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
         {/* Content */}
         <div style={{maxWidth:1100, margin:"0 auto", padding:"24px 16px"}}>
 
-          {/* -- OVERVIEW (Principal only) -- */}
+          {/* ── OVERVIEW (Principal only) ── */}
           {dashTab === "overview" && isPrincipal && (
             <div>
               <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:24}}>
                 {[
-                  {icon:"??", label:"Total Students", value:students.length,  color:"#0d9488", bg:"#f0fdf9"},
-                  {icon:"?????", label:"Total Teachers", value:teachers.length,  color:"#7c3aed", bg:"#f5f3ff"},
-                  {icon:"??", label:"Classes",         value:classes.length,   color:"#2563eb", bg:"#eff6ff"},
-                  {icon:"??", label:"Upcoming Exams",  value:(exams||[]).filter(e=>new Date(e.date+"T00:00:00")>=new Date()).length, color:"#d97706", bg:"#fffbeb"},
+                  {icon:"👥", label:"Total Students", value:students.length,  color:"#0d9488", bg:"#f0fdf9"},
+                  {icon:"👨‍🏫", label:"Total Teachers", value:teachers.length,  color:"#7c3aed", bg:"#f5f3ff"},
+                  {icon:"🏫", label:"Classes",         value:classes.length,   color:"#2563eb", bg:"#eff6ff"},
+                  {icon:"📋", label:"Upcoming Exams",  value:(exams||[]).filter(e=>new Date(e.date+"T00:00:00")>=new Date()).length, color:"#d97706", bg:"#fffbeb"},
                 ].map((s,i) => (
                   <div key={i} style={{background:s.bg, borderRadius:14, padding:"20px", border:"1px solid #e2e8f0"}}>
                     <div style={{fontSize:24, marginBottom:8}}>{s.icon}</div>
@@ -8441,7 +8441,7 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
 
               {/* Attendance Overview */}
               <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:20}}>
-                <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>? Today's Attendance by Class</div>
+                <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>✅ Today's Attendance by Class</div>
                 <div style={{padding:20, display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:12}}>
                   {classes.map(cls => {
                     const todayStr = new Date().toISOString().split("T")[0];
@@ -8462,7 +8462,7 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
 
               {/* Top Students */}
               <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
-                <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>?? Latest Evaluations</div>
+                <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>🏆 Latest Evaluations</div>
                 {(evaluations||[]).length === 0 ? (
                   <div style={{padding:32, textAlign:"center", color:"#94a3b8"}}>No evaluations yet</div>
                 ) : (
@@ -8473,7 +8473,7 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
                         <div key={ev.id} style={{display:"flex", alignItems:"center", gap:12, padding:"10px 14px", background:"#f8fafc", borderRadius:10}}>
                           <div style={{flex:1}}>
                             <div style={{fontSize:13, fontWeight:600, color:"#1e293b"}}>{ev.teacherName}</div>
-                            <div style={{fontSize:11, color:"#64748b"}}>{ev.visitDate} � {ev.visitType}</div>
+                            <div style={{fontSize:11, color:"#64748b"}}>{ev.visitDate} · {ev.visitType}</div>
                           </div>
                           <div style={{fontSize:18, fontWeight:800, color:perf.color}}>{ev.pct}%</div>
                           <span style={{background:perf.bg, color:perf.color, borderRadius:8, padding:"3px 10px", fontSize:11, fontWeight:700}}>{perf.label}</span>
@@ -8486,25 +8486,25 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
             </div>
           )}
 
-          {/* -- EVALUATIONS -- */}
+          {/* ── EVALUATIONS ── */}
           {dashTab === "evaluations" && (
             <TeacherEvaluations teachers={teachers} evaluations={evaluations} setEvaluations={setEvaluations} userRole={auth.role} auth={auth} />
           )}
 
-          {/* -- SUB REQUESTS (Supervisor) -- */}
+          {/* ── SUB REQUESTS (Supervisor) ── */}
           {dashTab === "subrequests" && !isPrincipal && (
             <SubManagement auth={auth} classes={classes} teachers={teachers} />
           )}
 
-          {/* -- ATTENDANCE (Principal) -- */}
+          {/* ── ATTENDANCE (Principal) ── */}
           {dashTab === "attendance" && isPrincipal && (
             <Attendance students={students} classes={classes} attendance={attendance} setAttendance={setAttendance} />
           )}
 
-          {/* -- LESSON PLANS (Supervisor) -- */}
+          {/* ── LESSON PLANS (Supervisor) ── */}
           {dashTab === "lessonplans" && !isPrincipal && (
             <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
-              <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>?? All Lesson Plans</div>
+              <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>📚 All Lesson Plans</div>
               {(lessonPlans||[]).length === 0 ? (
                 <div style={{padding:40, textAlign:"center", color:"#94a3b8"}}>No lesson plans yet</div>
               ) : (
@@ -8516,7 +8516,7 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
                       <div key={p.id} style={{padding:"12px 16px", borderRadius:10, border:"1px solid #e2e8f0", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
                         <div>
                           <div style={{fontSize:13, fontWeight:600, color:"#1e293b"}}>{p.title}</div>
-                          <div style={{fontSize:11, color:"#64748b", marginTop:2}}>{cls?.name} � {sub?.name} � {p.day} � {p.week}</div>
+                          <div style={{fontSize:11, color:"#64748b", marginTop:2}}>{cls?.name} · {sub?.name} · {p.day} · {p.week}</div>
                         </div>
                         <span style={{fontSize:11, color:"#0d9488", fontWeight:600}}>{p.createdBy}</span>
                       </div>
@@ -8527,37 +8527,37 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
             </div>
           )}
 
-          {/* -- MESSAGES -- */}
+          {/* ── MESSAGES ── */}
           {dashTab === "messages" && (
             <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
-              <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>?? Internal Messages</div>
+              <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>💬 Internal Messages</div>
               <div style={{padding:20}}>
                 <InternalMessaging auth={auth} teachers={teachers} />
               </div>
             </div>
           )}
 
-          {/* -- REPORTS -- */}
+          {/* ── REPORTS ── */}
           {dashTab === "reports" && (
             <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", padding:24}}>
-              <div style={{fontSize:16, fontWeight:700, color:"#1e293b", marginBottom:20}}>?? Generate Reports</div>
+              <div style={{fontSize:16, fontWeight:700, color:"#1e293b", marginBottom:20}}>📄 Generate Reports</div>
               <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))", gap:14}}>
                 {isPrincipal && <>
                   <button onClick={() => printPrincipalMonthlyReport({students,teachers,classes,attendance,evaluations,exams})}
                     style={{padding:"20px", borderRadius:14, border:"1px solid #e2e8f0", background:"linear-gradient(135deg,#f0fdf9,#fff)", cursor:"pointer", textAlign:"left", fontFamily:"inherit"}}>
-                    <div style={{fontSize:28, marginBottom:10}}>??</div>
+                    <div style={{fontSize:28, marginBottom:10}}>📊</div>
                     <div style={{fontSize:14, fontWeight:700, color:"#1e293b"}}>Monthly School Report</div>
                     <div style={{fontSize:12, color:"#64748b", marginTop:4}}>Students, attendance & evaluations</div>
                   </button>
                   <button onClick={() => printTeacherPerformanceReport({teachers,evaluations})}
                     style={{padding:"20px", borderRadius:14, border:"1px solid #e2e8f0", background:"linear-gradient(135deg,#f5f3ff,#fff)", cursor:"pointer", textAlign:"left", fontFamily:"inherit"}}>
-                    <div style={{fontSize:28, marginBottom:10}}>?</div>
+                    <div style={{fontSize:28, marginBottom:10}}>⭐</div>
                     <div style={{fontSize:14, fontWeight:700, color:"#1e293b"}}>Teacher Performance</div>
                     <div style={{fontSize:12, color:"#64748b", marginTop:4}}>Evaluation scores & analysis</div>
                   </button>
                   <button onClick={() => printAttendanceReport({students,classes,attendance})}
                     style={{padding:"20px", borderRadius:14, border:"1px solid #e2e8f0", background:"linear-gradient(135deg,#f0fdf4,#fff)", cursor:"pointer", textAlign:"left", fontFamily:"inherit"}}>
-                    <div style={{fontSize:28, marginBottom:10}}>?</div>
+                    <div style={{fontSize:28, marginBottom:10}}>✅</div>
                     <div style={{fontSize:14, fontWeight:700, color:"#1e293b"}}>Attendance Report</div>
                     <div style={{fontSize:12, color:"#64748b", marginTop:4}}>By class & at-risk students</div>
                   </button>
@@ -8565,13 +8565,13 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
                 {!isPrincipal && <>
                   <button onClick={() => printSupervisorEvalReport({teachers,evaluations})}
                     style={{padding:"20px", borderRadius:14, border:"1px solid #e2e8f0", background:"linear-gradient(135deg,#f0fdf9,#fff)", cursor:"pointer", textAlign:"left", fontFamily:"inherit"}}>
-                    <div style={{fontSize:28, marginBottom:10}}>?</div>
+                    <div style={{fontSize:28, marginBottom:10}}>⭐</div>
                     <div style={{fontSize:14, fontWeight:700, color:"#1e293b"}}>Evaluations Report</div>
                     <div style={{fontSize:12, color:"#64748b", marginTop:4}}>Detailed teacher evaluations</div>
                   </button>
                   <button onClick={() => printLessonPlansReport({teachers,classes,subjects,lessonPlans})}
                     style={{padding:"20px", borderRadius:14, border:"1px solid #e2e8f0", background:"linear-gradient(135deg,#eff6ff,#fff)", cursor:"pointer", textAlign:"left", fontFamily:"inherit"}}>
-                    <div style={{fontSize:28, marginBottom:10}}>??</div>
+                    <div style={{fontSize:28, marginBottom:10}}>📚</div>
                     <div style={{fontSize:14, fontWeight:700, color:"#1e293b"}}>Lesson Plans Report</div>
                     <div style={{fontSize:12, color:"#64748b", marginTop:4}}>All teacher lesson plans</div>
                   </button>
@@ -8758,8 +8758,8 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
           {page === "internal"   && <InternalMessaging auth={auth} teachers={teachers} />}
           {page === "subrequests" && userRole === "teacher" && <TeacherSubRequests auth={auth} classes={classes} teachers={teachers} />}
           {page === "subrequests" && (userRole === "admin" || userRole === "supervisor") && <SubManagement auth={auth} classes={classes} teachers={teachers} />}
-          {page === "principals"  && <StaffManagement role="principal" title="Principals" icon="??" storageKey="edu_principals" />}
-          {page === "supervisors" && <StaffManagement role="supervisor" title="Supervisors" icon="???" storageKey="edu_supervisors" />}
+          {page === "principals"  && <StaffManagement role="principal" title="Principals" icon="🏫" storageKey="edu_principals" />}
+          {page === "supervisors" && <StaffManagement role="supervisor" title="Supervisors" icon="👁️" storageKey="edu_supervisors" />}
           {page === "settings"  && userRole === "admin" && <Settings teachers={teachers} setTeachers={setTeachers} students={students} setStudents={setStudents} classes={classes} subjects={subjects} setSubjects={setSubjects} />}
           {page === "exams"      && <ExamScheduler students={students} classes={classes} subjects={subjects} exams={exams} setExams={setExams} examResults={examResults} setExamResults={setExamResults} />}
           {page === "quizzes"    && <Quizzes students={students} classes={classes} subjects={subjects} quizzes={quizzes} setQuizzes={setQuizzes} quizResults={quizResults} setQuizResults={setQuizResults} teacherClassIds={teacherClassIds} userRole={userRole} />}
@@ -8771,7 +8771,6 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
     </div>
   );
 }
-
 
 
 
