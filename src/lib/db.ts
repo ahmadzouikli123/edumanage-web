@@ -1,9 +1,9 @@
-﻿import { supabase } from './supabase'
+import { supabase } from './supabase'
 
 export async function syncStudents(students: any[]) {
   if (!students.length) return;
   const rows = students.map((s: any) => ({
-    id: s.id, sid: s.sid, name: s.name, class_id: s.classId,
+    id: Math.round(Number(s.id)), sid: s.sid, name: s.name, class_id: s.classId,
     gender: s.gender, phone: s.phone || null, status: s.status, academic_year: s.academicYear || null,
   }));
   const { error } = await supabase.from('students').upsert(rows, { onConflict: 'id' });
@@ -13,7 +13,7 @@ export async function syncStudents(students: any[]) {
 export async function loadStudents() {
   const { data, error } = await supabase.from('students').select('*').order('id');
   if (error) { console.error('loadStudents:', error.message); return null; }
-  return data.map((s: any) => ({ id: s.id, sid: s.sid, name: s.name, classId: s.class_id, gender: s.gender, phone: s.phone, status: s.status, academicYear: s.academic_year }));
+  return data.map((s: any) => ({ id: Math.round(Number(s.id)), sid: s.sid, name: s.name, classId: s.class_id, gender: s.gender, phone: s.phone, status: s.status, academicYear: s.academic_year }));
 }
 
 export async function syncTeachers(teachers: any[]) {
@@ -50,7 +50,7 @@ export async function syncAttendance(attendance: any) {
   const rows: any[] = [];
   Object.entries(attendance).forEach(([date, dayRec]: any) => {
     Object.entries(dayRec).forEach(([studentId, status]: any) => {
-      rows.push({ student_id: parseInt(studentId), date, status });
+      rows.push({ student_id: Math.round(parseInt(studentId)), date, status });
     });
   });
   if (!rows.length) return;
@@ -88,7 +88,7 @@ export async function loadMessages() {
 export async function syncSubjects(subjects: any[]) {
   if (!subjects.length) return;
   const rows = subjects.map((s: any) => ({
-    id: s.id, class_id: s.classId, name: s.name, icon: s.icon || null,
+    id: Math.round(Number(s.id)), class_id: s.classId, name: s.name, icon: s.icon || null,
   }));
   const { error } = await supabase.from('subjects').upsert(rows, { onConflict: 'id' });
   if (error) console.error('syncSubjects:', error.message);
@@ -97,7 +97,7 @@ export async function syncSubjects(subjects: any[]) {
 export async function loadSubjects() {
   const { data, error } = await supabase.from('subjects').select('*').order('id');
   if (error) { console.error('loadSubjects:', error.message); return null; }
-  return data.map((s: any) => ({ id: s.id, classId: s.class_id, name: s.name, icon: s.icon || 'book' }));
+  return data.map((s: any) => ({ id: Math.round(Number(s.id)), classId: s.class_id, name: s.name, icon: s.icon || 'book' }));
 }
 
 export async function syncGrades(grades: any) {
@@ -105,8 +105,8 @@ export async function syncGrades(grades: any) {
   Object.entries(grades).forEach(([studentId, subjects]: any) => {
     Object.entries(subjects).forEach(([subjectId, g]: any) => {
       rows.push({
-        student_id: parseInt(studentId),
-        subject_id: parseInt(subjectId),
+        student_id: Math.round(parseInt(studentId)),
+        subject_id: Math.round(parseInt(subjectId)),
         quiz: g.quiz ?? null,
         homework: g.homework ?? null,
         midterm: g.midterm ?? null,
@@ -187,3 +187,4 @@ export async function loadTimetable() {
   });
   return result;
 }
+
