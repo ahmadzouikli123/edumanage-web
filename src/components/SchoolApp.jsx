@@ -8424,64 +8424,170 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
           {/* ── OVERVIEW (Principal only) ── */}
           {dashTab === "overview" && isPrincipal && (
             <div>
+
+              {/* Quick Stats Bar */}
+              <div style={{background:"#1e1e3a", borderRadius:14, padding:"14px 20px", marginBottom:20, display:"flex", alignItems:"center", gap:24, flexWrap:"wrap"}}>
+                {(() => {
+                  const todayStr = new Date().toISOString().split("T")[0];
+                  const todayRec = attendance[todayStr] || {};
+                  const totalPresent = students.filter(s=>todayRec[s.id]==="present").length;
+                  const totalAbsent  = students.filter(s=>todayRec[s.id]==="absent").length;
+                  const avgEval = (evaluations||[]).length
+                    ? Math.round((evaluations||[]).reduce((sum,e)=>sum+(e.pct||0),0)/(evaluations||[]).length)
+                    : null;
+                  const upcomingExams = (exams||[]).filter(e=>new Date(e.date+"T00:00:00")>=new Date()).length;
+                  return [
+                    {label:"Present Today",  value: totalPresent,                   color:"#34d399"},
+                    {label:"Absent Today",   value: totalAbsent,                    color:"#f87171"},
+                    {label:"Avg Eval Score", value: avgEval!==null?avgEval+"%":"—", color:"#818cf8"},
+                    {label:"Upcoming Exams", value: upcomingExams,                  color:"#fbbf24"},
+                  ].map((q,i) => (
+                    <div key={i} style={{display:"flex", alignItems:"center", gap:10, flex:1, minWidth:120}}>
+                      {i>0 && <div style={{width:1, height:32, background:"rgba(255,255,255,.1)", marginRight:14}} />}
+                      <div>
+                        <div style={{fontSize:22, fontWeight:800, color:q.color, lineHeight:1}}>{q.value}</div>
+                        <div style={{fontSize:11, color:"rgba(255,255,255,.5)", marginTop:2}}>{q.label}</div>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+
+              {/* Stats Cards */}
               <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:24}}>
                 {[
-                  {icon:"👥", label:"Total Students", value:students.length,  color:"#0d9488", bg:"#f0fdf9"},
-                  {icon:"👨‍🏫", label:"Total Teachers", value:teachers.length,  color:"#7c3aed", bg:"#f5f3ff"},
-                  {icon:"🏫", label:"Classes",         value:classes.length,   color:"#2563eb", bg:"#eff6ff"},
-                  {icon:"📋", label:"Upcoming Exams",  value:(exams||[]).filter(e=>new Date(e.date+"T00:00:00")>=new Date()).length, color:"#d97706", bg:"#fffbeb"},
+                  {icon:"👥", label:"Total Students", value:students.length,   sub:`${classes.length} classes`, color:"#0d9488", bg:"#f0fdf9", border:"#99f6e4"},
+                  {icon:"👨‍🏫", label:"Total Teachers", value:teachers.length,   sub:"active staff",              color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe"},
+                  {icon:"⭐", label:"Evaluations",    value:(evaluations||[]).length, sub:"visits this year",    color:"#2563eb", bg:"#eff6ff", border:"#bfdbfe"},
+                  {icon:"📋", label:"Upcoming Exams", value:(exams||[]).filter(e=>new Date(e.date+"T00:00:00")>=new Date()).length, sub:"scheduled", color:"#d97706", bg:"#fffbeb", border:"#fde68a"},
                 ].map((s,i) => (
-                  <div key={i} style={{background:s.bg, borderRadius:14, padding:"20px", border:"1px solid #e2e8f0"}}>
-                    <div style={{fontSize:24, marginBottom:8}}>{s.icon}</div>
-                    <div style={{fontSize:28, fontWeight:800, color:s.color}}>{s.value}</div>
-                    <div style={{fontSize:12, color:"#64748b", marginTop:4}}>{s.label}</div>
+                  <div key={i} style={{background:s.bg, borderRadius:14, padding:"20px", border:`1px solid ${s.border}`}}>
+                    <div style={{fontSize:22, marginBottom:10}}>{s.icon}</div>
+                    <div style={{fontSize:30, fontWeight:800, color:s.color, lineHeight:1}}>{s.value}</div>
+                    <div style={{fontSize:13, fontWeight:600, color:"#1e293b", marginTop:6}}>{s.label}</div>
+                    <div style={{fontSize:11, color:"#94a3b8", marginTop:2}}>{s.sub}</div>
                   </div>
                 ))}
               </div>
 
-              {/* Attendance Overview */}
-              <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden", marginBottom:20}}>
-                <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>✅ Today's Attendance by Class</div>
-                <div style={{padding:20, display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:12}}>
-                  {classes.map(cls => {
-                    const todayStr = new Date().toISOString().split("T")[0];
-                    const todayRec = attendance[todayStr] || {};
-                    const clsStudents = students.filter(s=>s.classId===cls.id);
-                    const present = clsStudents.filter(s=>todayRec[s.id]==="present").length;
-                    const pct = clsStudents.length ? Math.round((present/clsStudents.length)*100) : 0;
-                    return (
-                      <div key={cls.id} style={{background:"#f8fafc", borderRadius:10, padding:14}}>
-                        <div style={{fontSize:13, fontWeight:700, color:"#1e293b", marginBottom:6}}>{cls.name}</div>
-                        <div style={{fontSize:22, fontWeight:800, color:pct>=80?"#059669":pct>=60?"#d97706":"#dc2626"}}>{pct}%</div>
-                        <div style={{fontSize:11, color:"#64748b"}}>{present}/{clsStudents.length} present</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              {/* Attendance + Activity Row */}
+              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:20}}>
 
-              {/* Top Students */}
-              <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
-                <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>🏆 Latest Evaluations</div>
-                {(evaluations||[]).length === 0 ? (
-                  <div style={{padding:32, textAlign:"center", color:"#94a3b8"}}>No evaluations yet</div>
-                ) : (
-                  <div style={{padding:16, display:"flex", flexDirection:"column", gap:8}}>
-                    {[...(evaluations||[])].sort((a,b)=>b.createdAt?.localeCompare(a.createdAt||"")||0).slice(0,5).map(ev => {
-                      const perf = ev.pct>=90?{label:"Excellent",color:"#059669",bg:"#d1fae5"}:ev.pct>=75?{label:"Very Good",color:"#0284c7",bg:"#dbeafe"}:ev.pct>=60?{label:"Good",color:"#d97706",bg:"#fef3c7"}:{label:"Needs Improvement",color:"#dc2626",bg:"#fee2e2"};
+                {/* Attendance by Class with Progress Bars */}
+                <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
+                  <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>✅ Today's Attendance by Class</div>
+                  <div style={{padding:"16px 20px", display:"flex", flexDirection:"column", gap:14}}>
+                    {classes.length === 0 && <div style={{color:"#94a3b8", fontSize:13, textAlign:"center", padding:20}}>No classes yet</div>}
+                    {classes.map(cls => {
+                      const todayStr = new Date().toISOString().split("T")[0];
+                      const todayRec = attendance[todayStr] || {};
+                      const clsStudents = students.filter(s=>s.classId===cls.id);
+                      const present = clsStudents.filter(s=>todayRec[s.id]==="present").length;
+                      const total   = clsStudents.length;
+                      const pct     = total ? Math.round((present/total)*100) : null;
+                      const barColor = pct===null?"#cbd5e1":pct>=80?"#059669":pct>=60?"#d97706":"#dc2626";
+                      const recorded = total > 0 && Object.keys(todayRec).some(id=>clsStudents.some(s=>s.id===id));
                       return (
-                        <div key={ev.id} style={{display:"flex", alignItems:"center", gap:12, padding:"10px 14px", background:"#f8fafc", borderRadius:10}}>
-                          <div style={{flex:1}}>
-                            <div style={{fontSize:13, fontWeight:600, color:"#1e293b"}}>{ev.teacherName}</div>
-                            <div style={{fontSize:11, color:"#64748b"}}>{ev.visitDate} · {ev.visitType}</div>
+                        <div key={cls.id}>
+                          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5}}>
+                            <span style={{fontSize:13, fontWeight:600, color:"#1e293b"}}>{cls.name}</span>
+                            <span style={{fontSize:12, color:"#64748b"}}>
+                              {!recorded
+                                ? <span style={{color:"#94a3b8", fontStyle:"italic"}}>Not recorded</span>
+                                : `${present}/${total} · ${pct}%`}
+                            </span>
                           </div>
-                          <div style={{fontSize:18, fontWeight:800, color:perf.color}}>{ev.pct}%</div>
-                          <span style={{background:perf.bg, color:perf.color, borderRadius:8, padding:"3px 10px", fontSize:11, fontWeight:700}}>{perf.label}</span>
+                          <div style={{height:7, background:"#f1f5f9", borderRadius:99, overflow:"hidden"}}>
+                            {recorded && <div style={{height:"100%", width:`${pct}%`, background:barColor, borderRadius:99, transition:"width .4s ease"}} />}
+                          </div>
                         </div>
                       );
                     })}
                   </div>
-                )}
+                </div>
+
+                {/* Recent Activity Feed */}
+                <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
+                  <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>🕐 Recent Activity</div>
+                  <div style={{padding:"12px 20px", display:"flex", flexDirection:"column", gap:0}}>
+                    {(() => {
+                      const items = [];
+                      [...(evaluations||[])].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).slice(0,3).forEach(ev=>{
+                        const perf = ev.pct>=90?"🟢":ev.pct>=75?"🔵":ev.pct>=60?"🟡":"🔴";
+                        items.push({icon:perf, text:`${ev.teacherName} evaluated — ${ev.pct}%`, date:ev.visitDate||ev.createdAt?.split("T")[0]||""});
+                      });
+                      [...(exams||[])].filter(e=>new Date(e.date+"T00:00:00")>=new Date()).sort((a,b)=>(a.date||"").localeCompare(b.date||"")).slice(0,2).forEach(ex=>{
+                        items.push({icon:"📋", text:`Exam: ${ex.subject||ex.title||"Exam"} — ${ex.className||""}`, date:ex.date||""});
+                      });
+                      items.sort((a,b)=>b.date.localeCompare(a.date));
+                      if (items.length === 0) return <div style={{color:"#94a3b8", fontSize:13, textAlign:"center", padding:24}}>No recent activity</div>;
+                      return items.slice(0,6).map((it,i,arr) => (
+                        <div key={i} style={{display:"flex", alignItems:"flex-start", gap:12, padding:"11px 0", borderBottom:i<arr.length-1?"1px solid #f1f5f9":"none"}}>
+                          <span style={{fontSize:16, marginTop:1}}>{it.icon}</span>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:13, color:"#1e293b", fontWeight:500}}>{it.text}</div>
+                            <div style={{fontSize:11, color:"#94a3b8", marginTop:2}}>{it.date}</div>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Latest Evaluations + Upcoming Exams Row */}
+              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:16}}>
+
+                {/* Latest Evaluations */}
+                <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
+                  <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>⭐ Latest Evaluations</div>
+                  {(evaluations||[]).length === 0 ? (
+                    <div style={{padding:32, textAlign:"center", color:"#94a3b8", fontSize:13}}>No evaluations yet</div>
+                  ) : (
+                    <div style={{padding:12, display:"flex", flexDirection:"column", gap:6}}>
+                      {[...(evaluations||[])].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).slice(0,5).map(ev => {
+                        const perf = ev.pct>=90?{label:"Excellent",color:"#059669",bg:"#d1fae5"}:ev.pct>=75?{label:"Very Good",color:"#0284c7",bg:"#dbeafe"}:ev.pct>=60?{label:"Good",color:"#d97706",bg:"#fef3c7"}:{label:"Needs Work",color:"#dc2626",bg:"#fee2e2"};
+                        return (
+                          <div key={ev.id} style={{display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#f8fafc", borderRadius:10}}>
+                            <div style={{flex:1}}>
+                              <div style={{fontSize:13, fontWeight:600, color:"#1e293b"}}>{ev.teacherName}</div>
+                              <div style={{fontSize:11, color:"#64748b"}}>{ev.visitDate} · {ev.visitType}</div>
+                            </div>
+                            <div style={{fontSize:17, fontWeight:800, color:perf.color}}>{ev.pct}%</div>
+                            <span style={{background:perf.bg, color:perf.color, borderRadius:8, padding:"3px 9px", fontSize:11, fontWeight:700, whiteSpace:"nowrap"}}>{perf.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Upcoming Exams */}
+                <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
+                  <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>📋 Upcoming Exams</div>
+                  {(exams||[]).filter(e=>new Date(e.date+"T00:00:00")>=new Date()).length === 0 ? (
+                    <div style={{padding:32, textAlign:"center", color:"#94a3b8", fontSize:13}}>No upcoming exams</div>
+                  ) : (
+                    <div style={{padding:12, display:"flex", flexDirection:"column", gap:6}}>
+                      {[...(exams||[])].filter(e=>new Date(e.date+"T00:00:00")>=new Date()).sort((a,b)=>(a.date||"").localeCompare(b.date||"")).slice(0,5).map((ex,i) => {
+                        const daysLeft = Math.ceil((new Date(ex.date+"T00:00:00")-new Date())/(1000*60*60*24));
+                        const urgency  = daysLeft<=3?{color:"#dc2626",bg:"#fee2e2"}:daysLeft<=7?{color:"#d97706",bg:"#fef3c7"}:{color:"#0d9488",bg:"#f0fdf9"};
+                        return (
+                          <div key={ex.id||i} style={{display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#f8fafc", borderRadius:10}}>
+                            <div style={{flex:1}}>
+                              <div style={{fontSize:13, fontWeight:600, color:"#1e293b"}}>{ex.subject||ex.title||"Exam"}</div>
+                              <div style={{fontSize:11, color:"#64748b"}}>{ex.className||""} · {ex.date}</div>
+                            </div>
+                            <span style={{background:urgency.bg, color:urgency.color, borderRadius:8, padding:"3px 9px", fontSize:11, fontWeight:700, whiteSpace:"nowrap"}}>
+                              {daysLeft===0?"Today":daysLeft===1?"Tomorrow":`${daysLeft}d`}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
               </div>
             </div>
           )}
