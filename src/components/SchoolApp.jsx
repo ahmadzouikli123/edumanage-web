@@ -8601,8 +8601,8 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
               {/* Quick Stats Bar */}
               <div style={{background:"#1e1e3a", borderRadius:14, padding:"14px 20px", marginBottom:20, display:"flex", alignItems:"center", gap:24, flexWrap:"wrap"}}>
                 {(() => {
-                  const pendingSubs = (subRequests||[]).filter(r=>r.status==="pending").length;
-                  const pendingPlans = (lessonPlans||[]).filter(p=>p.status==="pending"||!p.status).length;
+                  const subRequests = (() => { try { return JSON.parse(localStorage.getItem("edu_sub_requests")||"[]"); } catch{return[];} })();
+                  const pendingSubs = subRequests.filter(r=>r.status==="pending").length;
                   const myEvals = (evaluations||[]).filter(e=>e.supervisorId===auth.id||e.supervisorName===auth.name);
                   const avgEval = myEvals.length ? Math.round(myEvals.reduce((s,e)=>s+(e.pct||0),0)/myEvals.length) : null;
                   const unreadMsgs = 0;
@@ -8627,7 +8627,7 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
               <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:24}}>
                 {[
                   {icon:"👨‍🏫", label:"Teachers",          value:teachers.length,                                                        sub:"under supervision",  color:"#0d9488", bg:"#f0fdf9", border:"#99f6e4"},
-                  {icon:"🔄", label:"Sub Requests",       value:(subRequests||[]).filter(r=>r.status==="pending").length,                sub:"awaiting approval",  color:"#dc2626", bg:"#fff5f5", border:"#fecaca"},
+                  {icon:"🔄", label:"Sub Requests",       value:(() => { try { return JSON.parse(localStorage.getItem("edu_sub_requests")||"[]"); } catch{return[];} })().filter(r=>r.status==="pending").length, sub:"awaiting approval", color:"#dc2626", bg:"#fff5f5", border:"#fecaca"},
                   {icon:"📚", label:"Lesson Plans",       value:(lessonPlans||[]).length,                                               sub:"submitted",           color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe"},
                   {icon:"⭐", label:"My Evaluations",     value:(evaluations||[]).filter(e=>e.supervisorName===auth.name).length,       sub:"completed visits",    color:"#d97706", bg:"#fffbeb", border:"#fde68a"},
                 ].map((s,i) => (
@@ -8646,11 +8646,11 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
                 {/* Pending Sub Requests */}
                 <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
                   <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>🔄 Pending Sub Requests</div>
-                  {(subRequests||[]).filter(r=>r.status==="pending").length === 0 ? (
+                  {(() => { try { return JSON.parse(localStorage.getItem("edu_sub_requests")||"[]"); } catch{return[];} })().filter(r=>r.status==="pending").length === 0 ? (
                     <div style={{padding:32, textAlign:"center", color:"#94a3b8", fontSize:13}}>No pending requests 🎉</div>
                   ) : (
                     <div style={{padding:12, display:"flex", flexDirection:"column", gap:6}}>
-                      {(subRequests||[]).filter(r=>r.status==="pending").slice(0,5).map((req,i) => (
+                      {(() => { try { return JSON.parse(localStorage.getItem("edu_sub_requests")||"[]"); } catch{return[];} })().filter(r=>r.status==="pending").slice(0,5).map((req,i) => (
                         <div key={req.id||i} style={{display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#fff5f5", borderRadius:10, border:"1px solid #fecaca"}}>
                           <div style={{flex:1}}>
                             <div style={{fontSize:13, fontWeight:600, color:"#1e293b"}}>{req.teacherName||req.requestedBy||"Teacher"}</div>
