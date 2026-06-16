@@ -7551,7 +7551,7 @@ export default function App() {
   };
 
   const [activeChildId, setActiveChildId] = useState(null);
-  const [dashTab, setDashTab] = useState("overview");
+  const [dashTab, setDashTab] = useState(auth?.role === "supervisor" ? "soverview" : "overview");
 
   if (!auth) return null;
 
@@ -8381,6 +8381,7 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
     ];
 
     const supervisorTabs = [
+      { id: "soverview",    icon: "📊", label: "Overview"     },
       { id: "evaluations",  icon: "⭐", label: "Evaluations"  },
       { id: "subrequests",  icon: "🔄", label: "Sub Requests" },
       { id: "lessonplans",  icon: "📚", label: "Lesson Plans" },
@@ -8593,6 +8594,126 @@ function printLessonPlansReport({ teachers, classes, subjects, lessonPlans }) {
           )}
 
           {/* ── EVALUATIONS ── */}
+          {/* ── OVERVIEW (Supervisor only) ── */}
+          {dashTab === "soverview" && !isPrincipal && (
+            <div>
+
+              {/* Quick Stats Bar */}
+              <div style={{background:"#1e1e3a", borderRadius:14, padding:"14px 20px", marginBottom:20, display:"flex", alignItems:"center", gap:24, flexWrap:"wrap"}}>
+                {(() => {
+                  const pendingSubs = (subRequests||[]).filter(r=>r.status==="pending").length;
+                  const pendingPlans = (lessonPlans||[]).filter(p=>p.status==="pending"||!p.status).length;
+                  const myEvals = (evaluations||[]).filter(e=>e.supervisorId===auth.id||e.supervisorName===auth.name);
+                  const avgEval = myEvals.length ? Math.round(myEvals.reduce((s,e)=>s+(e.pct||0),0)/myEvals.length) : null;
+                  const unreadMsgs = 0;
+                  return [
+                    {label:"Pending Sub Requests", value: pendingSubs,                      color:"#f87171"},
+                    {label:"Lesson Plans",          value: (lessonPlans||[]).length,         color:"#34d399"},
+                    {label:"My Evaluations",        value: myEvals.length,                  color:"#818cf8"},
+                    {label:"Avg Eval Score",        value: avgEval!==null?avgEval+"%":"—",  color:"#fbbf24"},
+                  ].map((q,i) => (
+                    <div key={i} style={{display:"flex", alignItems:"center", gap:10, flex:1, minWidth:120}}>
+                      {i>0 && <div style={{width:1, height:32, background:"rgba(255,255,255,.1)", marginRight:14}} />}
+                      <div>
+                        <div style={{fontSize:22, fontWeight:800, color:q.color, lineHeight:1}}>{q.value}</div>
+                        <div style={{fontSize:11, color:"rgba(255,255,255,.5)", marginTop:2}}>{q.label}</div>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+
+              {/* Stats Cards */}
+              <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:24}}>
+                {[
+                  {icon:"👨‍🏫", label:"Teachers",          value:teachers.length,                                                        sub:"under supervision",  color:"#0d9488", bg:"#f0fdf9", border:"#99f6e4"},
+                  {icon:"🔄", label:"Sub Requests",       value:(subRequests||[]).filter(r=>r.status==="pending").length,                sub:"awaiting approval",  color:"#dc2626", bg:"#fff5f5", border:"#fecaca"},
+                  {icon:"📚", label:"Lesson Plans",       value:(lessonPlans||[]).length,                                               sub:"submitted",           color:"#7c3aed", bg:"#f5f3ff", border:"#ddd6fe"},
+                  {icon:"⭐", label:"My Evaluations",     value:(evaluations||[]).filter(e=>e.supervisorName===auth.name).length,       sub:"completed visits",    color:"#d97706", bg:"#fffbeb", border:"#fde68a"},
+                ].map((s,i) => (
+                  <div key={i} style={{background:s.bg, borderRadius:14, padding:"20px", border:`1px solid ${s.border}`}}>
+                    <div style={{fontSize:22, marginBottom:10}}>{s.icon}</div>
+                    <div style={{fontSize:30, fontWeight:800, color:s.color, lineHeight:1}}>{s.value}</div>
+                    <div style={{fontSize:13, fontWeight:600, color:"#1e293b", marginTop:6}}>{s.label}</div>
+                    <div style={{fontSize:11, color:"#94a3b8", marginTop:2}}>{s.sub}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Two columns: Pending Sub Requests + Recent Lesson Plans */}
+              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:20}}>
+
+                {/* Pending Sub Requests */}
+                <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
+                  <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>🔄 Pending Sub Requests</div>
+                  {(subRequests||[]).filter(r=>r.status==="pending").length === 0 ? (
+                    <div style={{padding:32, textAlign:"center", color:"#94a3b8", fontSize:13}}>No pending requests 🎉</div>
+                  ) : (
+                    <div style={{padding:12, display:"flex", flexDirection:"column", gap:6}}>
+                      {(subRequests||[]).filter(r=>r.status==="pending").slice(0,5).map((req,i) => (
+                        <div key={req.id||i} style={{display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#fff5f5", borderRadius:10, border:"1px solid #fecaca"}}>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:13, fontWeight:600, color:"#1e293b"}}>{req.teacherName||req.requestedBy||"Teacher"}</div>
+                            <div style={{fontSize:11, color:"#64748b"}}>{req.date||""} · {req.className||req.class||""}</div>
+                          </div>
+                          <span style={{background:"#fee2e2", color:"#dc2626", borderRadius:8, padding:"3px 9px", fontSize:11, fontWeight:700}}>Pending</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Recent Lesson Plans */}
+                <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
+                  <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>📚 Recent Lesson Plans</div>
+                  {(lessonPlans||[]).length === 0 ? (
+                    <div style={{padding:32, textAlign:"center", color:"#94a3b8", fontSize:13}}>No lesson plans yet</div>
+                  ) : (
+                    <div style={{padding:12, display:"flex", flexDirection:"column", gap:6}}>
+                      {[...(lessonPlans||[])].sort((a,b)=>(b.week||"").localeCompare(a.week||"")).slice(0,5).map((p,i) => {
+                        const cls = classes.find(c=>c.id===p.classId);
+                        return (
+                          <div key={p.id||i} style={{display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#f8fafc", borderRadius:10}}>
+                            <div style={{flex:1}}>
+                              <div style={{fontSize:13, fontWeight:600, color:"#1e293b"}}>{p.title}</div>
+                              <div style={{fontSize:11, color:"#64748b"}}>{cls?.name||""} · {p.day||""} · {p.week||""}</div>
+                            </div>
+                            <span style={{fontSize:11, color:"#0d9488", fontWeight:600}}>{p.createdBy}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* My Recent Evaluations */}
+              <div style={{background:"#fff", borderRadius:14, border:"1px solid #e2e8f0", overflow:"hidden"}}>
+                <div style={{padding:"16px 20px", borderBottom:"1px solid #e2e8f0", fontSize:15, fontWeight:700, color:"#1e293b"}}>⭐ My Recent Evaluations</div>
+                {(evaluations||[]).filter(e=>e.supervisorName===auth.name).length === 0 ? (
+                  <div style={{padding:32, textAlign:"center", color:"#94a3b8", fontSize:13}}>No evaluations submitted yet</div>
+                ) : (
+                  <div style={{padding:12, display:"flex", flexDirection:"column", gap:6}}>
+                    {[...(evaluations||[])].filter(e=>e.supervisorName===auth.name).sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).slice(0,5).map(ev => {
+                      const perf = ev.pct>=90?{label:"Excellent",color:"#059669",bg:"#d1fae5"}:ev.pct>=75?{label:"Very Good",color:"#0284c7",bg:"#dbeafe"}:ev.pct>=60?{label:"Good",color:"#d97706",bg:"#fef3c7"}:{label:"Needs Work",color:"#dc2626",bg:"#fee2e2"};
+                      return (
+                        <div key={ev.id} style={{display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#f8fafc", borderRadius:10}}>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:13, fontWeight:600, color:"#1e293b"}}>{ev.teacherName}</div>
+                            <div style={{fontSize:11, color:"#64748b"}}>{ev.visitDate} · {ev.visitType}</div>
+                          </div>
+                          <div style={{fontSize:17, fontWeight:800, color:perf.color}}>{ev.pct}%</div>
+                          <span style={{background:perf.bg, color:perf.color, borderRadius:8, padding:"3px 9px", fontSize:11, fontWeight:700, whiteSpace:"nowrap"}}>{perf.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+            </div>
+          )}
+
           {dashTab === "evaluations" && (
             <TeacherEvaluations teachers={teachers} evaluations={evaluations} setEvaluations={setEvaluations} userRole={auth.role} auth={auth} />
           )}
